@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Jarvis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jarvis">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root {
+    --bg: #0a0d14; --card: #131926; --card2: #1a2232; --linha: rgba(255,255,255,.07);
+    --tx: #eef2f8; --mu: #8c97ab; --di: #5f697c;
+    --ok: #34d399; --ok2: rgba(52,211,153,.14); --er: #fb7185; --er2: rgba(251,113,133,.14);
+    --av: #fbbf24; --av2: rgba(251,191,36,.13); --pri: #60a5fa; --pri2: rgba(96,165,250,.15); --ci: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); overflow-x: hidden; }
+  body { color: var(--tx); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+         -webkit-font-smoothing: antialiased; max-width: 620px; margin: 0 auto;
+         padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  button, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 2px 16px; }
+  h1 { font-size: 26px; font-weight: 780; letter-spacing: -.5px; display: flex; align-items: center; gap: 10px; }
+  .orbe { width: 14px; height: 14px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 14px var(--ok); }
+  .orbe.atencao { background: var(--av); box-shadow: 0 0 14px var(--av); } .orbe.erro { background: var(--er); box-shadow: 0 0 14px var(--er); }
+  .sub { color: var(--mu); font-size: 13px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; color: var(--pri); background: var(--pri2); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 650; white-space: nowrap; }
+  .giro { display: inline-block; animation: g 1s linear infinite; } @keyframes g { to { transform: rotate(360deg); } }
+  .card { background: var(--card); border: 1px solid var(--linha); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+  .titulo { color: var(--mu); font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; display: flex; justify-content: space-between; gap: 8px; }
+  .titulo small { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--di); }
+  .resumo { padding: 20px; }
+  .resumo .grande { font-size: 22px; font-weight: 750; letter-spacing: -.3px; }
+  .resumo.ok { background: linear-gradient(160deg, rgba(52,211,153,.14), var(--card) 60%); }
+  .resumo.atencao { background: linear-gradient(160deg, rgba(251,191,36,.14), var(--card) 60%); }
+  .resumo.erro { background: linear-gradient(160deg, rgba(251,113,133,.16), var(--card) 60%); }
+  .toast { border-radius: 14px; padding: 11px 14px; font-size: 13.5px; margin-bottom: 12px; background: var(--ok2); color: var(--ok); }
+  .toast.ruim { background: var(--av2); color: var(--av); }
+  .proj { display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--linha); }
+  .proj:first-of-type { border-top: 0; padding-top: 2px; }
+  .proj .ic { font-size: 22px; width: 38px; height: 38px; display: grid; place-items: center; background: var(--card2); border-radius: 12px; }
+  .proj b { display: block; font-size: 15px; }
+  .proj .det { color: var(--mu); font-size: 12.5px; overflow-wrap: anywhere; }
+  .pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { background: var(--ok2); color: var(--ok); } .pill.atencao { background: var(--av2); color: var(--av); }
+  .pill.erro { background: var(--er2); color: var(--er); } .pill.pausado, .pill.config { background: var(--card2); color: var(--mu); }
+  a.proj { color: inherit; text-decoration: none; }
+  .dinheiro { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+  .dinheiro .v { font-size: 26px; font-weight: 780; font-variant-numeric: tabular-nums; }
+  .aviso { display: grid; grid-template-columns: 10px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--linha); }
+  .aviso:first-of-type { border-top: 0; }
+  .aviso i { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; background: var(--pri); }
+  .aviso i.urgente { background: var(--er); } .aviso i.atencao { background: var(--av); } .aviso i.ok { background: var(--ok); }
+  .aviso b { font-size: 14px; display: block; } .aviso p { color: var(--mu); font-size: 13px; white-space: pre-line; }
+  .aviso small { color: var(--di); font-size: 11.5px; }
+  .grande-btn { width: 100%; padding: 13px; border-radius: 14px; background: var(--pri); color: #0a0d14; font-weight: 750; font-size: 15px; }
+  .grande-btn.sec { background: var(--card2); color: var(--tx); font-weight: 600; margin-top: 8px; }
+  input.cola { width: 100%; background: var(--card2); border: 1px solid var(--linha); border-radius: 12px; padding: 12px; font-size: 16px; margin: 10px 0; }
+  .pequeno { color: var(--mu); font-size: 12.5px; }
+  .vazio { color: var(--di); font-size: 13px; }
+  .mais { width: 100%; margin-top: 6px; padding: 10px; border-radius: 12px; background: var(--card2); color: var(--mu); font-size: 13px; font-weight: 600; }
+  .skel { height: 100px; border-radius: 20px; margin-bottom: 12px; background: linear-gradient(90deg, var(--card), var(--card2), var(--card)); background-size: 200% 100%; animation: b 1.4s infinite; }
+  @keyframes b { to { background-position: -200% 0; } }
+  footer { text-align: center; color: var(--di); font-size: 11.5px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1><span class="orbe" id="orbe"></span>Jarvis</h1><div class="sub" id="sub">carregando…</div></div>
+  <button class="btn" id="atualizar"><span id="giro">↻</span> Conferir</button>
+</header>
+<div id="app"><div class="skel"></div><div class="skel" style="height:240px"></div></div>
+<footer>Confere seus projetos a cada 10 minutos</footer>
+<script>
+'use strict';
+const LS = 'jarvis.cfg', LD = 'jarvis.dados';
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const ler = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const R = n => (n < -0.5 ? '−' : '') + 'R$ ' + Math.abs(Math.round(n || 0)).toLocaleString('pt-BR');
+const dm = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : '';
+function ha(iso) {
+  if (!iso) return '';
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return m < 1 ? 'agora' : m < 60 ? `há ${m} min` : m < 1440 ? `há ${Math.round(m / 60)}h` : new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+const standalone = () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+
+// ---------------------------------------------------------------- acesso (link #k=...&u=... ou colado uma vez)
+function cfgDeTexto(texto) {
+  const i = String(texto || '').indexOf('#');
+  const h = new URLSearchParams(String(texto).slice(i + 1).replace(/&amp;/g, '&'));
+  return i >= 0 && h.get('k') && h.get('u') ? { k: h.get('k'), u: h.get('u') } : null;
+}
+let CFG = cfgDeTexto(location.href);
+if (CFG) salvarCfg(CFG);
+else { try { CFG = JSON.parse(ler(LS)); } catch (e) { CFG = null; } }
+function salvarCfg(c) {
+  guardar(LS, JSON.stringify(c));
+  if ('caches' in window) caches.open('jarvis-cfg').then(x => x.put('cfg', new Response(JSON.stringify(c)))).catch(() => {});   // o service worker lê daqui
+  if (location.hash) history.replaceState(null, '', location.pathname);
+}
+
+// ---------------------------------------------------------------- rede
+const S = { D: null, quando: 0, carregando: false, aviso: '', ruim: false, offline: false, erro: '', todos: false };
+async function api(acao, extra) {
+  const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
+  const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
+  return JSON.parse(await r.text());
+}
+async function post(corpo) {
+  const r = await fetch(CFG.u + '?k=' + encodeURIComponent(CFG.k), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo) });
+  return JSON.parse(await r.text());
+}
+async function carregar(conferir) {
+  if (S.carregando || !CFG) return;
+  S.carregando = true; render();
+  try {
+    if (conferir) await post({ tipo: 'verificar' });
+    const D = await api('estado');
+    if (!D.projetos) throw Object.assign(new Error('auth'), { auth: true });
+    S.D = D; S.quando = Date.now(); S.offline = false; S.erro = '';
+    guardar(LD, JSON.stringify({ t: S.quando, D }));
+    if (D.avisos[0] && 'caches' in window) caches.open('jarvis-cfg').then(x => x.put('ultimo', new Response(String(D.avisos[0].id)))).catch(() => {});
+  } catch (e) { if (e.auth) S.erro = 'auth'; else S.offline = true; }
+  S.carregando = false; render();
+}
+
+// ---------------------------------------------------------------- notificações
+function estadoPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return standalone() ? 'sem-suporte' : 'instalar';
+  return Notification.permission;                                     // default | granted | denied
+}
+function chaveBytes(b64) {
+  const s = (b64 + '==='.slice((b64.length + 3) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+async function ativarPush() {
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { S.aviso = 'Permissão negada. Ajustes > Notificações > Jarvis para liberar.'; S.ruim = true; return render(); }
+    const reg = await navigator.serviceWorker.ready;
+    const { chave } = await (await fetch(CFG.u + '?acao=vapid', { redirect: 'follow' })).json();
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(chave) });
+    const r = await post({ tipo: 'inscrever', inscricao: sub.toJSON(), aparelho: /iPhone/.test(navigator.userAgent) ? 'iPhone' : 'outro' });
+    S.aviso = r.ok ? '✓ Notificações ativadas neste aparelho' : 'Não consegui ativar: ' + (r.erro || ''); S.ruim = !r.ok;
+  } catch (e) { S.aviso = 'Não consegui ativar: ' + e.message; S.ruim = true; }
+  render();
+}
+async function testarPush() {
+  try { const r = await post({ tipo: 'teste' }); S.aviso = r.enviados ? '✓ Teste enviado: a notificação chega em segundos' : 'Nenhum aparelho inscrito ainda'; S.ruim = !r.enviados; }
+  catch (e) { S.aviso = 'Não consegui mandar o teste'; S.ruim = true; }
+  render();
+}
+
+// ---------------------------------------------------------------- telas
+function telaAcesso() {
+  return `<div class="card"><div class="titulo">Primeiro acesso</div>
+    <p>Cole aqui o <b>link do Jarvis</b> que veio no Telegram (só desta vez).</p>
+    <input class="cola" id="cola" placeholder="https://caioaprat.github.io/Jarvis/#k=..." autocomplete="off" autocapitalize="off">
+    <button class="grande-btn" data-acao="colar">Entrar</button>
+    <p class="pequeno" style="margin-top:10px">Toque e segure o link no Telegram → Copiar → toque no campo acima → Colar.</p></div>`;
+}
+const NOMES = { ok: 'ok', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar' };
+
+function render() {
+  $('giro').className = S.carregando ? 'giro' : '';
+  const app = $('app');
+  if (!CFG) { $('sub').textContent = 'falta o acesso'; app.innerHTML = telaAcesso(); return; }
+  if (S.erro === 'auth') { $('sub').textContent = 'acesso recusado'; app.innerHTML = `<div class="card"><p>A chave não vale mais. Cole o link novo:</p></div>` + telaAcesso(); return; }
+  if (!S.D) { app.innerHTML = S.offline ? '<div class="card">Sem conexão e sem dados guardados. <button class="btn" data-acao="tentar">Tentar de novo</button></div>' : '<div class="skel"></div><div class="skel" style="height:240px"></div>'; return; }
+  const D = S.D, h = [];
+  const contar = s => D.projetos.filter(p => p.status === s).length;
+  const erros = contar('erro'), atencoes = contar('atencao');
+  const geral = erros ? 'erro' : atencoes ? 'atencao' : 'ok';
+  $('orbe').className = 'orbe ' + geral;
+  $('sub').textContent = (S.carregando ? 'conferindo… · ' : '') + 'conferido ' + ha(D.verificadoEm);
+
+  if (S.offline) h.push(`<div class="toast ruim">Sem conexão: dados de ${ha(new Date(S.quando).toISOString())}.</div>`);
+  if (S.aviso) h.push(`<div class="toast ${S.ruim ? 'ruim' : ''}">${esc(S.aviso)}</div>`);
+
+  h.push(`<div class="card resumo ${geral}"><div class="grande">${geral === 'ok' ? 'Tudo funcionando' : erros ? `${erros} projeto(s) com problema` : `${atencoes} projeto(s) pedindo atenção`}</div>
+    <div class="sub">${D.projetos.length} projetos · ${contar('ok')} ok${contar('pausado') ? ' · ' + contar('pausado') + ' pausado' : ''}${contar('config') ? ' · ' + contar('config') + ' a configurar' : ''}</div></div>`);
+
+  // notificações
+  const ep = estadoPush();
+  if (ep === 'instalar') h.push(`<div class="card"><div class="titulo">Notificações no iPhone</div><p class="pequeno">Para receber avisos: no Safari, Compartilhar → <b>Adicionar à Tela de Início</b> e abra pelo ícone do Jarvis.</p></div>`);
+  else if (ep === 'default') h.push(`<div class="card"><div class="titulo">Notificações</div><p class="pequeno" style="margin-bottom:10px">Receba os avisos de todos os projetos (inclusive do dinheiro) direto no iPhone.</p><button class="grande-btn" data-acao="push">Ativar notificações</button></div>`);
+  else if (ep === 'denied') h.push(`<div class="card"><div class="titulo">Notificações bloqueadas</div><p class="pequeno">Ajustes do iPhone → Notificações → Jarvis → Permitir.</p></div>`);
+
+  // dinheiro
+  const as = D.projetos.find(p => p.id === 'assistente');
+  if (as && as.extra) {
+    const x = as.extra;
+    h.push(`<a class="card dinheiro" href="${esc(as.link || '#')}"><div><div class="titulo" style="margin-bottom:2px">Dinheiro</div>
+      <div class="sub">${x.ok ? 'Livre' : 'Falta'} até ${dm(x.ate)}${x.acao ? ' · ' + esc(x.acao.titulo) : ''}</div></div>
+      <div class="v" style="color:${x.ok ? 'var(--ok)' : 'var(--er)'}">${R(Math.abs(x.livre))}</div></a>`);
+  }
+
+  // projetos
+  const ordem = { erro: 0, atencao: 1, config: 2, ok: 3, pausado: 4 };
+  const lista = D.projetos.slice().sort((a, b) => ordem[a.status] - ordem[b.status]);
+  h.push(`<div class="card"><div class="titulo">Projetos</div>${lista.map(p => {
+    const tag = p.link ? 'a' : 'div';
+    return `<${tag} class="proj" ${p.link ? `href="${esc(p.link)}"` : ''}><div class="ic">${p.icone}</div>
+      <div><b>${esc(p.nome)}</b><div class="det">${esc(p.detalhe || '')}</div><div class="det" style="color:var(--di)">${p.status === 'ok' ? 'ok ' : NOMES[p.status] + ' '}desde ${ha(p.desde)}</div></div>
+      <span class="pill ${p.status}">${NOMES[p.status] || p.status}</span></${tag}>`;
+  }).join('')}</div>`);
+
+  // avisos
+  const avisos = S.todos ? D.avisos : D.avisos.slice(0, 6);
+  h.push(`<div class="card"><div class="titulo">Avisos<small>${D.inscricoes} aparelho(s) recebendo</small></div>${avisos.map(a => `
+    <div class="aviso"><i class="${esc(a.nivel)}"></i><div><b>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}<small>${ha(a.quando)}</small></div></div>`).join('') || '<div class="vazio">Nenhum aviso ainda.</div>'}
+    ${!S.todos && D.avisos.length > 6 ? '<button class="mais" data-acao="todos">Ver todos</button>' : ''}
+    ${ep === 'granted' ? '<button class="grande-btn sec" data-acao="teste">Mandar notificação de teste</button>' : ''}</div>`);
+  app.innerHTML = h.join('');
+}
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('button'); if (!b) return;
+  if (b.id === 'atualizar') { S.aviso = ''; carregar(true); }
+  const a = b.dataset.acao;
+  if (a === 'tentar') carregar();
+  if (a === 'push') ativarPush();
+  if (a === 'teste') testarPush();
+  if (a === 'todos') { S.todos = true; render(); }
+  if (a === 'colar') {
+    const c = cfgDeTexto($('cola').value.trim());
+    if (!c) { alert('Esse não parece o link do Jarvis. Copie o link inteiro da mensagem do Telegram.'); return; }
+    CFG = c; salvarCfg(c); S.erro = ''; carregar();
+  }
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - S.quando > 60000) carregar(); });
+
+(function () {
+  try { const c = JSON.parse(ler(LD)); if (c && c.D) { S.D = c.D; S.quando = c.t; } } catch (e) {}
+  render();
+  if (CFG) { salvarCfg(CFG); carregar(); }
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Publica o servidor do Jarvis (Apps Script) quando apps-script/ muda. O app (index.html) sai pelo GitHub Pages sozinho.
+# Precisa do secret CLASPRC_JSON (conteúdo de C:\Users\producao2\.clasprc.json).
+name: Publicar Jarvis
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps-script/**', 'testes/**', '.github/workflows/publicar.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes
+        run: node testes/testes.js
+      - name: Publicar no Apps Script
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          MENSAGEM: ${{ github.event.head_commit.message || 'publicação manual' }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then echo "::warning::Falta o secret CLASPRC_JSON: testes ok, publicação pulada"; exit 0; fi
+          npm install -g @google/clasp@3.4.1 >/dev/null
+          printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
+          clasp push -f
+          DESC=$(printf '%s' "$MENSAGEM" | head -1 | cut -c1-90)
+          clasp deploy -i AKfycbwPYJb6pjQ2nPlW63SGh82Rsrfkqk8Mpn9X-ajd8nRA3QJbrMDHyMuwIyAVrQnNPq35 -d "$DESC"
+          rm -f ~/.clasprc.json
