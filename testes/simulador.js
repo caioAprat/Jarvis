@@ -68,7 +68,7 @@ function ambiente(opcoes = {}) {
       getKeys: () => Object.keys(A.props) }) },
     CacheService: { getScriptCache: () => ({ get: k => A.cache[k] === undefined ? null : A.cache[k], put: (k, v) => { A.cache[k] = v; } }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
-    ScriptApp: { getProjectTriggers: () => [], deleteTrigger() {}, getOAuthToken: () => 'TOKEN-GOOGLE',
+    ScriptApp: { getProjectTriggers: () => [], deleteTrigger() {}, getOAuthToken: () => 'TOKEN-GOOGLE', requireAllScopes() {}, AuthMode: { FULL: 'FULL' },
       newTrigger: n => { const b = { timeBased: () => b, everyMinutes: () => b, atHour: () => b, nearMinute: () => b, everyDays: () => b, inTimezone: () => b, create: () => A.gatilhos.push(n) }; return b; } },
     DriveApp: {
       getRootFolder: () => ({}),
@@ -82,6 +82,7 @@ function ambiente(opcoes = {}) {
     SpreadsheetApp: { openById: () => ({ getSheets: () => A.abasPlanilha.map(a => ({ getName: () => a.nome, getMaxRows: () => a.linhas, getMaxColumns: () => a.colunas })) }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: s => { const o = { texto: s, setMimeType: () => o }; return o; } },
     UrlFetchApp: { fetch: (u, o) => A.fetch(u, o), getRequest: () => ({}) },
+    Logger: { log() {} },
     Utilities: {
       formatDate: fmt,
       newBlob: s => ({ getBytes: () => assinado(Buffer.from(s, 'utf8')) }),

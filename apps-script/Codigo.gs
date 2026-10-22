@@ -57,6 +57,8 @@ const MAPA_EXTRA = [
 
 /** Rode pelo editor uma vez (autoriza e cria o gatilho). Pode rodar de novo sem problema. */
 function instalar() {
+  // o Google mostra uma caixinha por permissão: isto pede de novo as que ficaram desmarcadas
+  try { ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL); } catch (e) { /* versões antigas do Apps Script */ }
   const props = PropertiesService.getScriptProperties();
   if (typeof SEGREDOS_LOCAIS !== 'undefined') {             // arquivo que só existe na primeira publicação feita do computador
     Object.keys(SEGREDOS_LOCAIS).forEach(k => { if (SEGREDOS_LOCAIS[k] && !props.getProperty(k)) props.setProperty(k, SEGREDOS_LOCAIS[k]); });
@@ -69,8 +71,14 @@ function instalar() {
   try { DriveApp.getRootFolder(); } catch (e) { /* só para pedir a permissão do Drive */ }
   if (!props.getProperty('observar:planilha')) props.setProperty('observar:planilha', dia_(new Date(Date.now() + 7 * 864e5)));   // 1ª semana: calibrar sem alarme de "atenção"
   verificar();
-  return 'Jarvis instalado: ' + ['CHAVE', 'CHAVE_PC', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
+  const planilha = PROJETOS.find(p => p.tipo === 'appsscript');
+  const teste = execucoes_(planilha.scriptId, new Date(Date.now() - 3600000));
+  const leitura = teste.erro ? 'FALHOU: ' + teste.erro : 'OK (' + teste.lista.length + ' execuções na última hora)';
+  const r = 'Leitura da planilha: ' + leitura + ' | chaves: ' + ['CHAVE', 'CHAVE_PC', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
     .map(k => k + (props.getProperty(k) ? ' ok' : ' FALTA')).join(', ');
+  log_('instalar', r);
+  Logger.log(r);
+  return r;
 }
 
 // ================================================================== utilidades
