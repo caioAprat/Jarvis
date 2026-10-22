@@ -6,31 +6,51 @@
  *  - Os projetos podem mandar "batidas" (estou vivo) e o assistente manda avisos.
  *  - O app (GitHub Pages) lê tudo por acao=estado.
  *
- * CHAVES (Script Properties): CHAVE (admin), CHAVE_LEITURA (app do iPhone), CHAVE_AVISO (assistente: avisos e batidas),
- * CHAVE_BATIDA (bots: só batidas). Cada valor de Script Property tem limite de 9 KB: tudo o que cresce é cortado por tamanho.
- * Para acrescentar um projeto: um item novo em PROJETOS + o teste dele em checar_().
+ * CHAVES (Script Properties): CHAVE (admin), CHAVE_PC (Jarvis PC: tudo do celular + operar), CHAVE_LEITURA (app do iPhone),
+ * CHAVE_AVISO (assistente: avisos e batidas), CHAVE_BATIDA (bots: só batidas).
+ * Cada valor de Script Property tem limite de 9 KB: tudo o que cresce é cortado por tamanho.
+ *
+ * ARQUIVOS: Codigo.gs (núcleo: projetos, checagens, avisos, push, entrada) · Google.gs (planilha J Hissnauer pelo
+ * registro de execuções, versões, backups) · Pc.gs (central do PC, pedidos, configurações do assistente).
+ * Para acrescentar um projeto: um item novo em PROJETOS (com pasta/repo/roda/publicar para o mapa) + o teste dele em checar_().
  */
 
 const FUSO = 'America/Sao_Paulo';
-const VERSAO = 2;
+const VERSAO = 3;
 const SUJEITO_VAPID = 'https://caioaprat.github.io/Jarvis/';
 const LIMITE_PROP = 8000;                                      // bytes por Script Property (o Google aceita 9 KB)
 const HOSTS_PUSH = /^https:\/\/(web\.push\.apple\.com|fcm\.googleapis\.com|[\w.-]+\.push\.services\.mozilla\.com|[\w.-]+\.notify\.windows\.com)\//;
 const LINKS_OK = /^https:\/\/(caioaprat\.github\.io|github\.com\/caioAprat|script\.google\.com|docs\.google\.com)\//i;
 
+// cliente: true = vendido (vem primeiro e todo problema é urgente). pasta/repo/roda/publicar = "mapa dos projetos" do PC.
 const PROJETOS = [
+  { id: 'gabinete', nome: 'Gabinete Chamados', icone: '🏛️', tipo: 'site', url: 'https://gabinete-chamados.vercel.app/entrar',
+    marcador: 'Chamados do Gabinete', supabase: 'GABINETE', urgente: true, cliente: true,
+    descricao: 'Sistema de chamados do cliente (site + banco de dados)',
+    pasta: 'C:\\Gabinete_chamados', repo: 'caioAprat/Gabinete_chamados', roda: 'Vercel (site) + Supabase (banco)', publicar: 'git push (a Vercel publica sozinha)' },
+  { id: 'planilha', nome: 'Planilha J Hissnauer', icone: '🚛', tipo: 'appsscript', urgente: true, cliente: true,
+    scriptId: '1-4nu4HtDGObK0f94tFH2nxr_eMcQtmTrYuFuTFKEtyy6_DseVinp9Fyu', planilhaId: '1FMXSgfkqVZ4SGnlCxVR_mI87Ip7QfKBpNKZSxY9qcv0',
+    comercial: { dias: [1, 2, 3, 4, 5, 6], de: 7, ate: 20 },
+    descricao: 'Programação logística do cliente (edições, menu PDF, sincronização com veículos)',
+    pasta: 'C:\\Plan_SHEETS', repo: '(sem repositório: o código vive na planilha)', roda: 'Apps Script da planilha (Google Sheets)', publicar: 'colar no editor (ver C:\\Plan_SHEETS\\CLAUDE.md)' },
   { id: 'assistente', nome: 'Assistente financeiro', icone: '💰', tipo: 'assistente',
-    descricao: 'Lê o banco 3x ao dia, avisa contas e monta o plano das dívidas' },
+    descricao: 'Lê o banco 3x ao dia, avisa contas e monta o plano das dívidas',
+    pasta: 'C:\\Bot.ideias\\assistente', repo: 'caioAprat/assistente_dinheiro', roda: 'Apps Script da planilha Assistente do Caio', publicar: 'bash assistente/publicar.sh (o GitHub publica)' },
   { id: 'painel', nome: 'Painel Meu dinheiro', icone: '📱', tipo: 'site', url: 'https://caioaprat.github.io/Meu_dinheiro/',
-    descricao: 'O app do dinheiro na tela inicial' },
+    descricao: 'O app do dinheiro na tela inicial',
+    pasta: 'C:\\Bot.ideias\\meu-dinheiro', repo: 'caioAprat/Meu_dinheiro', roda: 'GitHub Pages', publicar: 'git push' },
   { id: 'atrasos', nome: 'Bot de atrasos', icone: '📦', tipo: 'batida', pausaProp: 'ATRASOS_PAUSA_ATE',
     agenda: { 1: '16:30', 2: '16:30', 3: '16:30', 4: '16:30', 5: '15:30' }, tolerancia: 45,
-    descricao: 'Relatório de atrasos por e-mail (notebook da empresa)' },
-  { id: 'gabinete', nome: 'Gabinete Chamados', icone: '🏛️', tipo: 'site', url: 'https://gabinete-chamados.vercel.app/entrar',
-    marcador: 'Chamados do Gabinete', supabase: 'GABINETE', urgente: true,
-    descricao: 'Sistema de chamados do cliente (site + banco de dados)' },
+    descricao: 'Relatório de atrasos por e-mail (notebook da empresa)',
+    pasta: 'C:\\bot-atrasos', repo: '(sem repositório)', roda: 'Agendador do Windows no notebook da empresa', publicar: 'editar os arquivos na pasta' },
   { id: 'cacador', nome: 'Caçador de clientes', icone: '🎯', tipo: 'github', repo: 'caioAprat/Bot_cacaTrampo', workflow: 'cacador.yml',
-    descricao: 'Vigia de freelas (99Freelas e Workana)' },
+    descricao: 'Vigia de freelas (99Freelas e Workana)',
+    pasta: 'C:\\Bot.ideias\\cacador-clientes', roda: 'GitHub Actions', publicar: 'git push' },
+];
+// o próprio Jarvis também aparece no mapa (não se vigia: o assistente vigia ele)
+const MAPA_EXTRA = [
+  { id: 'jarvis', nome: 'Jarvis', icone: '🤖', pasta: 'C:\\Bot.ideias\\jarvis', repo: 'caioAprat/Jarvis', roda: 'Apps Script (servidor) + GitHub Pages (app)', publicar: 'git push (o GitHub publica)' },
+  { id: 'print', nome: 'Print cropado', icone: '✂️', pasta: 'C:\\Bot.ideias\\print-cropado', repo: '(sem repositório)', roda: 'Windows (inicia com o PC)', publicar: 'editar os arquivos na pasta' },
 ];
 
 // ================================================================== instalação
@@ -43,10 +63,13 @@ function instalar() {
   }
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('verificar').timeBased().everyMinutes(10).create();
+  ScriptApp.newTrigger('diario').timeBased().atHour(3).nearMinute(15).everyDays(1).inTimezone(FUSO).create();
   UrlFetchApp.getRequest('https://example.com');
   CacheService.getScriptCache();
+  try { DriveApp.getRootFolder(); } catch (e) { /* só para pedir a permissão do Drive */ }
+  if (!props.getProperty('observar:planilha')) props.setProperty('observar:planilha', dia_(new Date(Date.now() + 7 * 864e5)));   // 1ª semana: calibrar sem alarme de "atenção"
   verificar();
-  return 'Jarvis instalado: ' + ['CHAVE', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
+  return 'Jarvis instalado: ' + ['CHAVE', 'CHAVE_PC', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
     .map(k => k + (props.getProperty(k) ? ' ok' : ' FALTA')).join(', ');
 }
 
@@ -81,20 +104,32 @@ function log_(tipo, texto) {
   } catch (e) { /* o log nunca derruba nada */ }
 }
 
-/** 'admin' | 'leitura' | 'aviso' | 'batida' | '' */
+/** 'admin' | 'pc' | 'leitura' | 'aviso' | 'batida' | '' */
 function nivelChave_(k) {
   if (!k) return '';
   if (k === prop_('CHAVE')) return 'admin';
+  if (k === prop_('CHAVE_PC')) return 'pc';
   if (k === prop_('CHAVE_LEITURA')) return 'leitura';
   if (k === prop_('CHAVE_AVISO')) return 'aviso';
   if (k === prop_('CHAVE_BATIDA')) return 'batida';
   return '';
 }
 
+let TRAVA_ATIVA_ = false;
 function comTrava_(fn) {
+  if (TRAVA_ATIVA_) return fn();                               // já dentro da trava (chamada encadeada)
   const trava = LockService.getScriptLock();
   trava.waitLock(30000);
-  try { return fn(); } finally { trava.releaseLock(); }
+  TRAVA_ATIVA_ = true;
+  try { return fn(); } finally { TRAVA_ATIVA_ = false; trava.releaseLock(); }
+}
+
+/** Limite simples de frequência por ação (evita gastar a cota do Google com cliques repetidos). */
+function devagar_(acao, segundos) {
+  const c = CacheService.getScriptCache();
+  if (c.get('freq:' + acao)) return true;
+  c.put('freq:' + acao, '1', segundos);
+  return false;
 }
 
 function buscar_(url, opcoes) {
@@ -117,18 +152,22 @@ function checar_(p, anterior) {
   if (p.tipo === 'site') {
     const url = p.url || prop_(p.prop);
     if (!url) return { status: 'config', detalhe: 'Falta o endereço (me passe o link do sistema)' };
+    const t0 = Date.now();
     const r = buscar_(url);
-    if (!(r.codigo >= 200 && r.codigo < 400)) return { status: 'erro', detalhe: r.codigo ? 'Site fora do ar (código ' + r.codigo + ')' : 'Site sem resposta', link: url };
+    const msSite = Date.now() - t0;
+    if (!(r.codigo >= 200 && r.codigo < 400)) return { status: 'erro', detalhe: r.codigo ? 'Site fora do ar (código ' + r.codigo + ')' : 'Site sem resposta', link: url, ms: { site: msSite } };
     if (p.marcador && r.texto.indexOf(p.marcador) < 0) return { status: 'erro', detalhe: 'O site abre, mas não mostra o sistema (erro na publicação?)', link: url };
     if (p.supabase) {                                             // o banco grátis pausa sozinho sem uso: o site abre, mas nada funciona
       const base = prop_(p.supabase + '_SUPABASE_URL'), chave = prop_(p.supabase + '_SUPABASE_KEY');
       if (base && chave) {
+        const t1 = Date.now();
         const b = buscar_(base + '/auth/v1/health', { headers: { apikey: chave } });
-        if (b.codigo !== 200) return { status: 'erro', detalhe: b.codigo ? 'Banco de dados (Supabase) com problema ou pausado (código ' + b.codigo + ')' : 'Banco de dados (Supabase) sem resposta', link: url };
-        return { status: 'ok', detalhe: 'Site e banco de dados no ar', link: url };
+        const ms = { site: msSite, banco: Date.now() - t1 };
+        if (b.codigo !== 200) return { status: 'erro', detalhe: b.codigo ? 'Banco de dados (Supabase) com problema ou pausado (código ' + b.codigo + ')' : 'Banco de dados (Supabase) sem resposta', link: url, ms };
+        return { status: 'ok', detalhe: 'Site e banco de dados no ar', link: url, ms };
       }
     }
-    return { status: 'ok', detalhe: 'No ar', link: url };
+    return { status: 'ok', detalhe: 'No ar', link: url, ms: { site: msSite } };
   }
 
   if (p.tipo === 'assistente') {
@@ -195,6 +234,7 @@ function checar_(p, anterior) {
     return horas > 7 ? { status: 'erro', detalhe: 'Parado há ' + Math.round(horas) + 'h', link, githubEm: iso_() }
                      : { status: 'ok', detalhe: 'Última volta há ' + Math.round(horas * 60) + ' min', link, githubEm: iso_() };
   }
+  if (p.tipo === 'appsscript') return checarPlanilha_(p, anterior);
   return { status: 'config', detalhe: 'Tipo desconhecido' };
 }
 
@@ -202,15 +242,21 @@ const GRAVIDADE = { ok: 0, pausado: 0, aguardando: 0, config: 1, atencao: 2, err
 
 /** Junta o resultado novo com o anterior. Devolve { novo, aviso }. Função pura (testada). */
 function juntar_(p, ant, r) {
-  if (r.status === 'semdados') {                                      // sem dados: mantém o que havia
+  if (r.status === 'semdados') {                                      // sem dados: mantém o que havia...
     const base = ant || { status: 'config', detalhe: r.detalhe || 'Sem dados ainda', desde: iso_(), historico: [] };
-    return { novo: Object.assign({}, base, { verificadoEm: iso_(), githubEm: r.githubEm || base.githubEm, semDadosDesde: base.semDadosDesde || iso_() }), aviso: null };
+    const desde = base.semDadosDesde || iso_();
+    if (!(p.cliente && horasDesde_(desde) >= 2)) {
+      return { novo: Object.assign({}, base, { verificadoEm: iso_(), githubEm: r.githubEm || base.githubEm, semDadosDesde: desde }), aviso: null };
+    }
+    // ...mas num cliente, 2h sem conseguir conferir vira atenção (nunca um "ok" parado)
+    r = { status: 'atencao', detalhe: 'Não consigo conferir há ' + Math.floor(horasDesde_(desde)) + 'h: ' + (r.detalhe || 'sem resposta'), link: base.link, semDadosDesde: desde };
   }
-  const falhas = r.status === 'erro' ? ((ant && ant.falhas) || 0) + 1 : 0;
-  if (r.status === 'erro' && falhas < 2 && p.tipo !== 'batida' && ant && ant.status !== 'erro') {
-    r = Object.assign({}, ant, { suspeita: r.detalhe, githubEm: r.githubEm || ant.githubEm });     // 1ª falha: espera confirmar
+  const grave = r.status === 'erro' || r.status === 'atencao';
+  const falhas = grave ? ((ant && ant.falhas) || 0) + 1 : 0;
+  if (grave && falhas < 2 && p.tipo !== 'batida' && ant && GRAVIDADE[ant.status] < GRAVIDADE[r.status]) {
+    r = Object.assign({}, ant, { suspeita: r.detalhe, githubEm: r.githubEm || ant.githubEm, semDadosDesde: r.semDadosDesde || null });   // 1ª vez: espera confirmar
   }
-  const novo = Object.assign({}, r, { falhas, verificadoEm: iso_(), semDadosDesde: null,
+  const novo = Object.assign({}, r, { falhas, verificadoEm: iso_(), semDadosDesde: r.semDadosDesde || null,
     desde: ant && ant.status === r.status ? ant.desde : iso_(), historico: (ant && ant.historico) || [] });
   let aviso = null;
   if (ant && ant.status !== novo.status) {
@@ -231,9 +277,13 @@ function verificar() {
   const avisos = comTrava_(() => {
     const novos = [];
     PROJETOS.forEach((p, i) => {
-      const { novo, aviso } = juntar_(p, estadoDe_(p.id), resultados[i]);
+      const r = resultados[i];
+      if (r._execs) { acumularExecucoes_(p.id, r._execs, agora_(), r._cortado); if (r._ultima) PropertiesService.getScriptProperties().setProperty('ultimaExec:' + p.id, r._ultima); }
+      delete r._execs; delete r._ultima; delete r._cortado;
+      const { novo, aviso } = juntar_(p, estadoDe_(p.id), r);
       gravar_('estado:' + p.id, novo);
-      if (aviso) novos.push(aviso);
+      if (r.status !== 'semdados') registrarDisponibilidade_(p.id, r.status);       // conta o resultado real (a 1ª falha também)
+      if (aviso && !(aviso.nivel === 'atencao' && prop_('observar:' + p.id) >= dia_())) novos.push(aviso);   // semana de observação
     });
     gravar_('verificadoEm', iso_());
     novos.forEach(a => registrarAviso_(a));
@@ -243,9 +293,33 @@ function verificar() {
   return avisos;
 }
 
+/**
+ * Disponibilidade por dia (últimos 40): t = conferências que valeram, u = quantas estavam no ar.
+ * Só conta ok e erro (atenção conta como no ar; pausado/configurar/sem dados não contam).
+ */
+function registrarDisponibilidade_(id, status) {
+  if (['ok', 'atencao', 'erro'].indexOf(status) < 0) return;
+  const lista = ler_('disp:' + id, []);
+  const hoje = dia_();
+  if (!lista.length || lista[lista.length - 1].d !== hoje) lista.push({ d: hoje, t: 0, u: 0 });
+  const x = lista[lista.length - 1];
+  x.t++; if (status !== 'erro') x.u++;
+  gravar_('disp:' + id, lista.slice(-40));
+}
+
+/** % no ar nos últimos n dias (null se não houver dados). */
+function disponibilidade_(id, n) {
+  const lista = ler_('disp:' + id, []).slice(-n);
+  const t = lista.reduce((s2, x) => s2 + x.t, 0), u = lista.reduce((s2, x) => s2 + x.u, 0);
+  return t ? Math.round(u / t * 10000) / 100 : null;
+}
+
 // ================================================================== avisos e notificações
 
 function registrarAviso_(a) {
+  return comTrava_(() => registrarAvisoSemTrava_(a));
+}
+function registrarAvisoSemTrava_(a) {
   const props = PropertiesService.getScriptProperties();
   const id = Number(props.getProperty('avisoSeq') || '0') + 1;            // contador próprio: nunca volta para 1
   props.setProperty('avisoSeq', String(id));
@@ -371,9 +445,11 @@ function assinarES256_(mensagemBytes, dBase64Url) {
 function estadoParaApp_() {
   return {
     versao: VERSAO, verificadoEm: ler_('verificadoEm', null), inscricoes: ler_('push', []).length,
+    avisosVistosAte: Number(prop_('avisosVistosAte') || 0),
     projetos: PROJETOS.map(p => {
       const e = estadoDe_(p.id);
-      return Object.assign({ id: p.id, nome: p.nome, icone: p.icone, descricao: p.descricao },
+      return Object.assign({ id: p.id, nome: p.nome, icone: p.icone, descricao: p.descricao, cliente: !!p.cliente,
+                             disp7: disponibilidade_(p.id, 7), disp30: disponibilidade_(p.id, 30), pausaAte: p.pausaProp ? prop_(p.pausaProp) : '' },
         e ? { status: e.status, detalhe: e.detalhe, desde: e.desde, verificadoEm: e.verificadoEm, semDadosDesde: e.semDadosDesde || null,
               link: e.link || '', extra: e.extra || null, historico: (e.historico || []).slice(0, 5) }
           : { status: 'config', detalhe: 'Ainda não conferido' });
@@ -387,12 +463,16 @@ function doGet(e) {
   if (p.acao === 'saude') return json_({ ok: true, verificadoEm: ler_('verificadoEm', null) });
   if (p.acao === 'vapid') return json_({ chave: prop_('VAPID_PUB') });
   const nivel = nivelChave_(p.k);
-  if (p.k && nivel !== 'leitura' && nivel !== 'admin') return json_({ ok: false, erro: 'chave inválida' });
+  if (p.k && ['leitura', 'pc', 'admin'].indexOf(nivel) < 0) return json_({ ok: false, erro: 'chave inválida' });
   if (!nivel) return ContentService.createTextOutput('Jarvis ✅');
   try {
     switch (p.acao) {
       case 'estado': return json_(estadoParaApp_());
       case 'avisos': return json_({ avisos: ler_('avisos', []).filter(a => a.id > Number(p.desde || 0)).slice(0, 10) });
+    }
+    if (nivel === 'pc' || nivel === 'admin') {
+      const r = getPc_(p, nivel);                                   // Pc.gs
+      if (r) return json_(r);
     }
     if (nivel !== 'admin') return json_({ ok: false, erro: 'sem permissão' });
     switch (p.acao) {
@@ -401,6 +481,10 @@ function doGet(e) {
       case 'log': return json_(ler_('log', []));
       case 'definir': {
         const regras = {
+          ASSISTENTE_OPERADOR: /^[A-Za-z0-9]{20,64}$/,
+          CHAVE_PC: /^[A-Za-z0-9]{24,64}$/,
+          BACKUP_PLANILHA: /^(sim|nao)$/,
+          VERCEL_TOKEN: /^[A-Za-z0-9]{20,}$/,
           ASSISTENTE_URL: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/,
           ASSISTENTE_PAINEL: /^https:\/\/caioaprat\.github\.io\//,
           ASSISTENTE_LEITURA: /^[A-Za-z0-9]{16,64}$/,
@@ -411,6 +495,7 @@ function doGet(e) {
           ATRASOS_PAUSA_ATE: /^(\d{4}-\d{2}-\d{2})?$/,
         };
         if (!regras[p.prop]) throw new Error('propriedade não permitida');
+        if (/^CHAVE|OPERADOR$/.test(p.prop) && ['CHAVE', 'CHAVE_PC', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA'].some(k => k !== p.prop && prop_(k) === p.valor)) throw new Error('essa chave já é usada por outro acesso');
         if (p.valor && !regras[p.prop].test(p.valor)) throw new Error('valor inválido para ' + p.prop);
         PropertiesService.getScriptProperties().setProperty(p.prop, p.valor || '');
         return json_({ ok: true });
@@ -422,13 +507,47 @@ function doGet(e) {
   } catch (erro) { return json_({ ok: false, erro: erro.message }); }
 }
 
+/**
+ * Ações rápidas do celular (chave de leitura já basta: nenhuma apaga nada).
+ *  lerbanco: pede ao assistente para ler o banco agora
+ *  pausar:   pausa a cobrança do bot de atrasos até uma data (feriado/férias); ate vazio = retomar
+ *  vistos:   marca os avisos como vistos até o id informado
+ */
+function acaoRapida_(d) {
+  if (d.tipo === 'lerbanco') {
+    if (devagar_('lerbanco', 300)) return { ok: false, erro: 'o banco foi lido há menos de 5 minutos' };
+    const base = prop_('ASSISTENTE_URL'), k = prop_('ASSISTENTE_LEITURA');
+    if (!base || !k) return { ok: false, erro: 'assistente não ligado' };
+    const r = buscar_(base + '?k=' + encodeURIComponent(k), { method: 'post', contentType: 'text/plain;charset=utf-8', payload: JSON.stringify({ tipo: 'sync' }) });
+    let j = null;
+    try { j = JSON.parse(r.texto); } catch (e) { j = null; }
+    return j && j.ok ? { ok: true, aviso: j.aviso || 'Banco lido' } : { ok: false, erro: (j && (j.aviso || j.erro)) || 'o assistente não respondeu' };
+  }
+  if (d.tipo === 'pausar') {
+    const p = PROJETOS.find(x => x.id === (d.projeto || 'atrasos'));
+    if (!p || !p.pausaProp) return { ok: false, erro: 'esse projeto não pausa' };
+    const ate = String(d.ate || '');
+    if (ate && (!/^\d{4}-\d{2}-\d{2}$/.test(ate) || dia_(new Date(ate + 'T12:00:00-03:00')) !== ate || ate < dia_() || ate > dia_(new Date(Date.now() + 60 * 864e5)))) return { ok: false, erro: 'data inválida (até 60 dias)' };
+    PropertiesService.getScriptProperties().setProperty(p.pausaProp, ate);
+    log_('pausa', p.id + ' até ' + (ate || 'retomado'));
+    registrarAviso_({ projeto: p.id, nivel: 'info', titulo: ate ? `⏸️ ${p.nome} pausado até ${ate.slice(8, 10)}/${ate.slice(5, 7)}` : `▶️ ${p.nome} voltou a ser cobrado` });
+    return { ok: true, aviso: ate ? `${p.nome} pausado até ${ate.slice(8, 10)}/${ate.slice(5, 7)}` : `${p.nome} voltou a ser cobrado` };
+  }
+  if (d.tipo === 'vistos') {
+    const ate = Math.max(0, Math.floor(Number(d.ate) || 0));
+    PropertiesService.getScriptProperties().setProperty('avisosVistosAte', String(Math.max(ate, Number(prop_('avisosVistosAte') || 0))));
+    return { ok: true };
+  }
+  return null;
+}
+
 function doPost(e) {
   const nivel = nivelChave_(e && e.parameter && e.parameter.k);
   if (!nivel) return json_({ ok: false, erro: 'chave inválida' });
   let d = {};
   try { d = JSON.parse((e.postData && e.postData.contents) || '{}'); } catch (erro) { return json_({ ok: false, erro: 'JSON inválido' }); }
   try {
-    if (d.tipo === 'verificar' && (nivel === 'leitura' || nivel === 'admin')) { verificar(); return json_({ ok: true }); }   // verificar() tem a própria trava
+    if (d.tipo === 'verificar' && ['leitura', 'pc', 'admin'].indexOf(nivel) >= 0) { if (!devagar_('verificar', 60)) verificar(); return json_({ ok: true }); }   // verificar() tem a própria trava
     if (d.tipo === 'batida' && nivel !== 'leitura') {
       if (!PROJETOS.some(p => p.id === d.projeto && p.tipo === 'batida')) return json_({ ok: false, erro: 'projeto desconhecido' });
       gravar_('batida:' + d.projeto, { quando: iso_(), ok: d.ok !== false, detalhe: String(d.detalhe || '').slice(0, 150) });   // chave própria: não precisa de trava
@@ -438,7 +557,15 @@ function doPost(e) {
       const id = comTrava_(() => registrarAviso_(d));
       return json_({ ok: true, id, push: enviarPush_() });
     }
-    if (nivel === 'leitura' || nivel === 'admin') {
+    if (nivel === 'leitura' || nivel === 'pc' || nivel === 'admin') {
+      const r = acaoRapida_(d);
+      if (r) return json_(r);
+    }
+    if (nivel === 'pc' || nivel === 'admin') {
+      const r = postPc_(d, nivel);                                  // Pc.gs
+      if (r) return json_(r);
+    }
+    if (nivel === 'leitura' || nivel === 'pc' || nivel === 'admin') {
       if (d.tipo === 'inscrever') {
         const s = d.inscricao || {};
         if (!HOSTS_PUSH.test(String(s.endpoint || ''))) return json_({ ok: false, erro: 'inscrição inválida' });

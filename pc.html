@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Jarvis · Central</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0f17">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  /* mesmos tokens do app do celular e do Meu dinheiro */
+  :root {
+    --bg: #0b0f17; --card: #141a26; --card2: #1b2333; --linha: rgba(255,255,255,.07);
+    --tx: #eef2f8; --mu: #8c97ab; --di: #7f8a9e;
+    --ok: #34d399; --ok2: rgba(52,211,153,.14); --er: #fb7185; --er2: rgba(251,113,133,.14);
+    --av: #fbbf24; --av2: rgba(251,191,36,.13); --pri: #7c9cff; --pri2: rgba(124,156,255,.16);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body { color: var(--tx); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  button[disabled] { opacity: .55; cursor: default; }
+  a { color: var(--pri); }
+  :focus-visible { outline: 2px solid var(--pri); outline-offset: 2px; border-radius: 6px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  h1 { text-wrap: balance; } p { text-wrap: pretty; }
+
+  .layout { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+  nav { position: sticky; top: 0; height: 100vh; padding: 22px 14px; border-right: 1px solid var(--linha); display: flex; flex-direction: column; gap: 4px; background: #0d121c; }
+  .marca { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 780; padding: 0 10px 18px; }
+  .orbe { width: 12px; height: 12px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 12px var(--ok); flex: none; }
+  .orbe.atencao { background: var(--av); box-shadow: 0 0 12px var(--av); } .orbe.erro { background: var(--er); box-shadow: 0 0 12px var(--er); }
+  nav button { display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 9px 12px; border-radius: 10px; color: var(--mu); font-weight: 600; }
+  nav button:hover { background: var(--card); color: var(--tx); }
+  nav button[aria-current="page"] { background: var(--pri2); color: var(--tx); }
+  nav .rodape { margin-top: auto; color: var(--di); font-size: 12px; padding: 0 10px; }
+  .cont { display: inline-block; min-width: 20px; padding: 0 7px; border-radius: 999px; background: var(--card2); color: var(--mu); font-size: 11.5px; text-align: center; }
+  .cont.alerta { background: var(--er); color: #0b0f17; }
+
+  main { padding: 26px 32px 60px; max-width: 1240px; width: 100%; min-width: 0; }
+  header.topo { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
+  h1 { font-size: 24px; font-weight: 760; letter-spacing: -.3px; outline: none; }
+  .sub { color: var(--mu); font-size: 13px; }
+  .grade { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--linha); border-radius: 16px; padding: 18px; min-width: 0; }
+  .card.dentro { background: var(--card2); border-radius: 12px; padding: 14px; }
+  .card.atencao { border-color: rgba(251,191,36,.35); } .card.erro { border-color: rgba(251,113,133,.4); }
+  .titulo { color: var(--mu); font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .titulo small { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--di); }
+  .btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 7px 14px; border-radius: 10px; background: var(--pri2); color: var(--pri); font-weight: 650; font-size: 13px; transition: transform .12s cubic-bezier(.2,0,0,1), filter .12s; }
+  .btn:active:not([disabled]) { transform: scale(.96); }
+  .btn.forte { background: var(--pri); color: #0b0f17; }
+  .btn.sec { background: var(--card2); color: var(--tx); font-weight: 600; }
+  .btn.perigo { background: var(--er2); color: var(--er); }
+  .btn.mini { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
+  .btn:hover:not([disabled]) { filter: brightness(1.12); }
+  .pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { background: var(--ok2); color: var(--ok); }
+  .pill.atencao, .pill.andamento { background: var(--av2); color: var(--av); }
+  .pill.erro, .pill.alta { background: var(--er2); color: var(--er); }
+  .pill.pausado, .pill.config, .pill.aguardando, .pill.novo, .pill.cancelado, .pill.normal, .pill.baixa { background: var(--card2); color: var(--mu); }
+  .pill.feito { background: var(--ok2); color: var(--ok); }
+  .projcard { display: flex; flex-direction: column; gap: 8px; }
+  .projcard .cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .projcard b { font-size: 15px; }
+  .det { color: var(--mu); font-size: 13px; overflow-wrap: anywhere; }
+  .peq { color: var(--di); font-size: 12px; }
+  .barras { display: flex; align-items: stretch; gap: 2px; height: 26px; }
+  .barras i { flex: 1; border-radius: 2px; background: var(--ok); opacity: .8; }
+  .barras i.medio { background: var(--av); } .barras i.ruim { background: var(--er); } .barras i.vazio { background: var(--card2); opacity: 1; }
+  .numero { font-size: 26px; font-weight: 780; letter-spacing: -.5px; }
+  .rolar { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--di); font-weight: 600; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--linha); }
+  td { padding: 8px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  td.num, th.num { text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .vazio { color: var(--di); font-size: 13px; }
+  label.campo { display: block; font-size: 12px; color: var(--mu); margin-bottom: 4px; }
+  input.inp, select.inp, textarea.inp { width: 100%; background: var(--card2); border: 1px solid var(--linha); border-radius: 10px; padding: 9px 11px; }
+  textarea.inp { min-height: 110px; resize: vertical; }
+  .linha-form { display: grid; grid-template-columns: 1fr 160px; gap: 10px; margin-bottom: 10px; }
+  .cfg { display: grid; grid-template-columns: 1fr 200px auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--linha); }
+  .cfg:last-child { border-bottom: 0; }
+  .aviso { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--linha); }
+  .aviso:last-child { border-bottom: 0; }
+  .aviso i { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; background: var(--pri); }
+  .aviso i.urgente { background: var(--er); } .aviso i.atencao { background: var(--av); } .aviso i.ok { background: var(--ok); }
+  .aviso p { color: var(--mu); font-size: 13px; white-space: pre-line; }
+  .aviso.novo b::after { content: "novo"; margin-left: 8px; font-size: 10.5px; font-weight: 700; color: var(--pri); background: var(--pri2); padding: 1px 7px; border-radius: 999px; }
+  .pedido { padding: 12px 0; border-bottom: 1px solid var(--linha); }
+  .pedido:last-child { border-bottom: 0; }
+  .pedido .cab { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pedido p { color: var(--mu); white-space: pre-line; margin-top: 4px; }
+  .resposta { margin-top: 8px; padding: 10px 12px; background: var(--ok2); border-radius: 10px; color: var(--tx); white-space: pre-line; font-size: 13px; }
+  .lista-tarefas li { list-style: none; display: flex; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--linha); }
+  .lista-tarefas li:last-child { border-bottom: 0; }
+  .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); }
+  .ponto.erro { background: var(--er); } .ponto.atencao { background: var(--av); } .ponto.info { background: var(--pri); }
+  .atalhos { display: flex; gap: 8px; flex-wrap: wrap; }
+  .voltar-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  pre.saida { background: #0d121c; border: 1px solid var(--linha); border-radius: 10px; padding: 12px; white-space: pre-wrap; font: 12.5px/1.5 ui-monospace, Consolas, monospace; max-height: 360px; overflow: auto; }
+  .faixa { border-radius: 12px; padding: 11px 14px; margin-bottom: 14px; background: var(--av2); color: var(--av); }
+  .faixa.erro { background: var(--er2); color: var(--er); }
+  #toast { position: fixed; right: 24px; bottom: 24px; z-index: 20; max-width: 420px; }
+  #toast div { background: #16261f; color: var(--ok); border-radius: 12px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  #toast div.ruim { background: #2a2414; color: var(--av); }
+  .skel { height: 120px; border-radius: 16px; background: linear-gradient(90deg, var(--card), var(--card2), var(--card)); background-size: 200% 100%; animation: b 1.4s infinite; margin-bottom: 14px; }
+  @keyframes b { to { background-position: -200% 0; } }
+  .acesso { max-width: 520px; margin: 12vh auto; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav { position: static; height: auto; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 10px 12px; gap: 6px; scrollbar-width: none; }
+    nav .marca { padding: 0 8px 0 0; } nav .rodape { display: none; } nav button { flex: none; }
+    .g2, .g3 { grid-template-columns: 1fr; } main { padding: 18px; }
+    .cfg { grid-template-columns: 1fr auto; } .cfg .inp { grid-column: 1 / -1; order: 2; }
+    header.topo { flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } .btn { transition: none; } }
+</style>
+</head>
+<body>
+<div id="raiz"><div class="acesso"><div class="skel"></div></div></div>
+<div id="toast" aria-live="polite"></div>
+<script>
+'use strict';
+// ---------------------------------------------------------------- utilidades
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = n => Number(n) || 0;
+const linkSeguro = u => /^https:\/\//.test(String(u || '')) ? esc(u) : '';
+const anoAtual = new Date().getFullYear();
+const dataHora = iso => { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleString('pt-BR', Object.assign({ day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }, d.getFullYear() !== anoAtual ? { year: '2-digit' } : {})); };
+const dm = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : '';
+const pct = n => n === null || n === undefined ? '—' : String(n).replace('.', ',') + '%';
+const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
+const hojeIso = (mais = 0) => { const d = new Date(Date.now() + mais * 864e5); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+function ha(iso) {
+  if (!iso) return '';
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return m < 1 ? 'agora' : m < 60 ? `há ${m} min` : m < 1440 ? `há ${Math.round(m / 60)}h` : 'em ' + dataHora(iso);
+}
+function duracao(min) { return min < 60 ? Math.round(min) + ' min' : (Math.round(min / 6) / 10).toString().replace('.', ',') + 'h'; }
+const NOMES = { ok: 'ok', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando',
+                novo: 'novo', andamento: 'em andamento', feito: 'feito', cancelado: 'cancelado', alta: 'alta', normal: 'normal', baixa: 'baixa' };
+const ESTADO_FRASE = { ok: 'funcionando', atencao: 'com atenção', erro: 'com problema', pausado: 'pausado', config: 'a configurar', aguardando: 'aguardando' };
+const ORDEM = { erro: 0, atencao: 1, config: 2, aguardando: 3, ok: 4, pausado: 5 };
+const porGravidade = (a, b) => (ORDEM[a.status] ?? 9) - (ORDEM[b.status] ?? 9);
+const PUB = { success: ['ok', 'publicado'], failure: ['erro', 'falhou'], cancelled: ['cancelado', 'cancelado'], skipped: ['cancelado', 'pulado'],
+  timed_out: ['erro', 'demorou demais'], action_required: ['atencao', 'precisa de ação'], in_progress: ['andamento', 'publicando'], queued: ['andamento', 'na fila'],
+  READY: ['ok', 'no ar'], ERROR: ['erro', 'falhou'], BUILDING: ['andamento', 'montando'], QUEUED: ['andamento', 'na fila'], CANCELED: ['cancelado', 'cancelado'], INITIALIZING: ['andamento', 'começando'] };
+const pillPub = s => { const [c, t] = PUB[s] || ['config', s || '—']; return `<span class="pill ${c}">${esc(t)}</span>`; };
+const pill = s => `<span class="pill ${esc(s)}">${esc(NOMES[s] || s)}</span>`;
+let toastT = null;
+function avisar(texto, ruim) {
+  const el = $('toast'); el.setAttribute('role', ruim ? 'alert' : 'status');
+  el.innerHTML = texto ? `<div class="${ruim ? 'ruim' : ''}">${esc(texto)}</div>` : '';
+  clearTimeout(toastT); if (texto) toastT = setTimeout(() => avisar(''), ruim ? 8000 : 4500);
+}
+
+// ---------------------------------------------------------------- acesso (separado do celular: chave do PC)
+const LS = 'jarvis.pc.cfg', LR = 'jarvis.pc.rasc';
+function cfgDeTexto(texto) {
+  const i = String(texto || '').indexOf('#');
+  const h = new URLSearchParams(String(texto).slice(i + 1).replace(/&amp;/g, '&'));
+  return i >= 0 && h.get('k') && h.get('u') ? { k: h.get('k'), u: h.get('u') } : null;
+}
+let CFG = cfgDeTexto(location.href);
+if (CFG) { try { localStorage.setItem(LS, JSON.stringify(CFG)); } catch (e) {} history.replaceState(null, '', location.pathname); }
+else { try { CFG = JSON.parse(localStorage.getItem(LS)); } catch (e) { CFG = null; } }
+
+async function api(acao, extra) {
+  const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
+  const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
+  return JSON.parse(await r.text());
+}
+async function post(corpo) {
+  const r = await fetch(CFG.u + '?k=' + encodeURIComponent(CFG.k), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo) });
+  return JSON.parse(await r.text());
+}
+
+// ---------------------------------------------------------------- estado
+const ABAS = [
+  ['geral', 'Visão geral'], ['clientes', 'Clientes'], ['pedidos', 'Pedidos'], ['versoes', 'Publicações e versões'],
+  ['assistente', 'Assistente'], ['mapa', 'Mapa dos projetos'], ['avisos', 'Avisos e registro'], ['ajustes', 'Ajustes'],
+];
+const abaValida = a => ABAS.some(x => x[0] === a) ? a : 'geral';
+const S = { P: null, quando: 0, aba: abaValida(location.hash.slice(1)), carregando: false, erro: '', versoes: {}, pub: null, cfgAssist: null, logAssist: null,
+            saidaRotina: '', filtro: 'abertos', voltar: null, cancelar: null, apagarToken: null, ocupado: '', busca: '', rasc: {} };
+try { S.rasc = JSON.parse(localStorage.getItem(LR)) || {}; } catch (e) { S.rasc = {}; }
+const guardarRasc = () => { try { localStorage.setItem(LR, JSON.stringify({ pedTit: S.rasc.pedTit, pedTxt: S.rasc.pedTxt, pedProj: S.rasc.pedProj, pedPrio: S.rasc.pedPrio })); } catch (e) {} };
+
+async function carregar(conferir) {
+  if (!CFG || S.carregando) return;
+  S.carregando = true; render();
+  try {
+    if (conferir) await post({ tipo: 'verificar' });
+    const P = await api('pc');
+    if (P.ok === false) { S.erro = /chave/i.test(P.erro || '') ? 'auth' : (P.erro || 'erro'); }
+    else { S.P = P; S.erro = ''; S.quando = Date.now(); }
+  } catch (e) { S.erro = 'rede'; }
+  S.carregando = false; render();
+  if (S.aba === 'versoes') carregarVersoes(!!conferir);
+  if (S.aba === 'assistente' && (!S.cfgAssist || conferir)) carregarAssistente();
+}
+async function carregarVersoes(forcar) {
+  if (forcar) { S.versoes = {}; S.pub = null; render(); }
+  const tarefas = ['assistente', 'jarvis'].filter(a => !S.versoes[a]).map(a => api('versoes', { app: a }).then(r => { S.versoes[a] = r; }).catch(() => { S.versoes[a] = { ok: false, erro: 'sem conexão' }; }));
+  if (!S.pub) tarefas.push(api('publicacoes').then(r => { S.pub = r; }).catch(() => { S.pub = { ok: false, erro: 'sem conexão' }; }));
+  await Promise.all(tarefas); render();
+}
+async function carregarAssistente() {
+  try { const [c, l] = await Promise.all([api('assistente-config'), api('assistente-log')]); S.cfgAssist = c; S.logAssist = l; }
+  catch (e) { S.cfgAssist = S.logAssist = { ok: false, erro: 'sem conexão' }; }
+  render();
+}
+/** Roda uma ação deixando os botões desabilitados (evita clique duplo mesmo se a tela for redesenhada). */
+async function ocupado(chave, fn) {
+  if (S.ocupado) return;
+  S.ocupado = chave; render();
+  try { return await fn(); } finally { S.ocupado = ''; render(); }
+}
+async function enviar(corpo, okTexto) {
+  try { const r = await post(corpo); avisar(r.ok ? (okTexto || r.aviso || 'Feito') : 'Não consegui: ' + (r.erro || r.aviso || 'erro'), !r.ok); return r; }
+  catch (e) { avisar('Sem conexão com o Jarvis.', true); return { ok: false }; }
+}
+const dis = () => S.ocupado ? 'disabled' : '';
+
+// ---------------------------------------------------------------- dados derivados
+function jarvisParado(P) { return P.estado.verificadoEm && Date.now() - new Date(P.estado.verificadoEm).getTime() > 30 * 60e3; }
+/** O que precisa da atenção do Caio agora, do mais grave para o menos. */
+function tarefas(P) {
+  const L = [];
+  if (jarvisParado(P)) L.push(['erro', `O Jarvis não confere nada desde ${dataHora(P.estado.verificadoEm)}`, 'Abra o editor do Apps Script do Jarvis → Acionadores, ou rode "instalar".']);
+  P.estado.projetos.slice().sort(porGravidade).filter(p => p.status === 'erro' || p.status === 'atencao').forEach(p =>
+    L.push([p.status === 'erro' ? 'erro' : 'atencao', `${p.icone} ${p.nome}: ${NOMES[p.status]}`, p.detalhe]));
+  P.estado.projetos.filter(p => p.status === 'config').forEach(p => L.push(['info', `${p.icone} ${p.nome}: falta configurar`, p.detalhe]));
+  if (!P.estado.inscricoes) L.push(['atencao', 'Nenhum aparelho recebendo notificações', 'Abra o Jarvis no iPhone e toque em "Ativar notificações".']);
+  const tam = ((P.detalhes.planilha || {}).planilha || {}).tamanho;
+  if (tam && tam.pct >= 80) L.push([tam.pct >= 90 ? 'erro' : 'atencao', `Planilha J Hissnauer com ${pct(tam.pct)} do limite de células`, 'Maiores abas: ' + (tam.maiores || []).map(x => x.nome).join(', ')]);
+  P.pedidos.filter(x => x.status === 'novo' && x.prioridade === 'alta').forEach(x => L.push(['info', `Pedido #${x.id} (alta): ${x.titulo}`, 'Na fila, esperando a próxima sessão do Claude Code.']));
+  if (!P.configs.backupPlanilha) L.push(['atencao', 'Cópia diária da planilha desligada', 'Ligue em Ajustes.']);
+  if (!P.configs.operador) L.push(['info', 'Configurações do assistente desligadas', 'Falta ligar a chave de operador do assistente.']);
+  return L;
+}
+/** Quedas (de qualquer estado para "problema") com a duração, a partir do histórico. */
+function quedas(hist) {
+  const h = (hist || []).slice().reverse(), lista = [];
+  h.forEach((x, i) => { if (x.para === 'erro') { const volta = h.slice(i + 1).find(y => y.de === 'erro'); lista.push({ ini: x.quando, fim: volta ? volta.quando : null, motivo: x.detalhe }); } });
+  return lista.reverse();
+}
+
+// ---------------------------------------------------------------- pedaços de tela
+function barras30(disp) {
+  const dias = []; for (let i = 29; i >= 0; i--) dias.push(hojeIso(-i));
+  const porDia = {}; (disp || []).forEach(x => { porDia[x.d] = x; });
+  const ruins = dias.filter(d => porDia[d] && porDia[d].t && porDia[d].u < porDia[d].t);
+  const t = dias.reduce((s, d) => s + (porDia[d] ? porDia[d].t : 0), 0), u = dias.reduce((s, d) => s + (porDia[d] ? porDia[d].u : 0), 0);
+  const resumo = t ? `30 dias: ${pct(Math.round(u / t * 1000) / 10)} no ar` + (ruins.length ? `; ${plural(ruins.length, 'dia', 'dias')} com queda (${ruins.slice(-5).map(dm).join(', ')})` : '; nenhum dia com queda') : 'Sem dados ainda';
+  return `<div class="barras" role="img" aria-label="${esc(resumo)}">${dias.map(d => {
+    const x = porDia[d]; if (!x || !x.t) return `<i class="vazio" title="${dm(d)}: sem dados"></i>`;
+    const p = x.u / x.t * 100;
+    return `<i class="${p >= 99.5 ? '' : p >= 97 ? 'medio' : 'ruim'}" title="${dm(d)}: ${pct(Math.round(p * 10) / 10)} no ar"></i>`;
+  }).join('')}</div><div class="peq" style="margin-top:4px">${esc(resumo)}</div>`;
+}
+function cardProjeto(p) {
+  const det = (S.P.detalhes[p.id] || {}), link = linkSeguro(p.link);
+  return `<div class="card projcard ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}"><div class="cab"><b>${esc(p.icone)} ${esc(p.nome)}</b>${pill(p.status)}</div>
+    <div class="det">${esc(p.detalhe || '')}</div>
+    ${p.disp7 !== null && p.disp7 !== undefined ? `<div class="peq">No ar: <b style="color:var(--tx)">${pct(p.disp7)}</b> em 7 dias · ${pct(p.disp30)} em 30 dias</div>${barras30(det.disp)}` : ''}
+    <div class="peq">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}${det.suspeita ? ' · suspeita: ' + esc(det.suspeita) : ''}${link ? ` · <a href="${link}" target="_blank" rel="noopener noreferrer">abrir</a>` : ''}</div></div>`;
+}
+
+function telaGeral() {
+  const P = S.P, ps = P.estado.projetos, T = tarefas(P);
+  const erros = ps.filter(p => p.status === 'erro').length, atencoes = ps.filter(p => p.status === 'atencao').length, parado = jarvisParado(P);
+  const pedAbertos = P.pedidos.filter(x => x.status === 'novo' || x.status === 'andamento').length;
+  const novos = P.estado.avisos.filter(a => a.id > (P.estado.avisosVistosAte || 0)).length;
+  const sit = parado ? ['erro', 'Jarvis parado'] : erros ? ['erro', plural(erros, 'projeto com problema', 'projetos com problema')] : atencoes ? ['atencao', plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção')] : ['ok', 'Tudo certo'];
+  return `<div class="grade g3" style="margin-bottom:14px">
+      <div class="card"><div class="titulo">Situação</div><div class="numero" style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</div><div class="peq">conferido ${ha(P.estado.verificadoEm)}</div></div>
+      <div class="card"><div class="titulo">Pedidos abertos</div><div class="numero">${pedAbertos}</div><div class="peq"><a href="#pedidos">ver a fila</a></div></div>
+      <div class="card ${P.estado.inscricoes ? '' : 'atencao'}"><div class="titulo">Avisos novos</div><div class="numero">${novos}</div><div class="peq" style="${P.estado.inscricoes ? '' : 'color:var(--av)'}">${plural(num(P.estado.inscricoes), 'aparelho recebendo', 'aparelhos recebendo')}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px"><div class="titulo">O que precisa de você agora</div>${T.length ? `<ul class="lista-tarefas">${T.map(([n, tit, det]) => `<li><span class="ponto ${n}" aria-hidden="true"></span><div><b>${esc(tit)}</b><div class="det">${esc(det || '')}</div></div></li>`).join('')}</ul>` : '<div class="vazio">Nada. Tudo funcionando. ✅</div>'}</div>
+    <h2 class="titulo" style="margin:6px 2px 10px">Clientes</h2>
+    <div class="grade g2" style="margin-bottom:14px">${ps.filter(p => p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div>
+    <h2 class="titulo" style="margin:6px 2px 10px">Meus projetos</h2>
+    <div class="grade g2">${ps.filter(p => !p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div>`;
+}
+
+function telaClientes() {
+  const P = S.P;
+  return P.estado.projetos.filter(p => p.cliente).map(p => {
+    const det = P.detalhes[p.id] || {}, pl = det.planilha, mapa = P.mapa.find(m => m.id === p.id) || {};
+    const peds = P.pedidos.filter(x => x.projeto === p.id && (x.status === 'novo' || x.status === 'andamento'));
+    const Q = quedas(det.historico);
+    let extra = '';
+    if (p.id === 'gabinete') {
+      const ms = det.ms || {}, ba = det.bancoAcordado;
+      extra = `<div class="grade g3" style="margin-top:14px">
+        <div class="card dentro"><div class="titulo">Site respondeu em</div><div class="numero">${ms.site ? num(ms.site) + ' ms' : '—'}</div><div class="peq">na última conferência</div></div>
+        <div class="card dentro"><div class="titulo">Banco respondeu em</div><div class="numero">${ms.banco ? num(ms.banco) + ' ms' : '—'}</div><div class="peq">Supabase /auth/v1/health</div></div>
+        <div class="card dentro"><div class="titulo">Banco acordado</div><div class="numero" style="font-size:18px">${ba && ba.codigo === 200 ? '✓ hoje' : ba && ba.pulado ? 'desligado' : ba ? 'falhou (' + num(ba.codigo) + ')' : '—'}</div><div class="peq">consulta diária que impede o Supabase grátis de pausar</div></div></div>`;
+    }
+    if (pl) {
+      const dias = (pl.dias || []).slice(-14).reverse(), tam = pl.tamanho;
+      extra = `<div class="grade g2" style="margin-top:14px">
+        <div class="rolar"><div class="titulo">Execuções por dia (registro do Google)<small>última: ${pl.ultimaExec ? ha(pl.ultimaExec) : '—'}</small></div>${dias.length ? `<table><thead><tr><th scope="col">Dia</th><th class="num" scope="col">Total</th><th class="num" scope="col">Falhas</th><th class="num" scope="col">Travadas</th><th class="num" scope="col">Lentas (10s+)</th><th class="num" scope="col">Maior</th></tr></thead><tbody>
+          ${dias.map(d => `<tr><td>${dm(d.d)}</td><td class="num">${num(d.total)}</td><td class="num" style="color:${d.falhas ? 'var(--er)' : ''}">${num(d.falhas)}</td><td class="num" style="color:${d.travadas ? 'var(--er)' : ''}">${num(d.travadas)}</td><td class="num">${num(d.lentas)}</td><td class="num">${num(d.max)}s</td></tr>`).join('')}</tbody></table>` : '<div class="vazio">Ainda sem dados (aparecem depois da autorização).</div>'}</div>
+        <div class="rolar"><div class="titulo">Últimos problemas</div>${(pl.problemas || []).length ? `<table><thead><tr><th scope="col">Quando</th><th scope="col">Função</th><th scope="col">O quê</th><th class="num" scope="col">Duração</th></tr></thead><tbody>
+          ${pl.problemas.slice(0, 12).map(x => `<tr><td>${dataHora(x.q)}</td><td>${esc(x.f)}</td><td><span class="pill ${x.s === 'travou' ? 'atencao' : 'erro'}">${esc(x.s)}</span></td><td class="num">${num(x.seg)}s</td></tr>`).join('')}</tbody></table>` : '<div class="vazio">Nenhum problema registrado.</div>'}</div>
+      </div>
+      <div class="grade g3" style="margin-top:14px">
+        <div class="card dentro"><div class="titulo">Tamanho</div>${tam ? `<div class="numero">${pct(tam.pct)}</div><div class="peq">${num(tam.celulas).toLocaleString('pt-BR')} de 10 milhões de células · ${num(tam.abas)} abas · medido ${ha(tam.quando)}</div><div class="peq" style="margin-top:4px">Maiores: ${(tam.maiores || []).slice(0, 3).map(x => esc(x.nome) + ' (' + Math.round(num(x.celulas) / 1000) + ' mil)').join(', ')}</div>` : '<div class="vazio">Medido toda madrugada.</div>'}</div>
+        <div class="card dentro"><div class="titulo">Cópias da planilha</div>${pl.backupLigado ? `<div class="numero">${(pl.copias || []).length}/7</div><div class="peq">última: ${(pl.copias || []).length ? dm(pl.copias[pl.copias.length - 1].d) : '—'}${P.configs.pastaBackups ? ` · <a href="${linkSeguro(P.configs.pastaBackups)}" target="_blank" rel="noopener noreferrer">pasta no Drive</a>` : ''}</div>` : '<div class="peq">Desligado em Ajustes.</div>'}</div>
+        <div class="card dentro"><div class="titulo">Código</div>${pl.codigo ? `<div class="numero" style="font-size:18px">Guardado</div><div class="peq">${plural(num(pl.codigo.arquivos), 'arquivo', 'arquivos')} · última mudança ${ha(pl.codigo.quando)}</div>` : '<div class="vazio">Guardado toda madrugada; avisa quando muda.</div>'}</div>
+      </div>`;
+    }
+    const atalhos = p.id === 'gabinete'
+      ? [['Abrir o sistema', 'https://gabinete-chamados.vercel.app/entrar'], ['Vercel', 'https://vercel.com/dashboard'], ['Supabase', 'https://supabase.com/dashboard/projects']]
+      : [['Abrir a planilha', mapa.url], ['Editor do Apps Script', 'https://script.google.com/home'], ['Execuções no Google', 'https://script.google.com/home/executions']];
+    const relatorio = [`Relatório de disponibilidade — ${p.nome}`, `Período: últimos 30 dias (${dm(hojeIso(-29))} a ${dm(hojeIso())})`, `No ar: ${pct(p.disp30)} (últimos 7 dias: ${pct(p.disp7)})`,
+      Q.length ? 'Quedas:\n' + Q.map(q => `- ${dataHora(q.ini)}${q.fim ? ' (' + duracao((new Date(q.fim) - new Date(q.ini)) / 60000) + ')' : ' (ainda fora)'}: ${q.motivo}`).join('\n') : 'Quedas: nenhuma registrada.',
+      'Conferência automática a cada 10 minutos.'].join('\n');
+    return `<div class="card ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}" style="margin-bottom:14px"><div class="titulo"><span>${esc(p.icone)} ${esc(p.nome)}</span>${pill(p.status)}</div>
+      <div class="det">${esc(p.detalhe || '')}</div>
+      <div class="peq" style="margin:8px 0">No ar: ${pct(p.disp7)} em 7 dias · ${pct(p.disp30)} em 30 dias</div>${barras30(det.disp)}
+      <div class="atalhos" style="margin-top:12px">${atalhos.map(([n, u]) => linkSeguro(u) ? `<a class="btn sec mini" href="${linkSeguro(u)}" target="_blank" rel="noopener noreferrer">${esc(n)} ↗</a>` : '').join('')}</div>
+      ${extra}
+      <div class="grade g2" style="margin-top:14px">
+        <div><div class="titulo">Quedas registradas</div>${Q.length ? `<table><tbody>${Q.map(q => `<tr><td>${dataHora(q.ini)}</td><td>${q.fim ? duracao((new Date(q.fim) - new Date(q.ini)) / 60000) : '<span class="pill erro">ainda fora</span>'}</td><td class="det">${esc(q.motivo)}</td></tr>`).join('')}</tbody></table>` : '<div class="vazio">Nenhuma.</div>'}</div>
+        <div><div class="titulo"><span>Pedidos abertos</span><button type="button" class="btn mini" data-novo-pedido="${esc(p.id)}">+ Novo pedido para este cliente</button></div>${peds.length ? peds.map(x => `<div class="det">#${num(x.id)} ${esc(x.titulo)} ${pill(x.status)}</div>`).join('') : '<div class="vazio">Nenhum.</div>'}</div>
+      </div>
+      <div style="margin-top:14px"><button type="button" class="btn sec" data-copiar="${esc(relatorio)}">Copiar relatório para o cliente</button></div></div>`;
+  }).join('');
+}
+
+function telaPedidos() {
+  const P = S.P;
+  const opc = P.mapa.map(m => `<option value="${esc(m.id)}">${esc(m.icone)} ${esc(m.nome)}</option>`).join('') + '<option value="novo">✨ Projeto novo</option>';
+  const abertos = x => x.status === 'novo' || x.status === 'andamento';
+  const lista = P.pedidos.filter(x => S.filtro === 'todos' || (S.filtro === 'abertos' ? abertos(x) : x.status === S.filtro));
+  const nome = id => { const m = P.mapa.find(x => x.id === id); return m ? m.icone + ' ' + m.nome : '✨ Projeto novo'; };
+  return `<div class="grade g2">
+    <div class="card"><div class="titulo">Novo pedido</div>
+      <form id="formPedido" onsubmit="return false">
+        <div class="linha-form"><div><label class="campo" for="pedProj">Projeto</label><select class="inp" id="pedProj">${opc}</select></div>
+          <div><label class="campo" for="pedPrio">Prioridade</label><select class="inp" id="pedPrio"><option value="normal">normal</option><option value="alta">alta</option><option value="baixa">baixa</option></select></div></div>
+        <label class="campo" for="pedTit">O que você quer (título curto)</label><input class="inp" id="pedTit" maxlength="120" required minlength="3" placeholder="Ex.: botão de PDF na aba BAIXAS" style="margin-bottom:10px">
+        <label class="campo" for="pedTxt">Detalhes (como é hoje, como quer que fique, exemplos)</label><textarea class="inp" id="pedTxt" maxlength="2500"></textarea>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn forte" data-acao="pedido" ${dis()}>${S.ocupado === 'pedido' ? 'Enviando…' : 'Enviar pedido'}</button><span class="peq">Ctrl+Enter envia · o rascunho fica guardado</span></div>
+      </form></div>
+    <div class="card"><div class="titulo">Como funciona</div><div class="det" style="line-height:1.7">
+      1. Você escreve o pedido aqui (de qualquer lugar).<br>2. Numa sessão do Claude Code (aqui no PC ou em claude.ai/code), diga <b>"faça os pedidos do Jarvis"</b>.<br>
+      3. Ao começar, o pedido vira <b>em andamento</b>; ao terminar, vira <b>feito</b>, com o que mudou, em <b>qual pasta/arquivo</b> e onde foi publicado. Você recebe uma notificação.<br>
+      4. A pasta e o repositório de cada projeto ficam no <a href="#mapa">Mapa dos projetos</a>: nada se perde.</div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="titulo"><span>Fila</span><span role="group" aria-label="Filtrar pedidos">${['abertos', 'feito', 'cancelado', 'todos'].map(f => `<button type="button" class="btn mini ${S.filtro === f ? '' : 'sec'}" style="margin-left:6px" aria-pressed="${S.filtro === f}" data-filtro="${f}">${f === 'abertos' ? 'abertos' : f === 'todos' ? 'todos' : NOMES[f]}</button>`).join('')}</span></div>
+    ${lista.map(x => `<div class="pedido"><div class="cab"><b>#${num(x.id)} ${esc(x.titulo)}</b>${pill(x.status)}${pill(x.prioridade)}<span class="peq">${esc(nome(x.projeto))} · ${dataHora(x.criado)}${x.atualizado !== x.criado ? ' · atualizado ' + ha(x.atualizado) : ''}</span>
+      ${abertos(x) ? (S.cancelar === x.id
+        ? `<span style="margin-left:auto;display:flex;gap:6px;align-items:center"><span class="peq">Cancelar o #${num(x.id)}? Não dá para reabrir.</span><button type="button" class="btn perigo mini" data-cancelar-ok="${num(x.id)}" ${dis()}>Sim, cancelar</button><button type="button" class="btn sec mini" data-cancelar-nao="1">Não</button></span>`
+        : `<button type="button" class="btn sec mini" style="margin-left:auto" data-cancelar="${num(x.id)}">Cancelar</button>`) : ''}</div>
+      ${x.texto ? `<p>${esc(x.texto)}</p>` : ''}${x.resposta ? `<div class="resposta">${esc(x.resposta)}</div>` : ''}</div>`).join('') || '<div class="vazio">Nada aqui.</div>'}</div>`;
+}
+
+function telaVersoes() {
+  const blocoApp = a => {
+    const v = S.versoes[a];
+    if (!v) return '<div class="skel" style="height:80px"></div>';
+    if (v.ok === false || v.erro) return `<div class="faixa">Não consegui ler as versões: ${esc(v.erro || '')}</div>`;
+    return `${v.soLeitura ? '<div class="peq" style="margin-bottom:8px">O Jarvis só mostra as próprias versões: voltar o servidor para antes desta central desligaria a central.</div>' : ''}
+      <div class="rolar"><table><thead><tr><th scope="col">Versão</th><th scope="col">Descrição</th><th scope="col">Quando</th><th></th></tr></thead><tbody>${v.versoes.map(x => `<tr><td><b>${num(x.numero)}</b>${x.numero === v.atual ? ' <span class="pill ok">no ar</span>' : ''}</td><td class="det">${esc(x.descricao)}</td><td class="peq">${dataHora(x.quando)}</td>
+      <td class="num">${x.numero === v.atual || v.soLeitura ? '' : (S.voltar && S.voltar.app === a && S.voltar.versao === x.numero
+        ? `<form class="voltar-form" data-form-voltar="1" onsubmit="return false"><span class="peq">No ar: v${num(v.atual)} → vai para v${num(x.numero)}</span><label class="sr" for="confVoltar">Digite VOLTAR para confirmar</label>
+           <input class="inp" id="confVoltar" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="digite VOLTAR" style="width:130px">
+           <button type="submit" class="btn perigo" data-voltar-ok="1" ${dis()}>${S.ocupado === 'voltar' ? 'Voltando…' : 'Voltar para a v' + num(x.numero)}</button><button type="button" class="btn sec" data-voltar-nao="1">Não</button></form>`
+        : `<button type="button" class="btn sec mini" data-voltar="${esc(a)}" data-versao="${num(x.numero)}">Voltar para esta</button>`)}</td></tr>`).join('')}</tbody></table></div>`;
+  };
+  const pub = S.pub;
+  const blocoPub = !pub ? '<div class="skel" style="height:80px"></div>' : (pub.ok === false ? `<div class="faixa">${esc(pub.erro)}</div>` : `<div class="rolar"><table><thead><tr><th scope="col">Repositório</th><th scope="col">Última publicação</th><th scope="col">Situação</th><th scope="col">Quando</th></tr></thead><tbody>
+    ${pub.github.map(g => g.erro ? `<tr><td>${esc(g.repo)}</td><td colspan="3" class="peq">${esc(g.erro)}</td></tr>` : (g.runs.length ? g.runs.slice(0, 1).map(r => `<tr><td>${esc(g.repo)}</td><td class="det">${linkSeguro(r.url) ? `<a href="${linkSeguro(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.titulo || r.nome)}</a>` : esc(r.titulo || r.nome)}</td><td>${pillPub(r.conclusao || r.status)}</td><td class="peq">${dataHora(r.quando)}</td></tr>`).join('') : `<tr><td>${esc(g.repo)}</td><td colspan="3" class="peq">sem publicações automáticas</td></tr>`)).join('')}</tbody></table></div>
+    ${pub.vercel ? (pub.vercel.erro ? `<div class="faixa" style="margin-top:12px">${esc(pub.vercel.erro)}</div>` : `<div class="titulo" style="margin-top:16px">Gabinete na Vercel</div><div class="rolar"><table><tbody>${pub.vercel.map(d => `<tr><td>${pillPub(d.estado)}</td><td class="det">${esc(d.titulo)}</td><td class="peq">${esc(d.alvo === 'production' ? 'produção' : d.alvo)}</td><td class="peq">${dataHora(d.quando)}</td></tr>`).join('')}</tbody></table></div>`) : '<div class="peq" style="margin-top:10px">Gabinete (Vercel): coloque o token da Vercel em <a href="#ajustes">Ajustes</a> para ver as publicações.</div>'}`);
+  return `<div class="card" style="margin-bottom:14px"><div class="titulo"><span>Publicações</span><button type="button" class="btn sec mini" data-acao="recarregar-versoes">Atualizar</button></div>${blocoPub}</div>
+    <div class="grade g2"><div class="card"><div class="titulo">Assistente financeiro — versões</div>${blocoApp('assistente')}</div>
+    <div class="card"><div class="titulo">Jarvis (servidor) — versões</div>${blocoApp('jarvis')}</div></div>
+    <p class="peq" style="margin-top:10px">"Voltar para esta" faz o endereço do assistente usar uma versão anterior, na hora. Nada é apagado: dá para voltar para a mais nova do mesmo jeito. A próxima publicação automática coloca a mais nova de novo.</p>`;
+}
+
+function telaAssistente() {
+  const c = S.cfgAssist, l = S.logAssist, P = S.P;
+  const as = P.estado.projetos.find(p => p.id === 'assistente'), x = as && as.extra;
+  const campo = (it, i) => {
+    const id = 'cfg_' + i;
+    const input = it.tipo === 'data' ? `<input class="inp" type="date" id="${id}" value="${esc(it.valor)}">`
+      : it.tipo === 'simnao' ? `<select class="inp" id="${id}"><option ${it.valor === 'sim' ? 'selected' : ''}>sim</option><option ${it.valor !== 'sim' ? 'selected' : ''}>não</option></select>`
+      : `<input class="inp" id="${id}" inputmode="decimal" value="${esc(it.valor)}">`;
+    return `<div class="cfg"><label for="${id}">${esc(it.item)}</label>${input}<button type="button" class="btn sec" data-salvar="${i}" ${dis()}>Salvar</button></div>`;
+  };
+  const busca = S.busca.toLowerCase();
+  const logF = l && l.log ? l.log.filter(y => !busca || (y.tipo + ' ' + y.texto).toLowerCase().includes(busca)) : [];
+  return `${x ? `<div class="card" style="margin-bottom:14px"><div class="titulo">Dinheiro agora</div><div style="display:flex;gap:24px;flex-wrap:wrap;align-items:baseline">
+      <div><div class="numero" style="color:${x.ok ? 'var(--ok)' : 'var(--er)'}">R$&nbsp;${Math.abs(num(x.livre)).toLocaleString('pt-BR')}</div><div class="peq">${x.ok ? 'sobra' : 'falta'} até ${dm(x.ate)}</div></div>
+      <div class="det">${x.acao ? esc(x.acao.titulo) : ''}${x.proxima ? ' · próxima conta: ' + esc(x.proxima.nome) + ' ' + dm(x.proxima.dia) : ''}</div>
+      ${linkSeguro(as.link) ? `<a class="btn sec mini" href="${linkSeguro(as.link)}" target="_blank" rel="noopener noreferrer">Abrir o Meu dinheiro ↗</a>` : ''}</div></div>` : ''}
+    <div class="grade g2">
+    <div class="card"><div class="titulo">Configurações</div>${!c ? '<div class="skel" style="height:200px"></div>' : c.ok === false || !c.itens ? `<div class="faixa">${esc(c.erro || 'sem dados')}</div>` : c.itens.map(campo).join('')}</div>
+    <div class="card"><div class="titulo">Ações</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><button type="button" class="btn" data-acao="lerbanco" ${dis()}>${S.ocupado === 'lerbanco' ? 'Lendo o banco…' : 'Ler o banco agora'}</button><button type="button" class="btn sec" data-acao="rotina" ${dis()}>${S.ocupado === 'rotina' ? 'Montando…' : 'Ver o resumo de agora'}</button></div>
+      ${S.saidaRotina ? `<pre class="saida">${esc(S.saidaRotina)}</pre>` : '<div class="peq">"Ver o resumo de agora" mostra a mesma mensagem do comando "resumo" do Telegram, sem mudar nada.</div>'}</div></div>
+    <div class="card" style="margin-top:14px"><div class="titulo"><span>Registro do assistente</span><span><label class="sr" for="buscaLog">Filtrar registro</label><input class="inp" id="buscaLog" placeholder="filtrar…" style="width:200px;min-height:30px;padding:4px 10px" value="${esc(S.busca)}"></span></div>
+      ${!l ? '<div class="skel" style="height:120px"></div>' : l.ok === false || !l.log ? `<div class="faixa">${esc(l.erro || 'sem dados')}</div>` :
+      `<div class="rolar"><table><tbody>${logF.map(y => `<tr><td class="peq" style="white-space:nowrap">${dataHora(y.quando)}</td><td><span class="pill ${y.tipo === 'erro' ? 'erro' : 'config'}">${esc(y.tipo)}</span></td><td class="det">${esc(y.texto)}</td></tr>`).join('') || '<tr><td class="vazio">Nada com esse filtro.</td></tr>'}</tbody></table></div>`}</div>`;
+}
+
+function telaMapa() {
+  return `<div class="card"><div class="titulo">Onde está cada coisa</div><div class="rolar"><table><thead><tr><th scope="col">Projeto</th><th scope="col">Pasta neste PC</th><th scope="col">Repositório</th><th scope="col">Onde roda</th><th scope="col">Como publicar</th></tr></thead><tbody>
+    ${S.P.mapa.map(m => `<tr><td><b>${esc(m.icone)} ${esc(m.nome)}</b>${linkSeguro(m.url) ? `<br><a href="${linkSeguro(m.url)}" target="_blank" rel="noopener noreferrer" class="peq">abrir</a>` : ''}</td><td><code>${esc(m.pasta)}</code></td>
+      <td>${/^caioAprat\/[\w.-]+$/.test(m.repo) ? `<a href="https://github.com/${esc(m.repo)}" target="_blank" rel="noopener noreferrer">${esc(m.repo)}</a>` : `<span class="peq">${esc(m.repo)}</span>`}</td><td class="det">${esc(m.roda)}</td><td class="det">${esc(m.publicar)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="peq" style="margin-top:12px">Regra: a versão mais nova de cada projeto é sempre a da pasta acima, guardada no repositório indicado. Cada pedido feito diz exatamente o que mudou e onde.</p></div>`;
+}
+
+const FRASES_DIARIO = {
+  'planilha.codigo': r => r.erro ? 'Código da planilha: não consegui ler (' + r.erro + ')' : r.mudou ? '📝 Código da planilha guardado (mudou)' : '✓ Código da planilha igual ao de ontem',
+  'planilha.copia': r => r.erro ? 'Cópia da planilha: falhou (' + r.erro + ')' : r.pulado ? 'Cópia da planilha: desligada' : '✓ Cópia da planilha feita',
+  'planilha.tamanho': r => r.erro ? 'Tamanho da planilha: falhou (' + r.erro + ')' : `✓ Planilha usa ${pct(r.pct)} do limite`,
+  'gabinete.supabase': r => r.pulado ? 'Banco do Gabinete: sem configuração' : r.codigo === 200 ? '✓ Banco do Gabinete acordado' : `Banco do Gabinete: resposta ${r.codigo}`,
+};
+function telaAvisos() {
+  const P = S.P, vistos = P.estado.avisosVistosAte || 0, busca = S.busca.toLowerCase();
+  const logF = P.log.filter(x => !busca || (x.tipo + ' ' + x.texto).toLowerCase().includes(busca));
+  const rel = P.diario && P.diario.relatorio ? Object.keys(P.diario.relatorio).map(k => (FRASES_DIARIO[k] || (r => k + ': ' + JSON.stringify(r)))(P.diario.relatorio[k] || {})) : [];
+  return `<div class="grade g2"><div class="card"><div class="titulo"><span>Avisos</span><button type="button" class="btn sec mini" data-acao="vistos" ${dis()}>Marcar todos como vistos</button></div>${P.estado.avisos.map(a => `<div class="aviso ${a.id > vistos ? 'novo' : ''}"><i class="${esc(a.nivel)}" aria-hidden="true"></i><div><b>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}</div><span class="peq">${dataHora(a.quando)}</span></div>`).join('') || '<div class="vazio">Nenhum.</div>'}</div>
+    <div class="card"><div class="titulo"><span>Registro do Jarvis</span><span><label class="sr" for="buscaLog">Filtrar registro</label><input class="inp" id="buscaLog" placeholder="filtrar…" style="width:180px;min-height:30px;padding:4px 10px" value="${esc(S.busca)}"></span></div>
+      <div class="rolar"><table><tbody>${logF.map(x => `<tr><td class="peq" style="white-space:nowrap">${dataHora(x.quando)}</td><td><span class="pill config">${esc(x.tipo)}</span></td><td class="det">${esc(x.texto)}</td></tr>`).join('') || '<tr><td class="vazio">Vazio.</td></tr>'}</tbody></table></div>
+      ${P.diario ? `<div class="titulo" style="margin-top:16px">Rotina da madrugada · ${dataHora(P.diario.quando)}</div>${rel.map(f => `<div class="det">${esc(f)}</div>`).join('')}` : ''}</div></div>`;
+}
+
+function telaAjustes() {
+  const c = S.P.configs, atr = S.P.estado.projetos.find(p => p.id === 'atrasos');
+  const pausado = atr && atr.pausaAte && atr.pausaAte >= hojeIso();
+  const token = (prop, nome, ajuda, tem, prefixo) => `<div class="card"><div class="titulo">${nome}${tem ? ' <span class="pill ok">configurado</span>' : ''}</div><div class="det" style="margin-bottom:10px">${ajuda}</div>
+    <form onsubmit="return false" style="display:flex;gap:8px;flex-wrap:wrap"><label class="sr" for="tok_${prop}">${nome}</label><input class="inp" type="password" id="tok_${prop}" autocomplete="new-password" spellcheck="false" placeholder="${tem ? 'colar um novo para trocar' : 'colar aqui'}" style="flex:1 1 220px" data-prefixo="${esc(prefixo)}">
+    <button type="submit" class="btn" data-token="${prop}" ${dis()}>Salvar</button>${tem ? (S.apagarToken === prop ? `<button type="button" class="btn perigo" data-token-apagar="${prop}" ${dis()}>Sim, apagar</button><button type="button" class="btn sec" data-token-nao="1">Não</button>` : `<button type="button" class="btn sec" data-token-pedir="${prop}">Apagar</button>`) : ''}</form></div>`;
+  return `<div class="grade g2">
+    <div class="card"><div class="titulo">Bot de atrasos</div><div class="det" style="margin-bottom:10px">${pausado ? `Pausado até ${dm(atr.pausaAte)}: o Jarvis não cobra se ele não rodar.` : 'Sendo cobrado nos dias úteis (16:30; sexta 15:30).'}</div>
+      ${pausado ? `<button type="button" class="btn sec" data-acao="retomar" ${dis()}>Retomar cobrança</button>` : `<form onsubmit="return false" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="campo" for="pausaAte" style="margin:0">Não cobrar até (inclusive)</label><input class="inp" type="date" id="pausaAte" min="${hojeIso()}" max="${hojeIso(60)}" value="${hojeIso(1)}" style="width:170px"><button type="submit" class="btn" data-acao="pausar" ${dis()}>Pausar</button></form>`}</div>
+    <div class="card"><div class="titulo">Notificações</div><div class="det" style="margin-bottom:10px">${plural(num(S.P.estado.inscricoes), 'aparelho recebendo', 'aparelhos recebendo')}. Para ativar num aparelho, abra o Jarvis nele.</div><button type="button" class="btn sec" data-acao="teste" ${dis()}>Mandar notificação de teste</button></div>
+    ${token('GITHUB_TOKEN', 'Token do GitHub', 'Deixa o Jarvis ver as publicações dos repositórios privados (assistente e Gabinete). Crie em github.com → Settings → Developer settings → Fine-grained tokens, só com leitura de Actions.', c.github, 'github_pat_|ghp_')}
+    ${token('VERCEL_TOKEN', 'Token da Vercel', 'Deixa o Jarvis ver as publicações do Gabinete na Vercel. Crie em vercel.com → Account Settings → Tokens.', c.vercel, '')}
+    <div class="card"><div class="titulo">Cópia diária da planilha J Hissnauer</div><div class="det" style="margin-bottom:10px">Toda madrugada o Jarvis guarda uma cópia da planilha na pasta "Jarvis — backups" do seu Drive (mantém 7). <b>Os dados são do cliente:</b> ligue só depois que ele concordar (uma mensagem dele por escrito basta). O código da planilha é guardado sempre.</div>
+      <button type="button" class="btn ${c.backupPlanilha ? 'sec' : ''}" data-backup="${c.backupPlanilha ? 'nao' : 'sim'}" ${dis()}>${c.backupPlanilha ? 'Desligar a cópia diária' : 'Ligar a cópia diária'}</button></div>
+    <div class="card"><div class="titulo">Rotina da madrugada</div><div class="det" style="margin-bottom:10px">Guarda o código da planilha, faz a cópia, mede o tamanho e mantém o banco do Gabinete acordado. Roda sozinha às 3h.</div>
+      <button type="button" class="btn sec" data-acao="diario" ${dis()}>${S.ocupado === 'diario' ? 'Rodando… (até 1 min)' : 'Rodar agora'}</button></div>
+    <div class="card"><div class="titulo">Assistente financeiro</div><div class="det">Configurações pelo PC: ${c.operador ? '<span class="pill ok">ligadas</span>' : '<span class="pill atencao">desligadas (falta a chave de operador)</span>'}</div></div>
+    <div class="card"><div class="titulo">Este computador</div><div class="det" style="margin-bottom:10px">A chave desta central fica guardada neste navegador. Em computador que não é seu, saia ao terminar.</div><button type="button" class="btn perigo" data-acao="sair">Sair deste PC</button></div></div>`;
+}
+
+// ---------------------------------------------------------------- montagem
+function render() {
+  const raiz = $('raiz');
+  if (!CFG || S.erro === 'auth') {
+    raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvis · Central do PC'}</div>
+      <p class="det" style="margin-bottom:12px">Cole o <b>link da central do PC</b> que veio no Telegram (só desta vez neste computador).</p>
+      <form onsubmit="return false"><label class="sr" for="cola">Link da central do PC</label><input class="inp" id="cola" type="url" autocomplete="off" spellcheck="false" placeholder="https://caioaprat.github.io/Jarvis/pc.html#k=...">
+      <button type="submit" class="btn forte" style="margin-top:12px" data-acao="colar">Entrar</button></form></div>`;
+    return;
+  }
+  if (!S.P) { raiz.innerHTML = S.erro ? `<div class="acesso card"><p>Não consegui falar com o Jarvis (${esc(S.erro)}).</p><button type="button" class="btn" style="margin-top:12px" data-acao="tentar">Tentar de novo</button></div>` : '<div class="acesso"><div class="skel"></div><div class="skel"></div></div>'; return; }
+  const P = S.P, ps = P.estado.projetos;
+  const geral = jarvisParado(P) || ps.some(p => p.status === 'erro') ? 'erro' : ps.some(p => p.status === 'atencao') || !P.estado.inscricoes ? 'atencao' : 'ok';
+  const contagem = { pedidos: [P.pedidos.filter(x => x.status === 'novo' || x.status === 'andamento').length, 'pendentes'],
+    avisos: [P.estado.avisos.filter(a => a.id > (P.estado.avisosVistosAte || 0)).length, 'novos'],
+    clientes: [ps.filter(p => p.cliente && (p.status === 'erro' || p.status === 'atencao')).length, 'com problema'] };
+  const telas = { geral: telaGeral, clientes: telaClientes, pedidos: telaPedidos, versoes: telaVersoes, assistente: telaAssistente, mapa: telaMapa, avisos: telaAvisos, ajustes: telaAjustes };
+  let conteudo;
+  try { conteudo = (telas[S.aba] || telaGeral)(); }
+  catch (e) { conteudo = `<div class="faixa erro">Esta seção falhou ao montar (${esc(e.message)}). <button type="button" class="btn sec mini" data-acao="tentar">Recarregar</button></div>`; }
+  const desde = S.quando ? ha(new Date(S.quando).toISOString()) : '';
+  const sub = S.carregando ? 'atualizando…' : S.erro ? `<span style="color:var(--av)">Sem conexão com o Jarvis · dados de ${esc(desde)}</span>` : 'atualizado ' + esc(desde);
+  // guarda foco e cursor para não atrapalhar quem está digitando
+  const ativo = document.activeElement, focoId = ativo && ativo.id;
+  let selA = null, selB = null; try { selA = ativo.selectionStart; selB = ativo.selectionEnd; } catch (e) { /* sem cursor */ }
+  const titulo = (ABAS.find(a => a[0] === S.aba) || ABAS[0])[1];
+  raiz.innerHTML = `<div class="layout"><nav aria-label="Seções"><div class="marca"><span class="orbe ${geral}" aria-hidden="true"></span>Jarvis</div>
+      ${ABAS.map(([id, nome]) => { const [n, rot] = contagem[id] || [0, '']; return `<button type="button" id="nav-${id}" ${S.aba === id ? 'aria-current="page"' : ''} data-aba="${id}">${nome}${n ? `<span class="cont ${id === 'clientes' ? 'alerta' : ''}">${n}<span class="sr"> ${rot}</span></span>` : ''}</button>`; }).join('')}
+      <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></nav>
+    <main><header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div>
+      <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : '↻ Conferir tudo agora'}</button></header>
+      ${conteudo}</main></div>`;
+  raiz.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => { if (el.type !== 'password' && el.id in S.rasc) el.value = S.rasc[el.id]; });
+  if (focoId && $(focoId)) { const n = $(focoId); n.focus({ preventScroll: true }); try { if (selA !== null) n.setSelectionRange(selA, selB); } catch (e) { /* tipo sem cursor */ } }
+}
+
+function irPara(aba, mudarHash) {
+  S.aba = abaValida(aba); S.voltar = null; S.cancelar = null; S.apagarToken = null;
+  if (mudarHash && location.hash.slice(1) !== S.aba) history.pushState(null, '', '#' + S.aba);
+  render(); window.scrollTo(0, 0);
+  const h = document.querySelector('main h1'); if (h) h.focus({ preventScroll: true });
+  if (S.aba === 'versoes') carregarVersoes();
+  if (S.aba === 'assistente' && !S.cfgAssist) carregarAssistente();
+}
+
+// ---------------------------------------------------------------- ações
+async function enviarPedido() {
+  const tit = ($('pedTit').value || '').trim();
+  if (tit.length < 3) { avisar('Escreva um título (pelo menos 3 letras).', true); $('pedTit').focus(); return; }
+  await ocupado('pedido', async () => {
+    const r = await enviar({ tipo: 'pedido', projeto: $('pedProj').value, prioridade: $('pedPrio').value, titulo: tit, texto: $('pedTxt').value }, 'Pedido enviado para a fila');
+    if (r.ok) { ['pedTit', 'pedTxt'].forEach(k => delete S.rasc[k]); guardarRasc(); S.filtro = 'abertos'; }
+    return r;
+  });
+  carregar();
+}
+async function confirmarVoltar() {
+  const conf = (($('confVoltar') || {}).value || '').trim().toUpperCase();
+  if (conf !== 'VOLTAR') { avisar('Digite VOLTAR para confirmar.', true); if ($('confVoltar')) $('confVoltar').focus(); return; }
+  const alvo = S.voltar;
+  const r = await ocupado('voltar', () => enviar({ tipo: 'voltar-versao', app: alvo.app, versao: alvo.versao, confirmacao: 'VOLTAR' }, `Pronto: voltou para a versão ${alvo.versao}`));
+  if (r && r.ok) { S.voltar = null; carregarVersoes(true); }
+}
+async function salvarToken(prop) {
+  const el = $('tok_' + prop), v = (el.value || '').trim();
+  if (!v) { avisar('Cole o token antes de salvar.', true); return; }
+  if (el.dataset.prefixo && !new RegExp('^(' + el.dataset.prefixo + ')').test(v)) { avisar('Esse token não começa com github_pat_ ou ghp_. Confira se copiou o token do GitHub.', true); return; }
+  const r = await ocupado('token', () => enviar({ tipo: 'definir-pc', prop, valor: v }, 'Token salvo'));
+  if (r && r.ok) { S.pub = null; carregar(); }
+}
+document.addEventListener('submit', ev => {
+  ev.preventDefault();
+  const f = ev.target;
+  if (f.id === 'formPedido') return enviarPedido();
+  if (f.dataset.formVoltar) return confirmarVoltar();
+  const tok = f.querySelector('[data-token]'); if (tok) return salvarToken(tok.dataset.token);
+  const b = f.querySelector('[data-acao]'); if (b) b.click();
+});
+document.addEventListener('input', ev => {
+  const t = ev.target; if (!t.id || t.type === 'password') return;
+  if (t.id === 'buscaLog') { S.busca = t.value; render(); return; }
+  S.rasc[t.id] = t.value;
+  if (/^ped/.test(t.id)) guardarRasc();
+});
+document.addEventListener('change', ev => { const t = ev.target; if (t.id && t.tagName === 'SELECT') { S.rasc[t.id] = t.value; if (/^ped/.test(t.id)) guardarRasc(); } });
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.id === 'pedTit') { ev.preventDefault(); $('pedTxt').focus(); }
+  if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey) && /^ped/.test(ev.target.id || '')) { ev.preventDefault(); enviarPedido(); }
+});
+document.addEventListener('click', async ev => {
+  const link = ev.target.closest('a[href^="#"]');
+  if (link) { ev.preventDefault(); irPara(link.getAttribute('href').slice(1), true); return; }
+  const el = ev.target.closest('button'); if (!el || el.type === 'submit') return;
+  const d = el.dataset;
+  if (d.aba) { irPara(d.aba, true); return; }
+  if (d.filtro) { S.filtro = d.filtro; render(); return; }
+  if (d.novoPedido) { S.rasc.pedProj = d.novoPedido; guardarRasc(); irPara('pedidos', true); setTimeout(() => $('pedTit') && $('pedTit').focus(), 30); return; }
+  if (d.copiar) { try { await navigator.clipboard.writeText(d.copiar); avisar('Relatório copiado.'); } catch (e) { avisar('Não consegui copiar.', true); } return; }
+  if (d.cancelar) { S.cancelar = Number(d.cancelar); render(); return; }
+  if (d.cancelarNao) { S.cancelar = null; render(); return; }
+  if (d.cancelarOk) { const r = await ocupado('cancelar', () => enviar({ tipo: 'pedido-status', id: Number(d.cancelarOk), status: 'cancelado' }, 'Pedido cancelado')); S.cancelar = null; if (r && r.ok) carregar(); return; }
+  if (d.voltar) { S.voltar = { app: d.voltar, versao: Number(d.versao) }; render(); setTimeout(() => $('confVoltar') && $('confVoltar').focus(), 30); return; }
+  if (d.voltarNao) { S.voltar = null; render(); return; }
+  if (d.salvar !== undefined) {
+    const i = Number(d.salvar), it = S.cfgAssist.itens[i], valor = $('cfg_' + i).value;
+    const r = await ocupado('salvar', () => enviar({ tipo: 'assistente-definir', item: it.item, valor }, 'Salvo no assistente'));
+    if (r && r.ok) { it.valor = r.valor !== undefined ? r.valor : valor; delete S.rasc['cfg_' + i]; render(); }
+    return;
+  }
+  if (d.tokenPedir) { S.apagarToken = d.tokenPedir; render(); return; }
+  if (d.tokenNao) { S.apagarToken = null; render(); return; }
+  if (d.tokenApagar) { const r = await ocupado('token', () => enviar({ tipo: 'definir-pc', prop: d.tokenApagar, valor: '' }, 'Token apagado')); S.apagarToken = null; if (r && r.ok) { S.pub = null; carregar(); } return; }
+  if (d.backup) { const r = await ocupado('backup', () => enviar({ tipo: 'definir-pc', prop: 'BACKUP_PLANILHA', valor: d.backup }, d.backup === 'sim' ? 'Cópia diária ligada' : 'Cópia diária desligada')); if (r && r.ok) carregar(); return; }
+  switch (d.acao) {
+    case 'conferir': carregar(true); break;
+    case 'tentar': carregar(); break;
+    case 'recarregar-versoes': carregarVersoes(true); break;
+    case 'vistos': { const ate = S.P.estado.avisos[0] ? S.P.estado.avisos[0].id : 0; const r = await ocupado('vistos', () => enviar({ tipo: 'vistos', ate }, 'Avisos marcados como vistos')); if (r && r.ok) carregar(); break; }
+    case 'lerbanco': await ocupado('lerbanco', () => enviar({ tipo: 'lerbanco' })); break;
+    case 'teste': await ocupado('teste', () => enviar({ tipo: 'teste' }, 'Notificação de teste enviada')); break;
+    case 'rotina': { const r = await ocupado('rotina', () => enviar({ tipo: 'assistente-rotina' }, 'Resumo atualizado')); S.saidaRotina = (r && r.texto) || ''; render(); break; }
+    case 'diario': await ocupado('diario', () => enviar({ tipo: 'diario-agora' }, 'Rotina da madrugada concluída')); carregar(); break;
+    case 'pausar': { const v = ($('pausaAte') || {}).value; if (!v) { avisar('Escolha a data.', true); return; } const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: v })); if (r && r.ok) carregar(); break; }
+    case 'retomar': { const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: '' })); if (r && r.ok) carregar(); break; }
+    case 'sair': try { localStorage.removeItem(LS); localStorage.removeItem(LR); } catch (e) {} CFG = null; S.P = null; render(); break;
+    case 'colar': {
+      const c = cfgDeTexto(($('cola') || {}).value || '');
+      if (!c) { avisar('Esse não parece o link da central do PC.', true); return; }
+      CFG = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) {} S.erro = ''; carregar(); break;
+    }
+  }
+});
+window.addEventListener('popstate', () => irPara(location.hash.slice(1)));
+const digitando = () => /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || S.voltar || S.cancelar || S.apagarToken || S.ocupado;
+setInterval(() => { if (document.visibilityState === 'visible' && !digitando()) carregar(); }, 5 * 60e3);
+render();
+carregar();
+</script>
+</body>
+</html>

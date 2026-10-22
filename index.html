@@ -86,6 +86,16 @@
   .ativo { color: var(--ok); font-size: 13px; }
   .skel { height: 100px; border-radius: 20px; margin-bottom: 14px; background: linear-gradient(90deg, var(--card), var(--card2), var(--card)); background-size: 200% 100%; animation: b 1.4s infinite; }
   @keyframes b { to { background-position: -200% 0; } }
+  .disp { font-size: 11.5px; font-weight: 650; color: var(--di); margin-top: 2px; }
+  .disp.bom { color: var(--ok); } .disp.medio { color: var(--av); } .disp.ruim { color: var(--er); }
+  .acoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px 52px; }
+  .mini-btn { min-height: 44px; padding: 7px 13px; border-radius: 999px; background: var(--pri2); color: var(--pri); font-size: 13px; font-weight: 650; }
+  .mini-btn.sec { background: var(--card2); color: var(--mu); }
+  .pausa { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 2px 0 10px 52px; }
+  .pausa label { flex-basis: 100%; color: var(--mu); font-size: 12.5px; }
+  .pausa input { flex: 1 1 150px; min-width: 150px; background: var(--card2); border: 1px solid var(--linha); border-radius: 10px; padding: 8px 10px; font-size: 16px; min-height: 44px; color: var(--tx); -webkit-appearance: none; text-align: left; }
+  .aviso.novo b::after { content: "novo"; margin-left: 8px; font-size: 10.5px; font-weight: 700; color: var(--pri); background: var(--pri2); padding: 1px 7px; border-radius: 999px; vertical-align: 1px; }
+  .badge { display: inline-block; min-width: 20px; padding: 1px 7px; border-radius: 999px; background: var(--er); color: #0b0f17; font-size: 11px; font-weight: 800; text-align: center; margin-left: 6px; }
   footer { text-align: center; color: var(--di); font-size: 12px; margin-top: 16px; }
   @media (prefers-reduced-motion: reduce) { .skel, .giro { animation: none; } *, *::before { transition-duration: .01ms !important; } }
 </style>
@@ -114,6 +124,7 @@ function ha(iso) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   return m < 1 ? 'agora' : m < 60 ? `há ${m} min` : m < 1440 ? `há ${Math.round(m / 60)}h` : 'em ' + new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
+const hojeIso = (mais = 0) => { const d = new Date(Date.now() + mais * 864e5); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
 const standalone = () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 
 // ---------------------------------------------------------------- acesso (link #k=...&u=... ou colado uma vez)
@@ -140,7 +151,8 @@ function avisar(texto, ruim) {
 }
 
 // ---------------------------------------------------------------- rede
-const S = { D: null, quando: 0, carregando: false, offline: false, erro: '', todos: false, push: 'verificando', ativando: false, erroCola: '' };
+const S = { D: null, quando: 0, carregando: false, offline: false, erro: '', todos: false, push: 'verificando', ativando: false, erroCola: '',
+            pausaAberta: false, ocupado: '' };
 async function api(acao, extra) {
   const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
   const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
@@ -271,21 +283,39 @@ function render() {
       <div><span class="v" style="color:${x.ok ? 'var(--ok)' : 'var(--er)'}">${R(Math.abs(x.livre))}</span>${link ? '<span class="seta" aria-hidden="true">›</span>' : ''}</div></${link ? 'a' : 'div'}>`);
   }
 
-  // projetos
+  // projetos: clientes (vendidos) primeiro, depois os meus
   const ordem = { erro: 0, atencao: 1, config: 2, aguardando: 3, ok: 4, pausado: 5 };
-  const lista = D.projetos.slice().sort((a, b) => (ordem[a.status] ?? 9) - (ordem[b.status] ?? 9));
-  h.push(`<section class="card"><h2 class="titulo">Projetos</h2>${lista.map(p => {
+  const porGravidade = (a, b) => (ordem[a.status] ?? 9) - (ordem[b.status] ?? 9);
+  const clientes = D.projetos.filter(p => p.cliente).sort(porGravidade), meus = D.projetos.filter(p => !p.cliente).sort(porGravidade);
+  const linhaProj = p => {
     const link = linkSeguro(p.link), tag = link ? 'a' : 'div';
+    const d = p.disp7;
+    const disp = d === null || d === undefined ? '' : `<div class="disp ${d >= 99.5 ? 'bom' : d >= 97 ? 'medio' : 'ruim'}">${String(d).replace('.', ',')}% no ar nos últimos 7 dias</div>`;
+    let acoes = '';
+    if (p.id === 'assistente') acoes = `<div class="acoes"><button class="mini-btn" data-acao="lerbanco" ${S.ocupado ? 'disabled' : ''}>${S.ocupado === 'lerbanco' ? 'Lendo o banco…' : 'Ler o banco agora'}</button></div>`;
+    const pausado = p.pausaAte && p.pausaAte >= hojeIso();
+    if (p.id === 'atrasos') acoes = pausado
+      ? `<div class="acoes"><button type="button" class="mini-btn sec" data-acao="retomar" ${S.ocupado ? 'disabled' : ''}>Retomar cobrança (pausado até ${dm(p.pausaAte)})</button></div>`
+      : S.pausaAberta
+        ? `<form class="pausa" onsubmit="return false"><label for="pausaAte">Não cobrar até (inclusive)</label>
+           <button type="button" class="mini-btn sec" data-pausa-rapida="0">Só hoje</button><button type="button" class="mini-btn sec" data-pausa-rapida="1">Até amanhã</button>
+           <input id="pausaAte" type="date" min="${hojeIso()}" max="${hojeIso(60)}" value="${hojeIso(1)}">
+           <button type="button" class="mini-btn" data-acao="pausar" ${S.ocupado ? 'disabled' : ''}>${S.ocupado === 'pausar' ? 'Pausando…' : 'Pausar'}</button><button type="button" class="mini-btn sec" data-acao="pausa-fechar">Cancelar</button></form>`
+        : `<div class="acoes"><button type="button" class="mini-btn sec" data-acao="pausa-abrir">Pausar (feriado ou férias)</button></div>`;
     return `<${tag} class="proj" ${link ? `href="${link}"` : ''}><div class="ic" aria-hidden="true">${esc(p.icone)}</div>
-      <div><b>${esc(p.nome)}</b><div class="det">${esc(p.detalhe || '')}</div><div class="quando">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}</div></div>
-      <span class="pill ${esc(p.status)}">${NOMES[p.status] || esc(p.status)}</span></${tag}>`;
-  }).join('')}</section>`);
+      <div><b>${esc(p.nome)}</b><div class="det">${esc(p.detalhe || '')}</div>${disp}<div class="quando">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}</div></div>
+      <span class="pill ${esc(p.status)}">${NOMES[p.status] || esc(p.status)}</span></${tag}>${acoes}`;
+  };
+  if (clientes.length) h.push(`<section class="card"><h2 class="titulo">Clientes<small>o que já está vendido</small></h2>${clientes.map(linhaProj).join('')}</section>`);
+  h.push(`<section class="card"><h2 class="titulo">Meus projetos</h2>${meus.map(linhaProj).join('')}</section>`);
 
   // avisos
   const NIVEL = { urgente: 'Urgente: ', atencao: 'Atenção: ', ok: 'Resolvido: ', info: '' };
   const avisos = S.todos ? D.avisos : D.avisos.slice(0, 6);
-  h.push(`<section class="card"><h2 class="titulo">Avisos<small>${plural(D.inscricoes, 'aparelho recebendo', 'aparelhos recebendo')}</small></h2>${avisos.map(a => `
-    <div class="aviso"><i class="${esc(a.nivel)}" aria-hidden="true"></i><div><b><span class="sr">${NIVEL[a.nivel] || ''}</span>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}<small>${ha(a.quando)}</small></div></div>`).join('') || '<div class="vazio">Nenhum aviso ainda.</div>'}
+  const vistos = D.avisosVistosAte || 0, novos = D.avisos.filter(a => a.id > vistos).length;
+  h.push(`<section class="card"><h2 class="titulo"><span>Avisos${novos ? `<span class="badge" aria-label="${novos} novos">${novos}</span>` : ''}</span><small>${plural(D.inscricoes, 'aparelho recebendo', 'aparelhos recebendo')}</small></h2>${avisos.map(a => `
+    <div class="aviso ${a.id > vistos ? 'novo' : ''}"><i class="${esc(a.nivel)}" aria-hidden="true"></i><div><b><span class="sr">${NIVEL[a.nivel] || ''}</span>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}<small>${ha(a.quando)}</small></div></div>`).join('') || '<div class="vazio">Nenhum aviso ainda.</div>'}
+    ${novos ? `<button class="mais" data-acao="vistos">Marcar ${plural(novos, 'aviso como visto', 'avisos como vistos')}</button>` : ''}
     ${!S.todos && D.avisos.length > 6 ? '<button class="mais" data-acao="todos">Ver todos</button>' : ''}
     ${S.push === 'ativo' ? '<div class="ativo" style="margin-top:12px">✓ Notificações ativas neste iPhone</div><button class="grande-btn sec" data-acao="teste">Mandar notificação de teste</button>' : ''}</section>`);
   app.innerHTML = h.join('');
@@ -305,7 +335,28 @@ document.addEventListener('click', ev => {
   if (a === 'teste') testarPush();
   if (a === 'todos') { S.todos = true; render(); }
   if (a === 'colar') entrar();
+  if (a === 'lerbanco') acao('lerbanco', {}, 'Lendo o banco…');
+  if (a === 'pausa-abrir') { S.pausaAberta = true; render(); }
+  if (b.dataset.pausaRapida !== undefined) { S.pausaAberta = false; acao('pausar', { ate: hojeIso(Number(b.dataset.pausaRapida)) }); return; }
+  if (a === 'pausa-fechar') { S.pausaAberta = false; render(); }
+  if (a === 'pausar') { const v = ($('pausaAte') || {}).value; if (!v) { avisar('Escolha a data até quando pausar.', true); return; } S.pausaAberta = false; acao('pausar', { ate: v }); }
+  if (a === 'retomar') acao('pausar', { ate: '' });
+  if (a === 'vistos') {
+    const ate = S.D && S.D.avisos[0] ? S.D.avisos[0].id : 0; S.D.avisosVistosAte = ate; render();
+    post({ tipo: 'vistos', ate }).then(r => { if (!r.ok) throw 0; }).catch(() => { avisar('Não consegui marcar. Tente de novo.', true); carregar(); });
+  }
 });
+
+/** Ação rápida no servidor; mostra o resultado e atualiza a tela. */
+async function acao(tipo, extra) {
+  if (S.ocupado) return;
+  S.ocupado = tipo; render();
+  try {
+    const r = await post(Object.assign({ tipo }, extra));
+    avisar(r.ok ? (r.aviso || 'Feito') : 'Não consegui: ' + (r.erro || 'tente de novo'), !r.ok);
+  } catch (e) { avisar('Não consegui falar com o Jarvis. Confira a internet.', true); }
+  S.ocupado = ''; carregar();
+}
 document.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.id === 'cola') { ev.preventDefault(); entrar(); } });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - S.quando > 60000) carregar(); });
 
