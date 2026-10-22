@@ -1,6 +1,7 @@
 // Jarvis: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvis com a chave guardada pelo app.
-const VERSAO = 'jarvis-v1';
+// Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
+const VERSAO = 'jarvis-v2';
 const CASCA = ['./', 'index.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting())));
@@ -21,28 +22,42 @@ self.addEventListener('fetch', e => {
 async function lerCache(chave) {
   try { const r = await (await caches.open('jarvis-cfg')).match(chave); return r ? await r.text() : null; } catch (e) { return null; }
 }
+async function gravarCache(chave, valor) {
+  try { await (await caches.open('jarvis-cfg')).put(chave, new Response(valor)); } catch (e) { /* sem espaço: segue */ }
+}
 
 self.addEventListener('push', e => {
   e.waitUntil((async () => {
-    let titulo = 'Jarvis', corpo = 'Novo aviso', url = './', tag = 'jarvis';
+    let n = null;
     try {
       const cfg = JSON.parse(await lerCache('cfg'));
       const ultimo = Number(await lerCache('ultimo')) || 0;
-      const r = await fetch(cfg.u + '?k=' + encodeURIComponent(cfg.k) + '&acao=avisos&desde=' + ultimo, { redirect: 'follow' });
+      const ctl = new AbortController();
+      const prazo = setTimeout(() => ctl.abort(), 6000);           // o iOS encerra o service worker se demorar
+      const r = await fetch(cfg.u + '?k=' + encodeURIComponent(cfg.k) + '&acao=avisos&desde=' + ultimo, { redirect: 'follow', signal: ctl.signal });
+      clearTimeout(prazo);
       const avisos = (await r.json()).avisos || [];
       if (avisos.length) {
         const a = avisos[0];
-        titulo = a.titulo; corpo = a.texto || ''; url = a.url || './'; tag = 'aviso-' + a.id;
-        if (avisos.length > 1) corpo += `\n+${avisos.length - 1} aviso(s) no Jarvis`;
-        await (await caches.open('jarvis-cfg')).put('ultimo', new Response(String(a.id)));
+        n = { titulo: a.titulo, corpo: (a.texto || '') + (avisos.length > 1 ? `\n+${avisos.length - 1} aviso(s) no Jarvis` : ''), url: a.url || './', tag: 'aviso-' + a.id };
+        await gravarCache('ultimo', String(a.id));
+        await gravarCache('ultimoAviso', JSON.stringify(n));
       }
-    } catch (err) { /* sem conexão: mostra o genérico */ }
-    await self.registration.showNotification(titulo, { body: corpo.slice(0, 300), tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url } });
+    } catch (err) { /* sem conexão ou demorou: usa o último aviso conhecido */ }
+    if (!n) { try { n = JSON.parse(await lerCache('ultimoAviso')); } catch (err) { n = null; } }
+    if (!n) n = { titulo: 'Jarvis', corpo: 'Novo aviso. Toque para ver.', url: './', tag: 'jarvis' };
+    await self.registration.showNotification(n.titulo, { body: String(n.corpo || '').slice(0, 300), tag: n.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: n.url } });
   })());
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const url = (e.notification.data && e.notification.data.url) || './';
-  e.waitUntil(self.clients.openWindow(url));
+  e.waitUntil((async () => {
+    const abertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const destino = new URL(url, self.location.href).href;
+    const mesma = abertas.find(c => c.url.split('#')[0] === destino.split('#')[0]);
+    if (mesma) return mesma.focus();
+    return self.clients.openWindow(destino);
+  })());
 });

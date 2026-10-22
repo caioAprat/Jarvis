@@ -35,3 +35,15 @@ jobs:
           DESC=$(printf '%s' "$MENSAGEM" | head -1 | cut -c1-90)
           clasp deploy -i AKfycbwPYJb6pjQ2nPlW63SGh82Rsrfkqk8Mpn9X-ajd8nRA3QJbrMDHyMuwIyAVrQnNPq35 -d "$DESC"
           rm -f ~/.clasprc.json
+
+      - name: Conferir se ficou no ar
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then exit 0; fi
+          sleep 20
+          for i in 1 2 3; do
+            if curl -sL --max-time 60 "https://script.google.com/macros/s/AKfycbwPYJb6pjQ2nPlW63SGh82Rsrfkqk8Mpn9X-ajd8nRA3QJbrMDHyMuwIyAVrQnNPq35/exec?acao=saude" | grep -q '"ok":true'; then echo "no ar"; exit 0; fi
+            sleep 20
+          done
+          echo "::error::Publicou, mas a URL não responde ok (permissão ou erro no código)"; exit 1

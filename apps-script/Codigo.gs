@@ -3,23 +3,27 @@
  *
  *  - A cada 10 minutos confere cada projeto (PROJETOS, abaixo) e guarda o estado.
  *  - Quando algo quebra ou volta, manda notificação no iPhone (Web Push, sem Telegram).
- *  - Os projetos também podem mandar "batidas" (estou vivo) e avisos (ex.: o assistente financeiro).
+ *  - Os projetos podem mandar "batidas" (estou vivo) e o assistente manda avisos.
  *  - O app (GitHub Pages) lê tudo por acao=estado.
  *
- * CHAVES (Script Properties): CHAVE (admin), CHAVE_LEITURA (app do iPhone), CHAVE_BATIDA (projetos).
+ * CHAVES (Script Properties): CHAVE (admin), CHAVE_LEITURA (app do iPhone), CHAVE_AVISO (assistente: avisos e batidas),
+ * CHAVE_BATIDA (bots: só batidas). Cada valor de Script Property tem limite de 9 KB: tudo o que cresce é cortado por tamanho.
  * Para acrescentar um projeto: um item novo em PROJETOS + o teste dele em checar_().
  */
 
 const FUSO = 'America/Sao_Paulo';
-const VERSAO = 1;
+const VERSAO = 2;
 const SUJEITO_VAPID = 'https://caioaprat.github.io/Jarvis/';
+const LIMITE_PROP = 8000;                                      // bytes por Script Property (o Google aceita 9 KB)
+const HOSTS_PUSH = /^https:\/\/(web\.push\.apple\.com|fcm\.googleapis\.com|[\w.-]+\.push\.services\.mozilla\.com|[\w.-]+\.notify\.windows\.com)\//;
+const LINKS_OK = /^https:\/\/(caioaprat\.github\.io|github\.com\/caioAprat|script\.google\.com|docs\.google\.com)\//i;
 
 const PROJETOS = [
   { id: 'assistente', nome: 'Assistente financeiro', icone: '💰', tipo: 'assistente',
     descricao: 'Lê o banco 3x ao dia, avisa contas e monta o plano das dívidas' },
   { id: 'painel', nome: 'Painel Meu dinheiro', icone: '📱', tipo: 'site', url: 'https://caioaprat.github.io/Meu_dinheiro/',
     descricao: 'O app do dinheiro na tela inicial' },
-  { id: 'atrasos', nome: 'Bot de atrasos', icone: '📦', tipo: 'batida',
+  { id: 'atrasos', nome: 'Bot de atrasos', icone: '📦', tipo: 'batida', pausaProp: 'ATRASOS_PAUSA_ATE',
     agenda: { 1: '16:30', 2: '16:30', 3: '16:30', 4: '16:30', 5: '15:30' }, tolerancia: 45,
     descricao: 'Relatório de atrasos por e-mail (notebook da empresa)' },
   { id: 'gabinete', nome: 'Gabinete Chamados', icone: '🏛️', tipo: 'site', prop: 'GABINETE_URL',
@@ -39,8 +43,9 @@ function instalar() {
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('verificar').timeBased().everyMinutes(10).create();
   UrlFetchApp.getRequest('https://example.com');
+  CacheService.getScriptCache();
   verificar();
-  return 'Jarvis instalado: ' + ['CHAVE', 'CHAVE_LEITURA', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
+  return 'Jarvis instalado: ' + ['CHAVE', 'CHAVE_LEITURA', 'CHAVE_AVISO', 'CHAVE_BATIDA', 'VAPID_D', 'VAPID_PUB']
     .map(k => k + (props.getProperty(k) ? ' ok' : ' FALTA')).join(', ');
 }
 
@@ -57,17 +62,30 @@ function ler_(chave, padrao) {
 }
 function gravar_(chave, valor) { PropertiesService.getScriptProperties().setProperty(chave, JSON.stringify(valor)); }
 function prop_(chave) { return PropertiesService.getScriptProperties().getProperty(chave) || ''; }
+function tamanho_(o) { return Utilities.newBlob(JSON.stringify(o)).getBytes().length; }
 
-function log_(tipo, texto) {
-  const l = ler_('log', []);
-  l.unshift({ quando: iso_(), tipo, texto: String(texto).slice(0, 400) });
-  gravar_('log', l.slice(0, 80));
+/** Grava uma lista cortando os itens mais antigos (do fim) até caber no limite de uma Script Property. */
+function gravarLista_(chave, lista) {
+  const l = lista.slice();
+  while (l.length > 1 && tamanho_(l) > LIMITE_PROP) l.pop();
+  gravar_(chave, l);
+  return l;
 }
 
+function log_(tipo, texto) {
+  try {
+    const l = ler_('log', []);
+    l.unshift({ quando: iso_(), tipo, texto: String(texto).slice(0, 150) });
+    gravarLista_('log', l.slice(0, 25));
+  } catch (e) { /* o log nunca derruba nada */ }
+}
+
+/** 'admin' | 'leitura' | 'aviso' | 'batida' | '' */
 function nivelChave_(k) {
   if (!k) return '';
   if (k === prop_('CHAVE')) return 'admin';
   if (k === prop_('CHAVE_LEITURA')) return 'leitura';
+  if (k === prop_('CHAVE_AVISO')) return 'aviso';
   if (k === prop_('CHAVE_BATIDA')) return 'batida';
   return '';
 }
@@ -86,9 +104,14 @@ function buscar_(url, opcoes) {
   } catch (e) { return { codigo: 0, texto: '', erro: e.message }; }
 }
 
-// ================================================================== checagens
+function estadoDe_(id) { return ler_('estado:' + id, null); }
 
-/** Confere um projeto. Devolve { status: ok|atencao|erro|pausado|config, detalhe, extra? }. */
+// ================================================================== checagens (sem trava: só leem a rede)
+
+/**
+ * Confere um projeto. Devolve { status, detalhe, ... }.
+ * status: ok | atencao | erro | pausado | config | aguardando | semdados (semdados = não deu para saber; mantém o anterior)
+ */
 function checar_(p, anterior) {
   if (p.tipo === 'site') {
     const url = p.url || prop_(p.prop);
@@ -101,18 +124,19 @@ function checar_(p, anterior) {
   if (p.tipo === 'assistente') {
     const base = prop_('ASSISTENTE_URL');
     if (!base) return { status: 'config', detalhe: 'Falta ligar ao assistente' };
+    const link = prop_('ASSISTENTE_PAINEL');
     const r = buscar_(base + '?acao=saude');
     let s = null;
     try { s = JSON.parse(r.texto); } catch (e) { s = null; }
-    if (!s || !s.ok) return { status: 'erro', detalhe: 'O assistente não respondeu', link: prop_('ASSISTENTE_PAINEL') };
-    const res = { status: 'ok', detalhe: 'Rotina há ' + Math.round(s.horasRotina || 0) + 'h · banco lido há ' + Math.round(s.horasLeitura || 0) + 'h',
-                  link: prop_('ASSISTENTE_PAINEL') };
+    if (!s || !s.ok) return { status: 'erro', detalhe: 'O assistente não respondeu', link, extra: anterior && anterior.extra };
+    const res = { status: 'ok', detalhe: 'Rotina há ' + Math.round(s.horasRotina || 0) + 'h · banco lido há ' + Math.round(s.horasLeitura || 0) + 'h', link };
     if (s.horasRotina === null || s.horasRotina > 14) { res.status = 'atencao'; res.detalhe = 'A rotina não roda há ' + Math.round(s.horasRotina || 0) + 'h'; }
     else if (s.horasLeitura !== null && s.horasLeitura > 30) { res.status = 'atencao'; res.detalhe = 'O banco não é lido há ' + Math.round(s.horasLeitura) + 'h'; }
+    res.extra = anterior && anterior.extra || null;                               // se o resumo falhar, fica o último
     const leitura = prop_('ASSISTENTE_LEITURA');
     if (leitura) {
       const w = buscar_(base + '?k=' + encodeURIComponent(leitura) + '&acao=widget');
-      try { const d = JSON.parse(w.texto); if (d && d.versao) res.extra = { livre: d.livre, ate: d.ate, ok: d.ok, conta: d.conta, proxima: d.proxima, acao: d.acao }; } catch (e) { /* só o resumo */ }
+      try { const d = JSON.parse(w.texto); if (d && d.versao) res.extra = { livre: d.livre, ate: d.ate, ok: d.ok, conta: d.conta, proxima: d.proxima, acao: d.acao }; } catch (e) { /* fica o anterior */ }
     }
     return res;
   }
@@ -121,34 +145,38 @@ function checar_(p, anterior) {
     const b = ler_('batida:' + p.id, null);
     const agora = agora_();
     const hoje = dia_(agora);
+    const pausa = p.pausaProp ? prop_(p.pausaProp) : '';
+    if (pausa && hoje <= pausa) return { status: 'pausado', detalhe: 'Pausado até ' + pausa.slice(8, 10) + '/' + pausa.slice(5, 7) + ' (feriado ou férias)' };
     const semana = Number(Utilities.formatDate(agora, FUSO, 'u'));          // 1 = segunda ... 7 = domingo
     const horario = p.agenda[semana];
-    const quando = b ? 'último: ' + Utilities.formatDate(new Date(b.quando), FUSO, "dd/MM 'às' HH:mm") : 'nunca rodou';
-    if (b && b.ok === false && dia_(new Date(b.quando)) === hoje) return { status: 'erro', detalhe: 'Falhou hoje: ' + (b.detalhe || 'sem detalhe') };
+    const quando = b ? 'último: ' + Utilities.formatDate(new Date(b.quando), FUSO, "dd/MM 'às' HH:mm") : 'ainda não rodou';
+    const rodouHoje = b && dia_(new Date(b.quando)) === hoje;
+    if (rodouHoje) return b.ok === false ? { status: 'erro', detalhe: 'Falhou hoje: ' + (b.detalhe || 'sem detalhe') }
+                                         : { status: 'ok', detalhe: 'Rodou hoje às ' + hhmm_(new Date(b.quando)) + (b.detalhe ? ' · ' + b.detalhe : '') };
     if (horario) {
       const [h, m] = horario.split(':').map(Number);
-      const limite = h * 60 + m + p.tolerancia;
       const minAgora = Number(Utilities.formatDate(agora, FUSO, 'H')) * 60 + Number(Utilities.formatDate(agora, FUSO, 'm'));
-      const rodouHoje = b && dia_(new Date(b.quando)) === hoje;
-      if (rodouHoje) return { status: b.ok === false ? 'erro' : 'ok', detalhe: 'Rodou hoje às ' + hhmm_(new Date(b.quando)) + (b.detalhe ? ' · ' + b.detalhe : '') };
-      if (minAgora > limite) return { status: 'erro', detalhe: 'Não rodou hoje (esperado ' + horario + '). O notebook estava ligado?' };
-      return { status: b ? 'ok' : 'config', detalhe: 'Roda hoje às ' + horario + ' · ' + quando };
+      if (minAgora > h * 60 + m + p.tolerancia) return { status: 'atencao', detalhe: 'Não rodou hoje (esperado ' + horario + '). O notebook estava ligado?' };
+      return { status: 'aguardando', detalhe: 'Roda hoje às ' + horario + ' · ' + quando };
     }
-    return { status: b ? 'ok' : 'config', detalhe: 'Não roda hoje · ' + quando };
+    return { status: 'aguardando', detalhe: 'Não roda hoje · ' + quando };
   }
 
   if (p.tipo === 'github') {
     const ultimo = anterior && anterior.githubEm ? horasDesde_(anterior.githubEm) : 99;
-    if (ultimo < 1 && anterior) return Object.assign({}, anterior, { reaproveitado: true });   // GitHub limita consultas: 1x por hora
+    if (ultimo < 1 && anterior) return { status: 'semdados', reaproveitado: true };   // GitHub limita consultas: 1x por hora
     const h = { 'User-Agent': 'jarvis-caio', Accept: 'application/vnd.github+json' };
+    const tok = prop_('GITHUB_TOKEN');
+    if (tok) h.Authorization = 'Bearer ' + tok;
+    const link = `https://github.com/${p.repo}/actions`;
     const wf = buscar_(`https://api.github.com/repos/${p.repo}/actions/workflows/${p.workflow}`, { headers: h });
-    if (wf.codigo === 403 || wf.codigo === 429) return Object.assign({}, anterior || { status: 'config', detalhe: 'GitHub sem resposta (limite)' }, { githubEm: iso_() });
+    if (wf.codigo === 0 || wf.codigo === 403 || wf.codigo === 429 || wf.codigo >= 500) return { status: 'semdados', detalhe: 'GitHub sem resposta', githubEm: iso_() };
     let info = null;
     try { info = JSON.parse(wf.texto); } catch (e) { info = null; }
-    if (!info || !info.state) return { status: 'erro', detalhe: 'Não achei o workflow no GitHub', githubEm: iso_() };
-    const link = `https://github.com/${p.repo}/actions`;
+    if (!info || !info.state) return { status: 'erro', detalhe: 'Não achei o workflow no GitHub', link, githubEm: iso_() };
     if (/^disabled/.test(info.state)) return { status: 'pausado', detalhe: 'Pausado por você', link, githubEm: iso_() };
-    const runs = buscar_(`https://api.github.com/repos/${p.repo}/actions/runs?per_page=1`, { headers: h });
+    const runs = buscar_(`https://api.github.com/repos/${p.repo}/actions/workflows/${p.workflow}/runs?per_page=1`, { headers: h });
+    if (runs.codigo !== 200) return { status: 'semdados', detalhe: 'GitHub sem resposta', githubEm: iso_() };
     let run = null;
     try { run = JSON.parse(runs.texto).workflow_runs[0]; } catch (e) { run = null; }
     if (!run) return { status: 'atencao', detalhe: 'Nenhuma execução encontrada', link, githubEm: iso_() };
@@ -160,49 +188,63 @@ function checar_(p, anterior) {
   return { status: 'config', detalhe: 'Tipo desconhecido' };
 }
 
-const GRAVIDADE = { ok: 0, pausado: 0, config: 1, atencao: 2, erro: 3 };
+const GRAVIDADE = { ok: 0, pausado: 0, aguardando: 0, config: 1, atencao: 2, erro: 3 };
 
-/** Gatilho a cada 10 min: confere tudo e avisa quando algo muda. */
+/** Junta o resultado novo com o anterior. Devolve { novo, aviso }. Função pura (testada). */
+function juntar_(p, ant, r) {
+  if (r.status === 'semdados') {                                      // sem dados: mantém o que havia
+    const base = ant || { status: 'config', detalhe: r.detalhe || 'Sem dados ainda', desde: iso_(), historico: [] };
+    return { novo: Object.assign({}, base, { verificadoEm: iso_(), githubEm: r.githubEm || base.githubEm, semDadosDesde: base.semDadosDesde || iso_() }), aviso: null };
+  }
+  const falhas = r.status === 'erro' ? ((ant && ant.falhas) || 0) + 1 : 0;
+  if (r.status === 'erro' && falhas < 2 && p.tipo !== 'batida' && ant && ant.status !== 'erro') {
+    r = Object.assign({}, ant, { suspeita: r.detalhe, githubEm: r.githubEm || ant.githubEm });     // 1ª falha: espera confirmar
+  }
+  const novo = Object.assign({}, r, { falhas, verificadoEm: iso_(), semDadosDesde: null,
+    desde: ant && ant.status === r.status ? ant.desde : iso_(), historico: (ant && ant.historico) || [] });
+  let aviso = null;
+  if (ant && ant.status !== novo.status) {
+    novo.historico = [{ quando: iso_(), de: ant.status, para: novo.status, detalhe: String(novo.detalhe || '').slice(0, 80) }].concat(novo.historico).slice(0, 5);
+    const piorou = GRAVIDADE[novo.status] >= 2 && GRAVIDADE[novo.status] > GRAVIDADE[ant.status];
+    const voltou = GRAVIDADE[ant.status] >= 2 && novo.status === 'ok';
+    if (piorou) aviso = { projeto: p.id, nivel: novo.status === 'erro' ? 'urgente' : 'atencao', titulo: `${p.icone} ${p.nome}: ${novo.status === 'erro' ? 'problema' : 'atenção'}`, texto: novo.detalhe, url: novo.link || '' };
+    if (voltou) aviso = { projeto: p.id, nivel: 'ok', titulo: `${p.icone} ${p.nome} voltou ao normal`, texto: novo.detalhe, url: novo.link || '' };
+  }
+  return { novo, aviso };
+}
+
+/** Gatilho a cada 10 min. A rede é consultada SEM trava (pode demorar); a trava só cobre ler-juntar-gravar. */
 function verificar() {
-  return comTrava_(() => {
-    const estado = ler_('estado', {});
-    const avisos = [];
-    PROJETOS.forEach(p => {
-      const ant = estado[p.id] || null;
-      let r;
-      try { r = checar_(p, ant); } catch (e) { r = { status: 'erro', detalhe: 'Falha ao conferir: ' + e.message }; }
-      // site e assistente: só vira erro na 2ª falha seguida (evita alarme por um soluço da internet)
-      const falhas = r.status === 'erro' ? ((ant && ant.falhas) || 0) + 1 : 0;
-      if (r.status === 'erro' && falhas < 2 && (p.tipo === 'site' || p.tipo === 'assistente') && ant && ant.status !== 'erro') {
-        r = Object.assign({}, ant, { detalhe: ant.detalhe, suspeita: r.detalhe });
-      }
-      const novo = Object.assign({}, r, { falhas, verificadoEm: iso_(),
-        desde: ant && ant.status === r.status ? ant.desde : iso_(), historico: (ant && ant.historico) || [] });
-      if (ant && ant.status !== novo.status) {
-        novo.historico = [{ quando: iso_(), de: ant.status, para: novo.status, detalhe: novo.detalhe }].concat(novo.historico).slice(0, 15);
-        const piorou = GRAVIDADE[novo.status] >= 2 && GRAVIDADE[novo.status] > GRAVIDADE[ant.status];
-        const voltou = GRAVIDADE[ant.status] >= 2 && novo.status === 'ok';
-        if (piorou) avisos.push({ projeto: p.id, nivel: novo.status === 'erro' ? 'urgente' : 'atencao', titulo: `${p.icone} ${p.nome}: ${novo.status === 'erro' ? 'problema' : 'atenção'}`, texto: novo.detalhe, url: novo.link || '' });
-        if (voltou) avisos.push({ projeto: p.id, nivel: 'ok', titulo: `${p.icone} ${p.nome} voltou ao normal`, texto: novo.detalhe, url: novo.link || '' });
-      }
-      estado[p.id] = novo;
-    });
-    gravar_('estado', estado);
-    gravar_('verificadoEm', iso_());
-    avisos.forEach(a => registrarAviso_(a));
-    if (avisos.length) enviarPush_();
-    return estado;
+  const resultados = PROJETOS.map(p => {
+    try { return checar_(p, estadoDe_(p.id)); } catch (e) { return { status: 'erro', detalhe: 'Falha ao conferir: ' + e.message }; }
   });
+  const avisos = comTrava_(() => {
+    const novos = [];
+    PROJETOS.forEach((p, i) => {
+      const { novo, aviso } = juntar_(p, estadoDe_(p.id), resultados[i]);
+      gravar_('estado:' + p.id, novo);
+      if (aviso) novos.push(aviso);
+    });
+    gravar_('verificadoEm', iso_());
+    novos.forEach(a => registrarAviso_(a));
+    return novos;
+  });
+  if (avisos.length) enviarPush_();
+  return avisos;
 }
 
 // ================================================================== avisos e notificações
 
 function registrarAviso_(a) {
+  const props = PropertiesService.getScriptProperties();
+  const id = Number(props.getProperty('avisoSeq') || '0') + 1;            // contador próprio: nunca volta para 1
+  props.setProperty('avisoSeq', String(id));
+  const url = String(a.url || '');
   const lista = ler_('avisos', []);
-  const id = (lista[0] ? lista[0].id : 0) + 1;
-  lista.unshift({ id, quando: iso_(), projeto: a.projeto || 'jarvis', nivel: a.nivel || 'info',
-                  titulo: String(a.titulo || 'Aviso').slice(0, 120), texto: String(a.texto || '').slice(0, 1500), url: String(a.url || '').slice(0, 600) });
-  gravar_('avisos', lista.slice(0, 60));
+  lista.unshift({ id, quando: iso_(), projeto: String(a.projeto || 'jarvis').slice(0, 20), nivel: a.nivel || 'info',
+                  titulo: String(a.titulo || 'Aviso').slice(0, 120), texto: String(a.texto || '').slice(0, 600),
+                  url: LINKS_OK.test(url) ? url.slice(0, 300) : '' });
+  gravarLista_('avisos', lista.slice(0, 40));
   return id;
 }
 
@@ -221,7 +263,7 @@ function enviarPush_() {
       });
       const c = r.getResponseCode();
       if (c === 404 || c === 410) { log_('push', 'inscrição expirada removida'); return; }
-      if (c >= 200 && c < 300) enviados++; else log_('push', 'código ' + c + ': ' + r.getContentText().slice(0, 200));
+      if (c >= 200 && c < 300) enviados++; else log_('push', 'código ' + c + ': ' + r.getContentText().slice(0, 100));
       vivas.push(s);
     } catch (e) { log_('push', 'erro: ' + e.message); vivas.push(s); }
   });
@@ -229,11 +271,18 @@ function enviarPush_() {
   return { enviados, removidos: inscricoes.length - vivas.length };
 }
 
+/** JWT do VAPID, guardado por 11h para cada servidor de push (assinar custa caro). */
 function jwtVapid_(aud) {
+  const cache = CacheService.getScriptCache();
+  const chave = 'jwt:' + aud;
+  const guardado = cache.get(chave);
+  if (guardado) return guardado;
   const b64 = bytes => Utilities.base64EncodeWebSafe(bytes).replace(/=+$/, '');
   const texto = o => b64(Utilities.newBlob(JSON.stringify(o)).getBytes());
   const entrada = texto({ typ: 'JWT', alg: 'ES256' }) + '.' + texto({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: SUJEITO_VAPID });
-  return entrada + '.' + b64(assinarES256_(Utilities.newBlob(entrada).getBytes(), prop_('VAPID_D')));
+  const jwt = entrada + '.' + b64(assinarES256_(Utilities.newBlob(entrada).getBytes(), prop_('VAPID_D')));
+  cache.put(chave, jwt, 11 * 3600);
+  return jwt;
 }
 
 // ------------------------------------------------------------------ ECDSA P-256 (o Apps Script não tem, então vai na mão com BigInt)
@@ -310,13 +359,15 @@ function assinarES256_(mensagemBytes, dBase64Url) {
 // ================================================================== entrada
 
 function estadoParaApp_() {
-  const estado = ler_('estado', {});
   return {
     versao: VERSAO, verificadoEm: ler_('verificadoEm', null), inscricoes: ler_('push', []).length,
-    projetos: PROJETOS.map(p => Object.assign({ id: p.id, nome: p.nome, icone: p.icone, descricao: p.descricao },
-      estado[p.id] ? { status: estado[p.id].status, detalhe: estado[p.id].detalhe, desde: estado[p.id].desde, verificadoEm: estado[p.id].verificadoEm,
-                       link: estado[p.id].link || '', extra: estado[p.id].extra || null, historico: (estado[p.id].historico || []).slice(0, 5) }
-                     : { status: 'config', detalhe: 'Ainda não conferido' })),
+    projetos: PROJETOS.map(p => {
+      const e = estadoDe_(p.id);
+      return Object.assign({ id: p.id, nome: p.nome, icone: p.icone, descricao: p.descricao },
+        e ? { status: e.status, detalhe: e.detalhe, desde: e.desde, verificadoEm: e.verificadoEm, semDadosDesde: e.semDadosDesde || null,
+              link: e.link || '', extra: e.extra || null, historico: (e.historico || []).slice(0, 5) }
+          : { status: 'config', detalhe: 'Ainda não conferido' });
+    }),
     avisos: ler_('avisos', []).slice(0, 30),
   };
 }
@@ -326,7 +377,8 @@ function doGet(e) {
   if (p.acao === 'saude') return json_({ ok: true, verificadoEm: ler_('verificadoEm', null) });
   if (p.acao === 'vapid') return json_({ chave: prop_('VAPID_PUB') });
   const nivel = nivelChave_(p.k);
-  if (nivel !== 'leitura' && nivel !== 'admin') return ContentService.createTextOutput('Jarvis ✅');
+  if (p.k && nivel !== 'leitura' && nivel !== 'admin') return json_({ ok: false, erro: 'chave inválida' });
+  if (!nivel) return ContentService.createTextOutput('Jarvis ✅');
   try {
     switch (p.acao) {
       case 'estado': return json_(estadoParaApp_());
@@ -338,8 +390,16 @@ function doGet(e) {
       case 'instalar': return json_({ r: instalar() });
       case 'log': return json_(ler_('log', []));
       case 'definir': {
-        const permitidos = ['ASSISTENTE_URL', 'ASSISTENTE_LEITURA', 'ASSISTENTE_PAINEL', 'GABINETE_URL'];
-        if (permitidos.indexOf(p.prop) < 0) throw new Error('propriedade não permitida');
+        const regras = {
+          ASSISTENTE_URL: /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/,
+          ASSISTENTE_PAINEL: /^https:\/\/caioaprat\.github\.io\//,
+          ASSISTENTE_LEITURA: /^[A-Za-z0-9]{16,64}$/,
+          GABINETE_URL: /^https:\/\//,
+          GITHUB_TOKEN: /^(github_pat_|ghp_)[\w]+$/,
+          ATRASOS_PAUSA_ATE: /^(\d{4}-\d{2}-\d{2})?$/,
+        };
+        if (!regras[p.prop]) throw new Error('propriedade não permitida');
+        if (p.valor && !regras[p.prop].test(p.valor)) throw new Error('valor inválido para ' + p.prop);
         PropertiesService.getScriptProperties().setProperty(p.prop, p.valor || '');
         return json_({ ok: true });
       }
@@ -356,38 +416,36 @@ function doPost(e) {
   let d = {};
   try { d = JSON.parse((e.postData && e.postData.contents) || '{}'); } catch (erro) { return json_({ ok: false, erro: 'JSON inválido' }); }
   try {
-    return comTrava_(() => {
-      if (nivel === 'batida' || nivel === 'admin') {
-        if (d.tipo === 'batida') {
-          if (!PROJETOS.some(p => p.id === d.projeto)) return json_({ ok: false, erro: 'projeto desconhecido' });
-          gravar_('batida:' + d.projeto, { quando: iso_(), ok: d.ok !== false, detalhe: String(d.detalhe || '').slice(0, 200) });
-          return json_({ ok: true });
-        }
-        if (d.tipo === 'aviso') {
-          const id = registrarAviso_(d);
-          return json_({ ok: true, id, push: enviarPush_() });
-        }
-      }
-      if (nivel === 'leitura' || nivel === 'admin') {
-        if (d.tipo === 'inscrever') {
-          const s = d.inscricao || {};
-          if (!/^https:\/\//.test(String(s.endpoint || ''))) return json_({ ok: false, erro: 'inscrição inválida' });
+    if (d.tipo === 'verificar' && (nivel === 'leitura' || nivel === 'admin')) { verificar(); return json_({ ok: true }); }   // verificar() tem a própria trava
+    if (d.tipo === 'batida' && nivel !== 'leitura') {
+      if (!PROJETOS.some(p => p.id === d.projeto && p.tipo === 'batida')) return json_({ ok: false, erro: 'projeto desconhecido' });
+      gravar_('batida:' + d.projeto, { quando: iso_(), ok: d.ok !== false, detalhe: String(d.detalhe || '').slice(0, 150) });   // chave própria: não precisa de trava
+      return json_({ ok: true });
+    }
+    if (d.tipo === 'aviso' && (nivel === 'aviso' || nivel === 'admin')) {
+      const id = comTrava_(() => registrarAviso_(d));
+      return json_({ ok: true, id, push: enviarPush_() });
+    }
+    if (nivel === 'leitura' || nivel === 'admin') {
+      if (d.tipo === 'inscrever') {
+        const s = d.inscricao || {};
+        if (!HOSTS_PUSH.test(String(s.endpoint || ''))) return json_({ ok: false, erro: 'inscrição inválida' });
+        return comTrava_(() => {
           const lista = ler_('push', []).filter(x => x.endpoint !== s.endpoint);
-          lista.push({ endpoint: s.endpoint, criada: iso_(), aparelho: String(d.aparelho || '').slice(0, 60) });
-          gravar_('push', lista.slice(-5));
-          return json_({ ok: true, total: lista.length });
-        }
-        if (d.tipo === 'cancelar') {
-          gravar_('push', ler_('push', []).filter(x => x.endpoint !== d.endpoint));
-          return json_({ ok: true });
-        }
-        if (d.tipo === 'teste') {
-          registrarAviso_({ projeto: 'jarvis', nivel: 'info', titulo: '🤖 Notificação de teste', texto: 'Se você está lendo isso no iPhone, os avisos estão funcionando.' });
-          return json_(Object.assign({ ok: true }, enviarPush_()));
-        }
-        if (d.tipo === 'verificar') { verificar(); return json_({ ok: true }); }
+          lista.push({ endpoint: s.endpoint, criada: iso_(), aparelho: String(d.aparelho || '').slice(0, 30) });
+          const final = gravarLista_('push', lista.slice(-4));
+          return json_({ ok: true, total: final.length });
+        });
       }
-      return json_({ ok: false, erro: 'sem permissão' });
-    });
+      if (d.tipo === 'cancelar') {
+        comTrava_(() => gravar_('push', ler_('push', []).filter(x => x.endpoint !== d.endpoint)));
+        return json_({ ok: true });
+      }
+      if (d.tipo === 'teste') {
+        comTrava_(() => registrarAviso_({ projeto: 'jarvis', nivel: 'info', titulo: '🤖 Notificação de teste', texto: 'Se você está lendo isso no iPhone, os avisos estão funcionando.' }));
+        return json_(Object.assign({ ok: true }, enviarPush_()));
+      }
+    }
+    return json_({ ok: false, erro: 'sem permissão' });
   } catch (erro) { log_('erro', 'doPost: ' + erro.message); return json_({ ok: false, erro: erro.message }); }
 }
