@@ -26,8 +26,9 @@ const PROJETOS = [
   { id: 'atrasos', nome: 'Bot de atrasos', icone: '📦', tipo: 'batida', pausaProp: 'ATRASOS_PAUSA_ATE',
     agenda: { 1: '16:30', 2: '16:30', 3: '16:30', 4: '16:30', 5: '15:30' }, tolerancia: 45,
     descricao: 'Relatório de atrasos por e-mail (notebook da empresa)' },
-  { id: 'gabinete', nome: 'Gabinete Chamados', icone: '🏛️', tipo: 'site', prop: 'GABINETE_URL',
-    descricao: 'Sistema de chamados do cliente' },
+  { id: 'gabinete', nome: 'Gabinete Chamados', icone: '🏛️', tipo: 'site', url: 'https://gabinete-chamados.vercel.app/entrar',
+    marcador: 'Chamados do Gabinete', supabase: 'GABINETE', urgente: true,
+    descricao: 'Sistema de chamados do cliente (site + banco de dados)' },
   { id: 'cacador', nome: 'Caçador de clientes', icone: '🎯', tipo: 'github', repo: 'caioAprat/Bot_cacaTrampo', workflow: 'cacador.yml',
     descricao: 'Vigia de freelas (99Freelas e Workana)' },
 ];
@@ -117,8 +118,17 @@ function checar_(p, anterior) {
     const url = p.url || prop_(p.prop);
     if (!url) return { status: 'config', detalhe: 'Falta o endereço (me passe o link do sistema)' };
     const r = buscar_(url);
-    return r.codigo >= 200 && r.codigo < 400 ? { status: 'ok', detalhe: 'No ar', link: url }
-      : { status: 'erro', detalhe: r.codigo ? 'Fora do ar (código ' + r.codigo + ')' : 'Sem resposta', link: url };
+    if (!(r.codigo >= 200 && r.codigo < 400)) return { status: 'erro', detalhe: r.codigo ? 'Site fora do ar (código ' + r.codigo + ')' : 'Site sem resposta', link: url };
+    if (p.marcador && r.texto.indexOf(p.marcador) < 0) return { status: 'erro', detalhe: 'O site abre, mas não mostra o sistema (erro na publicação?)', link: url };
+    if (p.supabase) {                                             // o banco grátis pausa sozinho sem uso: o site abre, mas nada funciona
+      const base = prop_(p.supabase + '_SUPABASE_URL'), chave = prop_(p.supabase + '_SUPABASE_KEY');
+      if (base && chave) {
+        const b = buscar_(base + '/auth/v1/health', { headers: { apikey: chave } });
+        if (b.codigo !== 200) return { status: 'erro', detalhe: b.codigo ? 'Banco de dados (Supabase) com problema ou pausado (código ' + b.codigo + ')' : 'Banco de dados (Supabase) sem resposta', link: url };
+        return { status: 'ok', detalhe: 'Site e banco de dados no ar', link: url };
+      }
+    }
+    return { status: 'ok', detalhe: 'No ar', link: url };
   }
 
   if (p.tipo === 'assistente') {
@@ -207,7 +217,7 @@ function juntar_(p, ant, r) {
     novo.historico = [{ quando: iso_(), de: ant.status, para: novo.status, detalhe: String(novo.detalhe || '').slice(0, 80) }].concat(novo.historico).slice(0, 5);
     const piorou = GRAVIDADE[novo.status] >= 2 && GRAVIDADE[novo.status] > GRAVIDADE[ant.status];
     const voltou = GRAVIDADE[ant.status] >= 2 && novo.status === 'ok';
-    if (piorou) aviso = { projeto: p.id, nivel: novo.status === 'erro' ? 'urgente' : 'atencao', titulo: `${p.icone} ${p.nome}: ${novo.status === 'erro' ? 'problema' : 'atenção'}`, texto: novo.detalhe, url: novo.link || '' };
+    if (piorou) aviso = { projeto: p.id, nivel: novo.status === 'erro' ? 'urgente' : 'atencao', titulo: `${p.urgente && novo.status === 'erro' ? '🚨 ' : ''}${p.icone} ${p.nome}: ${novo.status === 'erro' ? 'problema' : 'atenção'}`, texto: novo.detalhe, url: novo.link || '' };
     if (voltou) aviso = { projeto: p.id, nivel: 'ok', titulo: `${p.icone} ${p.nome} voltou ao normal`, texto: novo.detalhe, url: novo.link || '' };
   }
   return { novo, aviso };
@@ -395,6 +405,8 @@ function doGet(e) {
           ASSISTENTE_PAINEL: /^https:\/\/caioaprat\.github\.io\//,
           ASSISTENTE_LEITURA: /^[A-Za-z0-9]{16,64}$/,
           GABINETE_URL: /^https:\/\//,
+          GABINETE_SUPABASE_URL: /^https:\/\/[a-z0-9]+\.supabase\.co$/,
+          GABINETE_SUPABASE_KEY: /^(sb_publishable_[\w-]+|eyJ[\w-]+\.[\w-]+\.[\w-]+)$/,
           GITHUB_TOKEN: /^(github_pat_|ghp_)[\w]+$/,
           ATRASOS_PAUSA_ATE: /^(\d{4}-\d{2}-\d{2})?$/,
         };

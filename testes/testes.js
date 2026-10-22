@@ -43,6 +43,8 @@ function ambiente(opcoes = {}) {
     if (url.includes('acao=widget')) return resp(200, { versao: 4, ok: false, livre: -333, ate: '2026-10-29', conta: 51 });
     if (url.includes('/actions/workflows/')) return resp(200, { state: 'disabled_manually' });
     if (url.includes('github.io')) return resp(200, '<html>');
+    if (url.includes('gabinete-chamados.vercel.app')) return resp(200, '<title>Entrar · Chamados do Gabinete</title>');
+    if (url.includes('supabase.co/auth/v1/health')) return resp(op.headers && op.headers.apikey === 'sb_publishable_teste' ? 200 : 401, {});
     if (url.includes('push.apple.com')) return resp(201, '');
     return resp(404, {});
   };
@@ -102,7 +104,7 @@ grupo('2. Conferência dos projetos');
   t('assistente ok, com o dinheiro junto', por('assistente').status === 'ok' && por('assistente').extra && por('assistente').extra.livre === -333, por('assistente'));
   t('painel no ar', por('painel').status === 'ok');
   t('Caçador aparece como pausado', por('cacador').status === 'pausado', por('cacador'));
-  t('Gabinete sem endereço pede configuração', por('gabinete').status === 'config', por('gabinete'));
+  t('Gabinete: site do sistema no ar (sem dados do banco ainda)', por('gabinete').status === 'ok' && por('gabinete').detalhe === 'No ar', por('gabinete'));
   t('bot de atrasos sem batida: aguardando', por('atrasos').status === 'aguardando', por('atrasos'));
   t('nenhum aviso na primeira conferência', e.avisos.length === 0, e.avisos);
 }
@@ -261,6 +263,26 @@ grupo('5. Alarmes falsos e limites');
   A.post('LEITURA1234567890ABCD', { tipo: 'teste' }); A.post('LEITURA1234567890ABCD', { tipo: 'teste' });
   const jwts = A.chamadas.filter(c => c.url.includes('push.apple.com')).map(c => c.op.headers.Authorization);
   t('assinatura reaproveitada (cache) entre envios', jwts.length === 2 && jwts[0] === jwts[1]);
+}
+
+// ---------------------------------------------------------------------------------------------
+grupo('6. Gabinete (o mais importante)');
+{
+  const A = ambiente();
+  A.get({ k: 'ADMIN1234567890ABCDEF', acao: 'definir', prop: 'GABINETE_SUPABASE_URL', valor: 'https://abcdefgh.supabase.co' });
+  A.get({ k: 'ADMIN1234567890ABCDEF', acao: 'definir', prop: 'GABINETE_SUPABASE_KEY', valor: 'sb_publishable_teste' });
+  t('chave secreta do Supabase é recusada (só a pública)', A.get({ k: 'ADMIN1234567890ABCDEF', acao: 'definir', prop: 'GABINETE_SUPABASE_KEY', valor: 'sb_secret_xyz' }).ok === false);
+  A.run('verificar()');
+  const g = () => A.get({ k: 'LEITURA1234567890ABCD', acao: 'estado' }).projetos.find(p => p.id === 'gabinete');
+  t('site + banco no ar', g().status === 'ok' && /banco de dados no ar/.test(g().detalhe), g());
+  A.respostas['supabase.co/auth/v1/health'] = [503, {}];
+  A.run('verificar()'); A.run('verificar()');
+  const e = A.get({ k: 'LEITURA1234567890ABCD', acao: 'estado' });
+  t('banco pausado: erro e aviso urgente com 🚨', g().status === 'erro' && /Supabase/.test(g().detalhe) && e.avisos.some(a => a.nivel === 'urgente' && /^🚨 🏛️ Gabinete/.test(a.titulo)), [g(), e.avisos.map(a => a.titulo)]);
+  delete A.respostas['supabase.co/auth/v1/health'];
+  A.respostas['gabinete-chamados.vercel.app'] = [200, '<html>Application error</html>'];
+  A.run('verificar()');
+  t('site abre mas não é o sistema: continua erro', g().status === 'erro' && /não mostra o sistema/.test(g().detalhe), g());
 }
 
 console.log(`\n${ok} verificações passaram, ${falhas} falharam.`);
