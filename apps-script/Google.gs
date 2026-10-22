@@ -75,7 +75,7 @@ function checarPlanilha_(p, anterior) {
     // perder o acesso ao registro é grave para um cliente: vira atenção (com aviso), nunca "ok" parado
     if (r.desativada) return { status: 'atencao', detalhe: 'Não consigo ler o registro de execuções: ' + r.erro + ' (ver o passo a passo do projeto do Google Cloud)', link };
     if (r.codigo === 401 || r.codigo === 403 || r.codigo === 404)
-      return { status: 'atencao', detalhe: 'Não consigo ler o registro de execuções (' + r.codigo + '): a conta do Jarvis perdeu acesso à planilha ou falta autorizar (rodar "instalar")', link };
+      return { status: 'atencao', detalhe: 'Não consigo ler o registro de execuções (' + r.codigo + '): a conta do Jarvis perdeu acesso à planilha ou falta autorizar (rodar "instalar" no editor): ' + r.erro, link };
     return { status: 'semdados', detalhe: 'Registro de execuções sem resposta: ' + r.erro };
   }
   const L = r.lista;
