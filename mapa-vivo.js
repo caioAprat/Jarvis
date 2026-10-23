@@ -519,7 +519,7 @@
         tmp.copy(n.P0).project(camera);
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
-        const topoL = FUNDO ? Math.round(Math.min(320, h * .33)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
+        const topoL = FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
         const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
         n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
         n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * (FUNDO ? Math.max(0, 1 - (Number(el.style.getPropertyValue('--mv-p')) || 0) * 1.5) : 1)) : '0';

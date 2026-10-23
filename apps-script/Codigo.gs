@@ -41,7 +41,7 @@ const PROJETOS = [
     pasta: 'C:\\Bot.ideias\\meu-dinheiro', repo: 'caioAprat/Meu_dinheiro', roda: 'GitHub Pages', publicar: 'git push' },
   { id: 'pedalada', nome: 'Pedalada do Delei', icone: '🚴', tipo: 'site', url: 'https://pedalada-do-delei.caiofelix0709.workers.dev/', marcador: 'Pedalada do Delei',
     descricao: 'Ajuste de saldo de estoque no ERP (app da Delei, v5.2 no ar)',
-    pasta: '(sem cópia neste PC: clonar o repositório; há uma cópia antiga v3.2 em Downloads\pedalada-v3.2)', repo: 'caioAprat/Pedalada_do_Delei', roda: 'Cloudflare (pedalada-do-delei.caiofelix0709.workers.dev)', publicar: 'git push no repositório (o Cloudflare publica; subir VERSAO no index.html e no sw.js)' },
+    pasta: 'C:\\Pedalada_do_Delei', repo: 'caioAprat/Pedalada_do_Delei', roda: 'Cloudflare (pedalada-do-delei.caiofelix0709.workers.dev)', publicar: 'git push (o Cloudflare publica; subir VERSAO no index.html e no sw.js, ver o CLAUDE.md de lá)' },
   { id: 'atrasos', nome: 'Bot de atrasos', icone: '📦', tipo: 'batida', pausaProp: 'ATRASOS_PAUSA_ATE',
     agenda: { 1: '16:30', 2: '16:30', 3: '16:30', 4: '16:30', 5: '15:30' }, tolerancia: 45,
     descricao: 'Relatório de atrasos por e-mail (notebook da empresa)',
