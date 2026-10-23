@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#0b0f17">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icons/jarvis.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
@@ -115,16 +116,22 @@
   .hud > div { padding: 2px 24px; border-left: 1px solid var(--linha); } .hud > div:first-child { padding-left: 0; border-left: 0; }
   .hud small { display: block; font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--di); }
   .hud b { display: block; margin-top: 2px; font: 700 21px var(--disp); letter-spacing: .01em; }
-  .palco { position: relative; height: clamp(460px, 68vh, 760px); margin: 0 -32px 10px; }
-  .palco #mapa-slot { -webkit-mask-image: radial-gradient(ellipse 66% 72% at 50% 50%, #000 52%, transparent 100%); mask-image: radial-gradient(ellipse 66% 72% at 50% 50%, #000 52%, transparent 100%); }
-  .palco .semmapa { position: absolute; inset: 0; display: grid; place-items: center; color: var(--di); font: 500 13px var(--mono); padding: 24px; text-align: center; }
-  .painel-sel { position: absolute; z-index: 3; top: 14px; right: 14px; max-height: calc(100% - 28px); width: min(360px, calc(100% - 28px)); overflow: auto; border-radius: 12px; background: rgba(12,9,7,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,160,80,.4), 0 16px 40px rgba(0,0,0,.6); padding: 4px; animation: entra .28s cubic-bezier(.2,0,0,1); }
+  .palco { position: relative; height: max(380px, calc(100vh - 330px)); pointer-events: none; }
+  .painel-sel { pointer-events: auto; position: fixed; z-index: 25; top: 92px; right: 24px; max-height: calc(100vh - 220px); width: min(360px, calc(100% - 28px)); overflow: auto; border-radius: 12px; background: rgba(12,9,7,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,160,80,.4), 0 16px 40px rgba(0,0,0,.6); padding: 4px; animation: entra .28s cubic-bezier(.2,0,0,1); }
   .painel-sel .card { background: transparent; border: 0; } .painel-sel .projcard .cab { padding-right: 38px; }
   .painel-sel .fechar { position: absolute; right: 8px; top: 8px; z-index: 1; }
   @keyframes entra { from { opacity: 0; transform: translateX(14px); } }
   main { padding: 20px 32px 140px; max-width: 1280px; margin: 0 auto; }
   .barra { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
-  .marca { display: flex; align-items: center; gap: 12px; padding: 0; font: 600 15px var(--disp); letter-spacing: .34em; text-transform: uppercase; }
+  .marca { display: flex; align-items: center; gap: 14px; padding: 0; font-size: 24px; }
+  .marca .mk { font-size: 40px; filter: drop-shadow(0 0 12px rgba(255,120,40,.45)); }
+  .marca-txt { display: flex; flex-direction: column; gap: 7px; }
+  .marca-sub { display: flex; align-items: center; gap: 8px; font: 500 9.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--di); }
+  .marca-sub .orbe { width: 7px; height: 7px; box-shadow: 0 0 8px currentColor; }
+  .com-ic { display: inline-flex; align-items: center; gap: 9px; } .com-ic .pi { font-size: 17px; color: #ffc58a; }
+  .btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  main { position: relative; z-index: 1; pointer-events: none; } main > * { pointer-events: auto; }
+  .veu { margin: 0 -32px; padding: 70px 32px 0; background: linear-gradient(to bottom, rgba(8,7,6,0), rgba(8,7,6,.88) 170px); }
   .barra-dir { display: flex; align-items: center; gap: 10px; }
   .buscar { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 6px 12px; border-radius: 10px; color: var(--mu); font: 500 12px var(--mono); box-shadow: inset 0 0 0 1px var(--linha); transition: color .15s, box-shadow .15s; }
   .buscar:hover { color: var(--tx); box-shadow: inset 0 0 0 1px rgba(255,170,100,.4); }
@@ -158,7 +165,7 @@
   .acesso { max-width: 520px; margin: 12vh auto; }
   @media (max-width: 900px) {
     .g2, .g3 { grid-template-columns: 1fr; } main { padding: 16px 18px 140px; }
-    .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; } .hud > div:nth-child(3) { padding-left: 0; border-left: 0; } .palco { height: 56vh; margin: 0 -18px 10px; }
+    .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; } .hud > div:nth-child(3) { padding-left: 0; border-left: 0; } .palco { height: 62vh; } .veu { margin: 0 -18px; padding: 50px 18px 0; }
     .buscar kbd, .buscar span { display: none; } .buscar { width: 40px; justify-content: center; padding: 0; } .dock { overflow-x: auto; scrollbar-width: none; } .painel-sel { top: auto; max-height: 62%; width: auto; left: 10px; right: 10px; bottom: 10px; }
     .cfg { grid-template-columns: 1fr auto; } .cfg .inp { grid-column: 1 / -1; order: 2; }
     header.topo { flex-wrap: wrap; }
@@ -171,12 +178,19 @@
 <div id="toast" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="mapa-vivo.js?v=9"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" integrity="sha384-GkidzTYmQg24v13sa3xhBBbvOLbVLO1QxfyKLdOWweQqNqS/iWwUst2T1fER2Xrg" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" integrity="sha384-2EpLreWSFuZsk4hcSplXLhlHd/wzvDNF907bTGIXSXM0SlhJNzy4YK0DhBFvkFEs" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
+<script src="mapa-vivo.js?v=13"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
 const $ = id => document.getElementById(id);
-const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = t => String(MapaVivo.limpar(t)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = n => Number(n) || 0;
 const linkSeguro = u => /^https:\/\//.test(String(u || '')) ? esc(u) : '';
 const anoAtual = new Date().getFullYear();
@@ -239,7 +253,7 @@ const S = { P: null, quando: 0, aba: abaValida(location.hash.slice(1)), carregan
             sel: '', sit: ['ok', ''], saidaRotina: '', filtro: 'abertos', voltar: null, cancelar: null, apagarToken: null, ocupado: '', busca: '', rasc: {} };
 try { S.rasc = JSON.parse(localStorage.getItem(LR)) || {}; } catch (e) { S.rasc = {}; }
 // mapa vivo (Three.js + GSAP); sem WebGL ou sem as bibliotecas, a tela segue funcionando só com os cartões
-const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ aoSelecionar: id => { S.sel = S.sel === id ? '' : id; render(); } }); } catch (e) { return null; } })();
+const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ fundo: true, dica: 'Abrir o sistema', aoSelecionar: id => abrirProjeto(id) }); } catch (e) { return null; } })();
 const guardarRasc = () => { try { localStorage.setItem(LR, JSON.stringify({ pedTit: S.rasc.pedTit, pedTxt: S.rasc.pedTxt, pedProj: S.rasc.pedProj, pedPrio: S.rasc.pedPrio })); } catch (e) {} };
 
 async function carregar(conferir) {
@@ -318,7 +332,7 @@ function barras30(disp) {
 }
 function cardProjeto(p) {
   const det = (S.P.detalhes[p.id] || {}), link = linkSeguro(p.link);
-  return `<div class="card projcard ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}"><div class="cab"><b>${esc(p.icone)} ${esc(p.nome)}</b>${pill(p.status)}</div>
+  return `<div class="card projcard ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}"><div class="cab"><b class="com-ic">${MapaVivo.icone(p.id)}${esc(p.nome)}</b>${pill(p.status)}</div>
     <div class="det">${esc(p.detalhe || '')}</div>
     ${p.disp7 !== null && p.disp7 !== undefined ? `<div class="peq">No ar: <b style="color:var(--tx)">${pct(p.disp7)}</b> em 7 dias · ${pct(p.disp30)} em 30 dias</div>${barras30(det.disp)}` : ''}
     <div class="peq">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}${det.suspeita ? ' · suspeita: ' + esc(det.suspeita) : ''}${link ? ` · <a href="${link}" target="_blank" rel="noopener noreferrer">abrir</a>` : ''}</div></div>`;
@@ -339,13 +353,13 @@ function telaGeral() {
       <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
       <div><small>Avisos novos</small><b>${novos}</b></div>
     </div>
-    <div class="palco"><div id="mapa-slot" style="position:absolute;inset:0"></div>${MV ? '' : '<div class="semmapa">Mapa vivo indisponível neste navegador (precisa de WebGL). Os projetos estão logo abaixo.</div>'}
-      ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">✕</button>${cardProjeto(aberto)}</aside>` : ''}</div>
-    <div class="card" style="margin-bottom:14px"><div class="titulo">O que precisa de você agora</div>${T.length ? `<ul class="lista-tarefas">${T.map(([n, tit, det]) => `<li><span class="ponto ${n}" aria-hidden="true"></span><div><b>${esc(tit)}</b><div class="det">${esc(det || '')}</div></div></li>`).join('')}</ul>` : '<div class="vazio">Nada. Tudo funcionando. ✅</div>'}</div>
+    <div class="palco">
+      ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">${ico('x')}</button>${cardProjeto(aberto)}</aside>` : ''}</div>
+    <div class="veu"><div class="card" style="margin-bottom:14px"><div class="titulo">O que precisa de você agora</div>${T.length ? `<ul class="lista-tarefas">${T.map(([n, tit, det]) => `<li><span class="ponto ${n}" aria-hidden="true"></span><div><b>${esc(tit)}</b><div class="det">${esc(det || '')}</div></div></li>`).join('')}</ul>` : '<div class="vazio">Nada. Tudo funcionando.</div>'}</div>
     <h2 class="titulo" style="margin:6px 2px 10px">Clientes</h2>
     <div class="grade g2" style="margin-bottom:14px">${ps.filter(p => p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div>
     <h2 class="titulo" style="margin:6px 2px 10px">Meus projetos</h2>
-    <div class="grade g2">${ps.filter(p => !p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div>`;
+    <div class="grade g2">${ps.filter(p => !p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div></div>`;
 }
 
 function telaClientes() {
@@ -360,7 +374,7 @@ function telaClientes() {
       extra = `<div class="grade g3" style="margin-top:14px">
         <div class="card dentro"><div class="titulo">Site respondeu em</div><div class="numero">${ms.site ? num(ms.site) + ' ms' : '—'}</div><div class="peq">na última conferência</div></div>
         <div class="card dentro"><div class="titulo">Banco respondeu em</div><div class="numero">${ms.banco ? num(ms.banco) + ' ms' : '—'}</div><div class="peq">Supabase /auth/v1/health</div></div>
-        <div class="card dentro"><div class="titulo">Banco acordado</div><div class="numero" style="font-size:18px">${ba && ba.codigo === 200 ? '✓ hoje' : ba && ba.pulado ? 'desligado' : ba ? 'falhou (' + num(ba.codigo) + ')' : '—'}</div><div class="peq">consulta diária que impede o Supabase grátis de pausar</div></div></div>`;
+        <div class="card dentro"><div class="titulo">Banco acordado</div><div class="numero" style="font-size:18px">${ba && ba.codigo === 200 ? 'hoje' : ba && ba.pulado ? 'desligado' : ba ? 'falhou (' + num(ba.codigo) + ')' : '—'}</div><div class="peq">consulta diária que impede o Supabase grátis de pausar</div></div></div>`;
     }
     if (pl) {
       const dias = (pl.dias || []).slice(-14).reverse(), tam = pl.tamanho;
@@ -382,7 +396,7 @@ function telaClientes() {
     const relatorio = [`Relatório de disponibilidade — ${p.nome}`, `Período: últimos 30 dias (${dm(hojeIso(-29))} a ${dm(hojeIso())})`, `No ar: ${pct(p.disp30)} (últimos 7 dias: ${pct(p.disp7)})`,
       Q.length ? 'Quedas:\n' + Q.map(q => `- ${dataHora(q.ini)}${q.fim ? ' (' + duracao((new Date(q.fim) - new Date(q.ini)) / 60000) + ')' : ' (ainda fora)'}: ${q.motivo}`).join('\n') : 'Quedas: nenhuma registrada.',
       'Conferência automática a cada 10 minutos.'].join('\n');
-    return `<div class="card ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}" style="margin-bottom:14px"><div class="titulo"><span>${esc(p.icone)} ${esc(p.nome)}</span>${pill(p.status)}</div>
+    return `<div class="card ${p.status === 'erro' ? 'erro' : p.status === 'atencao' ? 'atencao' : ''}" style="margin-bottom:14px"><div class="titulo"><span class="com-ic">${MapaVivo.icone(p.id)}${esc(p.nome)}</span>${pill(p.status)}</div>
       <div class="det">${esc(p.detalhe || '')}</div>
       <div class="peq" style="margin:8px 0">No ar: ${pct(p.disp7)} em 7 dias · ${pct(p.disp30)} em 30 dias</div>${barras30(det.disp)}
       <div class="atalhos" style="margin-top:12px">${atalhos.map(([n, u]) => linkSeguro(u) ? `<a class="btn sec mini" href="${linkSeguro(u)}" target="_blank" rel="noopener noreferrer">${esc(n)} ↗</a>` : '').join('')}</div>
@@ -397,10 +411,10 @@ function telaClientes() {
 
 function telaPedidos() {
   const P = S.P;
-  const opc = P.mapa.map(m => `<option value="${esc(m.id)}">${esc(m.icone)} ${esc(m.nome)}</option>`).join('') + '<option value="novo">✨ Projeto novo</option>';
+  const opc = P.mapa.map(m => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('') + '<option value="novo">Projeto novo</option>';
   const abertos = x => x.status === 'novo' || x.status === 'andamento';
   const lista = P.pedidos.filter(x => S.filtro === 'todos' || (S.filtro === 'abertos' ? abertos(x) : x.status === S.filtro));
-  const nome = id => { const m = P.mapa.find(x => x.id === id); return m ? m.icone + ' ' + m.nome : '✨ Projeto novo'; };
+  const nome = id => { const m = P.mapa.find(x => x.id === id); return m ? m.nome : 'Projeto novo'; };
   return `<div class="grade g2">
     <div class="card"><div class="titulo">Novo pedido</div>
       <form id="formPedido" onsubmit="return false">
@@ -474,16 +488,16 @@ function telaAssistente() {
 
 function telaMapa() {
   return `<div class="card"><div class="titulo">Onde está cada coisa</div><div class="rolar"><table><thead><tr><th scope="col">Projeto</th><th scope="col">Pasta neste PC</th><th scope="col">Repositório</th><th scope="col">Onde roda</th><th scope="col">Como publicar</th></tr></thead><tbody>
-    ${S.P.mapa.map(m => `<tr><td><b>${esc(m.icone)} ${esc(m.nome)}</b>${linkSeguro(m.url) ? `<br><a href="${linkSeguro(m.url)}" target="_blank" rel="noopener noreferrer" class="peq">abrir</a>` : ''}</td><td><code>${esc(m.pasta)}</code></td>
+    ${S.P.mapa.map(m => `<tr><td><b class="com-ic">${MapaVivo.icone(m.id)}${esc(m.nome)}</b>${linkSeguro(m.url) ? `<br><a href="${linkSeguro(m.url)}" target="_blank" rel="noopener noreferrer" class="peq">abrir</a>` : ''}</td><td><code>${esc(m.pasta)}</code></td>
       <td>${/^caioAprat\/[\w.-]+$/.test(m.repo) ? `<a href="https://github.com/${esc(m.repo)}" target="_blank" rel="noopener noreferrer">${esc(m.repo)}</a>` : `<span class="peq">${esc(m.repo)}</span>`}</td><td class="det">${esc(m.roda)}</td><td class="det">${esc(m.publicar)}</td></tr>`).join('')}</tbody></table></div>
     <p class="peq" style="margin-top:12px">Regra: a versão mais nova de cada projeto é sempre a da pasta acima, guardada no repositório indicado. Cada pedido feito diz exatamente o que mudou e onde.</p></div>`;
 }
 
 const FRASES_DIARIO = {
-  'planilha.codigo': r => r.erro ? 'Código da planilha: não consegui ler (' + r.erro + ')' : r.mudou ? '📝 Código da planilha guardado (mudou)' : '✓ Código da planilha igual ao de ontem',
-  'planilha.copia': r => r.erro ? 'Cópia da planilha: falhou (' + r.erro + ')' : r.pulado ? 'Cópia da planilha: desligada' : '✓ Cópia da planilha feita',
-  'planilha.tamanho': r => r.erro ? 'Tamanho da planilha: falhou (' + r.erro + ')' : `✓ Planilha usa ${pct(r.pct)} do limite`,
-  'gabinete.supabase': r => r.pulado ? 'Banco do Gabinete: sem configuração' : r.codigo === 200 ? '✓ Banco do Gabinete acordado' : `Banco do Gabinete: resposta ${r.codigo}`,
+  'planilha.codigo': r => r.erro ? 'Código da planilha: não consegui ler (' + r.erro + ')' : r.mudou ? 'Código da planilha guardado (mudou)' : 'Código da planilha igual ao de ontem',
+  'planilha.copia': r => r.erro ? 'Cópia da planilha: falhou (' + r.erro + ')' : r.pulado ? 'Cópia da planilha: desligada' : 'Cópia da planilha feita',
+  'planilha.tamanho': r => r.erro ? 'Tamanho da planilha: falhou (' + r.erro + ')' : `Planilha usa ${pct(r.pct)} do limite`,
+  'gabinete.supabase': r => r.pulado ? 'Banco do Gabinete: sem configuração' : r.codigo === 200 ? 'Banco do Gabinete acordado' : `Banco do Gabinete: resposta ${r.codigo}`,
 };
 function telaAvisos() {
   const P = S.P, vistos = P.estado.avisosVistosAte || 0, busca = S.busca.toLowerCase();
@@ -527,6 +541,7 @@ const ICONES = {
   ajustes: '<line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/>',
   buscar: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
   refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
 };
 const ico = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[n] || ''}</svg>`;
 
@@ -592,9 +607,9 @@ function render() {
   const ativo = document.activeElement, focoId = ativo && ativo.id;
   let selA = null, selB = null; try { selA = ativo.selectionStart; selB = ativo.selectionEnd; } catch (e) { /* sem cursor */ }
   const titulo = (ABAS.find(a => a[0] === S.aba) || ABAS[0])[1];
-  raiz.innerHTML = `<main><div class="barra"><div class="marca"><span class="orbe ${geral}" aria-hidden="true"></span>Jarvis</div>
+  raiz.innerHTML = `<main><div class="barra"><div class="marca">${MapaVivo.logo()}<span class="marca-txt">${MapaVivo.marca()}<span class="marca-sub"><span class="orbe ${geral}" aria-hidden="true"></span>Núcleo de controle</span></span></div>
       <div class="barra-dir"><button type="button" class="buscar" data-acao="paleta" aria-label="Buscar e navegar (Ctrl K)">${ico('buscar')}<span>Buscar</span><kbd>Ctrl K</kbd></button>
-      <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : '↻ Conferir tudo'}</button></div></div>
+      <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : ico('refresh') + ' Conferir tudo'}</button></div></div>
     <header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>
     ${conteudo}
     <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></main>
@@ -604,15 +619,24 @@ function render() {
   if (focoId && $(focoId)) { const n = $(focoId); n.focus({ preventScroll: true }); try { if (selA !== null) n.setSelectionRange(selA, selB); } catch (e) { /* tipo sem cursor */ } }
 }
 
-/** O mapa vivo é um elemento só, criado uma vez: a tela é redesenhada o tempo todo, então ele é só reposto no lugar. */
+/** O núcleo é uma camada fixa de tela cheia (sem moldura), criada uma vez: a tela é redesenhada o tempo todo, então ele só é reposto e ajustado. */
 function ligarMapa() {
   if (!MV) return;
-  const slot = $('mapa-slot');
-  if (!slot || !S.P) { MV.pausar(true); return; }
-  if (MV.el.parentNode !== slot) slot.appendChild(MV.el);
+  if (!MV.el.isConnected) document.body.prepend(MV.el);
+  if (!S.P) { MV.pausar(true); return; }
   MV.pausar(false);
+  const geral = S.aba === 'geral';
+  MV.modo(geral ? 'palco' : 'fundo');
+  MV.rolagem(geral ? window.scrollY / (innerHeight * .7) : 0);
   MV.atualizar(S.P.estado.projetos, { estado: S.sit[0], titulo: S.sit[1] });
   MV.selecionar(S.sel);
+}
+window.addEventListener('scroll', () => { if (MV && S.aba === 'geral') MV.rolagem(window.scrollY / (innerHeight * .7)); }, { passive: true });
+/** Clicar num projeto do núcleo abre o sistema dele; sem endereço (ou sem https), abre o painel de detalhes. */
+function abrirProjeto(id) {
+  const p = S.P && S.P.estado.projetos.find(x => x.id === id), link = p && /^https:\/\//.test(String(p.link || '')) ? p.link : '';
+  if (link) { window.open(link, '_blank', 'noopener'); return; }
+  S.sel = S.sel === id ? '' : id; render();
 }
 
 function irPara(aba, mudarHash) {
