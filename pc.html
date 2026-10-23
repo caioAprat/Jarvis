@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Jarvis · Central</title>
+<title>Jarvão · Central</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0f17">
 <meta name="robots" content="noindex,nofollow">
@@ -123,11 +123,11 @@
   @keyframes entra { from { opacity: 0; transform: translateX(14px); } }
   main { padding: 20px 32px 140px; max-width: 1280px; margin: 0 auto; }
   .barra { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
-  .marca { display: flex; align-items: center; gap: 14px; padding: 0; font-size: 24px; }
-  .marca .mk { font-size: 40px; filter: drop-shadow(0 0 12px rgba(255,120,40,.45)); }
-  .marca-txt { display: flex; flex-direction: column; gap: 7px; }
-  .marca-sub { display: flex; align-items: center; gap: 8px; font: 500 9.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--di); }
-  .marca-sub .orbe { width: 7px; height: 7px; box-shadow: 0 0 8px currentColor; }
+  .marca { display: flex; align-items: center; gap: 18px; padding: 0; font-size: 34px; }
+  .marca .mk { font-size: 66px; filter: drop-shadow(0 0 14px rgba(255,120,40,.5)); }
+  .marca-txt { display: flex; flex-direction: column; gap: 10px; }
+  .marca-sub { display: flex; align-items: center; gap: 9px; font: 500 11.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--di); }
+  .marca-sub .orbe { width: 8px; height: 8px; box-shadow: 0 0 8px currentColor; }
   .com-ic { display: inline-flex; align-items: center; gap: 9px; } .com-ic .pi { font-size: 17px; color: #ffc58a; }
   .btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   main { position: relative; z-index: 1; pointer-events: none; } main > * { pointer-events: auto; }
@@ -185,7 +185,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=13"></script>
+<script src="mapa-vivo.js?v=15"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -289,7 +289,7 @@ async function ocupado(chave, fn) {
 }
 async function enviar(corpo, okTexto) {
   try { const r = await post(corpo); avisar(r.ok ? (okTexto || r.aviso || 'Feito') : 'Não consegui: ' + (r.erro || r.aviso || 'erro'), !r.ok); return r; }
-  catch (e) { avisar('Sem conexão com o Jarvis.', true); return { ok: false }; }
+  catch (e) { avisar('Sem conexão com o Jarvão.', true); return { ok: false }; }
 }
 const dis = () => S.ocupado ? 'disabled' : '';
 
@@ -298,11 +298,11 @@ function jarvisParado(P) { return P.estado.verificadoEm && Date.now() - new Date
 /** O que precisa da atenção do Caio agora, do mais grave para o menos. */
 function tarefas(P) {
   const L = [];
-  if (jarvisParado(P)) L.push(['erro', `O Jarvis não confere nada desde ${dataHora(P.estado.verificadoEm)}`, 'Abra o editor do Apps Script do Jarvis → Acionadores, ou rode "instalar".']);
+  if (jarvisParado(P)) L.push(['erro', `O Jarvão não confere nada desde ${dataHora(P.estado.verificadoEm)}`, 'Abra o editor do Apps Script do Jarvis → Acionadores, ou rode "instalar".']);
   P.estado.projetos.slice().sort(porGravidade).filter(p => p.status === 'erro' || p.status === 'atencao').forEach(p =>
     L.push([p.status === 'erro' ? 'erro' : 'atencao', `${p.icone} ${p.nome}: ${NOMES[p.status]}`, p.detalhe]));
   P.estado.projetos.filter(p => p.status === 'config').forEach(p => L.push(['info', `${p.icone} ${p.nome}: falta configurar`, p.detalhe]));
-  if (!P.estado.inscricoes) L.push(['atencao', 'Nenhum aparelho recebendo notificações', 'Abra o Jarvis no iPhone e toque em "Ativar notificações".']);
+  if (!P.estado.inscricoes) L.push(['atencao', 'Nenhum aparelho recebendo notificações', 'Abra o Jarvão no iPhone e toque em "Ativar notificações".']);
   const tam = ((P.detalhes.planilha || {}).planilha || {}).tamanho;
   if (tam && tam.pct >= 80) L.push([tam.pct >= 90 ? 'erro' : 'atencao', `Planilha J Hissnauer com ${pct(tam.pct)} do limite de células`, 'Maiores abas: ' + (tam.maiores || []).map(x => x.nome).join(', ')]);
   P.pedidos.filter(x => x.status === 'novo' && x.prioridade === 'alta').forEach(x => L.push(['info', `Pedido #${x.id} (alta): ${x.titulo}`, 'Na fila, esperando a próxima sessão do Claude Code.']));
@@ -343,7 +343,7 @@ function telaGeral() {
   const erros = ps.filter(p => p.status === 'erro').length, atencoes = ps.filter(p => p.status === 'atencao').length, parado = jarvisParado(P);
   const pedAbertos = P.pedidos.filter(x => x.status === 'novo' || x.status === 'andamento').length;
   const novos = P.estado.avisos.filter(a => a.id > (P.estado.avisosVistosAte || 0)).length;
-  const sit = parado ? ['erro', 'Jarvis parado'] : erros ? ['erro', plural(erros, 'projeto com problema', 'projetos com problema')] : atencoes ? ['atencao', plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção')] : ['ok', 'Tudo certo'];
+  const sit = parado ? ['erro', 'Jarvão parado'] : erros ? ['erro', plural(erros, 'projeto com problema', 'projetos com problema')] : atencoes ? ['atencao', plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção')] : ['ok', 'Tudo certo'];
   S.sit = sit;
   const ativos = ps.filter(p => p.status !== 'pausado'), noAr = ativos.filter(p => p.status === 'ok').length;
   const aberto = S.sel && ps.find(p => p.id === S.sel);
@@ -425,7 +425,7 @@ function telaPedidos() {
         <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn forte" data-acao="pedido" ${dis()}>${S.ocupado === 'pedido' ? 'Enviando…' : 'Enviar pedido'}</button><span class="peq">Ctrl+Enter envia · o rascunho fica guardado</span></div>
       </form></div>
     <div class="card"><div class="titulo">Como funciona</div><div class="det" style="line-height:1.7">
-      1. Você escreve o pedido aqui (de qualquer lugar).<br>2. Numa sessão do Claude Code (aqui no PC ou em claude.ai/code), diga <b>"faça os pedidos do Jarvis"</b>.<br>
+      1. Você escreve o pedido aqui (de qualquer lugar).<br>2. Numa sessão do Claude Code (aqui no PC ou em claude.ai/code), diga <b>"faça os pedidos do Jarvão"</b>.<br>
       3. Ao começar, o pedido vira <b>em andamento</b>; ao terminar, vira <b>feito</b>, com o que mudou, em <b>qual pasta/arquivo</b> e onde foi publicado. Você recebe uma notificação.<br>
       4. A pasta e o repositório de cada projeto ficam no <a href="#mapa">Mapa dos projetos</a>: nada se perde.</div></div>
   </div>
@@ -442,7 +442,7 @@ function telaVersoes() {
     const v = S.versoes[a];
     if (!v) return '<div class="skel" style="height:80px"></div>';
     if (v.ok === false || v.erro) return `<div class="faixa">Não consegui ler as versões: ${esc(v.erro || '')}</div>`;
-    return `${v.soLeitura ? '<div class="peq" style="margin-bottom:8px">O Jarvis só mostra as próprias versões: voltar o servidor para antes desta central desligaria a central.</div>' : ''}
+    return `${v.soLeitura ? '<div class="peq" style="margin-bottom:8px">O Jarvão só mostra as próprias versões: voltar o servidor para antes desta central desligaria a central.</div>' : ''}
       <div class="rolar"><table><thead><tr><th scope="col">Versão</th><th scope="col">Descrição</th><th scope="col">Quando</th><th></th></tr></thead><tbody>${v.versoes.map(x => `<tr><td><b>${num(x.numero)}</b>${x.numero === v.atual ? ' <span class="pill ok">no ar</span>' : ''}</td><td class="det">${esc(x.descricao)}</td><td class="peq">${dataHora(x.quando)}</td>
       <td class="num">${x.numero === v.atual || v.soLeitura ? '' : (S.voltar && S.voltar.app === a && S.voltar.versao === x.numero
         ? `<form class="voltar-form" data-form-voltar="1" onsubmit="return false"><span class="peq">No ar: v${num(v.atual)} → vai para v${num(x.numero)}</span><label class="sr" for="confVoltar">Digite VOLTAR para confirmar</label>
@@ -504,7 +504,7 @@ function telaAvisos() {
   const logF = P.log.filter(x => !busca || (x.tipo + ' ' + x.texto).toLowerCase().includes(busca));
   const rel = P.diario && P.diario.relatorio ? Object.keys(P.diario.relatorio).map(k => (FRASES_DIARIO[k] || (r => k + ': ' + JSON.stringify(r)))(P.diario.relatorio[k] || {})) : [];
   return `<div class="grade g2"><div class="card"><div class="titulo"><span>Avisos</span><button type="button" class="btn sec mini" data-acao="vistos" ${dis()}>Marcar todos como vistos</button></div>${P.estado.avisos.map(a => `<div class="aviso ${a.id > vistos ? 'novo' : ''}"><i class="${esc(a.nivel)}" aria-hidden="true"></i><div><b>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}</div><span class="peq">${dataHora(a.quando)}</span></div>`).join('') || '<div class="vazio">Nenhum.</div>'}</div>
-    <div class="card"><div class="titulo"><span>Registro do Jarvis</span><span><label class="sr" for="buscaLog">Filtrar registro</label><input class="inp" id="buscaLog" placeholder="filtrar…" style="width:180px;min-height:30px;padding:4px 10px" value="${esc(S.busca)}"></span></div>
+    <div class="card"><div class="titulo"><span>Registro do Jarvão</span><span><label class="sr" for="buscaLog">Filtrar registro</label><input class="inp" id="buscaLog" placeholder="filtrar…" style="width:180px;min-height:30px;padding:4px 10px" value="${esc(S.busca)}"></span></div>
       <div class="rolar"><table><tbody>${logF.map(x => `<tr><td class="peq" style="white-space:nowrap">${dataHora(x.quando)}</td><td><span class="pill config">${esc(x.tipo)}</span></td><td class="det">${esc(x.texto)}</td></tr>`).join('') || '<tr><td class="vazio">Vazio.</td></tr>'}</tbody></table></div>
       ${P.diario ? `<div class="titulo" style="margin-top:16px">Rotina da madrugada · ${dataHora(P.diario.quando)}</div>${rel.map(f => `<div class="det">${esc(f)}</div>`).join('')}` : ''}</div></div>`;
 }
@@ -516,12 +516,12 @@ function telaAjustes() {
     <form onsubmit="return false" style="display:flex;gap:8px;flex-wrap:wrap"><label class="sr" for="tok_${prop}">${nome}</label><input class="inp" type="password" id="tok_${prop}" autocomplete="new-password" spellcheck="false" placeholder="${tem ? 'colar um novo para trocar' : 'colar aqui'}" style="flex:1 1 220px" data-prefixo="${esc(prefixo)}">
     <button type="submit" class="btn" data-token="${prop}" ${dis()}>Salvar</button>${tem ? (S.apagarToken === prop ? `<button type="button" class="btn perigo" data-token-apagar="${prop}" ${dis()}>Sim, apagar</button><button type="button" class="btn sec" data-token-nao="1">Não</button>` : `<button type="button" class="btn sec" data-token-pedir="${prop}">Apagar</button>`) : ''}</form></div>`;
   return `<div class="grade g2">
-    <div class="card"><div class="titulo">Bot de atrasos</div><div class="det" style="margin-bottom:10px">${pausado ? `Pausado até ${dm(atr.pausaAte)}: o Jarvis não cobra se ele não rodar.` : 'Sendo cobrado nos dias úteis (16:30; sexta 15:30).'}</div>
+    <div class="card"><div class="titulo">Bot de atrasos</div><div class="det" style="margin-bottom:10px">${pausado ? `Pausado até ${dm(atr.pausaAte)}: o Jarvão não cobra se ele não rodar.` : 'Sendo cobrado nos dias úteis (16:30; sexta 15:30).'}</div>
       ${pausado ? `<button type="button" class="btn sec" data-acao="retomar" ${dis()}>Retomar cobrança</button>` : `<form onsubmit="return false" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="campo" for="pausaAte" style="margin:0">Não cobrar até (inclusive)</label><input class="inp" type="date" id="pausaAte" min="${hojeIso()}" max="${hojeIso(60)}" value="${hojeIso(1)}" style="width:170px"><button type="submit" class="btn" data-acao="pausar" ${dis()}>Pausar</button></form>`}</div>
-    <div class="card"><div class="titulo">Notificações</div><div class="det" style="margin-bottom:10px">${plural(num(S.P.estado.inscricoes), 'aparelho recebendo', 'aparelhos recebendo')}. Para ativar num aparelho, abra o Jarvis nele.</div><button type="button" class="btn sec" data-acao="teste" ${dis()}>Mandar notificação de teste</button></div>
-    ${token('GITHUB_TOKEN', 'Token do GitHub', 'Deixa o Jarvis ver as publicações dos repositórios privados (assistente e Gabinete). Crie em github.com → Settings → Developer settings → Fine-grained tokens, só com leitura de Actions.', c.github, 'github_pat_|ghp_')}
-    ${token('VERCEL_TOKEN', 'Token da Vercel', 'Deixa o Jarvis ver as publicações do Gabinete na Vercel. Crie em vercel.com → Account Settings → Tokens.', c.vercel, '')}
-    <div class="card"><div class="titulo">Cópia diária da planilha J Hissnauer</div><div class="det" style="margin-bottom:10px">Toda madrugada o Jarvis guarda uma cópia da planilha na pasta "Jarvis — backups" do seu Drive (mantém 7). <b>Os dados são do cliente:</b> ligue só depois que ele concordar (uma mensagem dele por escrito basta). O código da planilha é guardado sempre.</div>
+    <div class="card"><div class="titulo">Notificações</div><div class="det" style="margin-bottom:10px">${plural(num(S.P.estado.inscricoes), 'aparelho recebendo', 'aparelhos recebendo')}. Para ativar num aparelho, abra o Jarvão nele.</div><button type="button" class="btn sec" data-acao="teste" ${dis()}>Mandar notificação de teste</button></div>
+    ${token('GITHUB_TOKEN', 'Token do GitHub', 'Deixa o Jarvão ver as publicações dos repositórios privados (assistente e Gabinete). Crie em github.com → Settings → Developer settings → Fine-grained tokens, só com leitura de Actions.', c.github, 'github_pat_|ghp_')}
+    ${token('VERCEL_TOKEN', 'Token da Vercel', 'Deixa o Jarvão ver as publicações do Gabinete na Vercel. Crie em vercel.com → Account Settings → Tokens.', c.vercel, '')}
+    <div class="card"><div class="titulo">Cópia diária da planilha J Hissnauer</div><div class="det" style="margin-bottom:10px">Toda madrugada o Jarvão guarda uma cópia da planilha na pasta "Jarvão — backups" do seu Drive (mantém 7). <b>Os dados são do cliente:</b> ligue só depois que ele concordar (uma mensagem dele por escrito basta). O código da planilha é guardado sempre.</div>
       <button type="button" class="btn ${c.backupPlanilha ? 'sec' : ''}" data-backup="${c.backupPlanilha ? 'nao' : 'sim'}" ${dis()}>${c.backupPlanilha ? 'Desligar a cópia diária' : 'Ligar a cópia diária'}</button></div>
     <div class="card"><div class="titulo">Rotina da madrugada</div><div class="det" style="margin-bottom:10px">Guarda o código da planilha, faz a cópia, mede o tamanho e mantém o banco do Gabinete acordado. Roda sozinha às 3h.</div>
       <button type="button" class="btn sec" data-acao="diario" ${dis()}>${S.ocupado === 'diario' ? 'Rodando… (até 1 min)' : 'Rodar agora'}</button></div>
@@ -585,13 +585,13 @@ document.addEventListener('keydown', ev => {
 function render() {
   const raiz = $('raiz');
   if (!CFG || S.erro === 'auth') {
-    raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvis · Central do PC'}</div>
+    raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvão · Central do PC'}</div>
       <p class="det" style="margin-bottom:12px">Cole o <b>link da central do PC</b> que veio no Telegram (só desta vez neste computador).</p>
       <form onsubmit="return false"><label class="sr" for="cola">Link da central do PC</label><input class="inp" id="cola" type="url" autocomplete="off" spellcheck="false" placeholder="https://caioaprat.github.io/Jarvis/pc.html#k=...">
       <button type="submit" class="btn forte" style="margin-top:12px" data-acao="colar">Entrar</button></form></div>`;
     return;
   }
-  if (!S.P) { raiz.innerHTML = S.erro ? `<div class="acesso card"><p>Não consegui falar com o Jarvis (${esc(S.erro)}).</p><button type="button" class="btn" style="margin-top:12px" data-acao="tentar">Tentar de novo</button></div>` : '<div class="acesso"><div class="skel"></div><div class="skel"></div></div>'; return; }
+  if (!S.P) { raiz.innerHTML = S.erro ? `<div class="acesso card"><p>Não consegui falar com o Jarvão (${esc(S.erro)}).</p><button type="button" class="btn" style="margin-top:12px" data-acao="tentar">Tentar de novo</button></div>` : '<div class="acesso"><div class="skel"></div><div class="skel"></div></div>'; return; }
   const P = S.P, ps = P.estado.projetos;
   const geral = jarvisParado(P) || ps.some(p => p.status === 'erro') ? 'erro' : ps.some(p => p.status === 'atencao') || !P.estado.inscricoes ? 'atencao' : 'ok';
   const contagem = { pedidos: [P.pedidos.filter(x => x.status === 'novo' || x.status === 'andamento').length, 'pendentes'],
@@ -602,7 +602,7 @@ function render() {
   try { conteudo = (telas[S.aba] || telaGeral)(); }
   catch (e) { conteudo = `<div class="faixa erro">Esta seção falhou ao montar (${esc(e.message)}). <button type="button" class="btn sec mini" data-acao="tentar">Recarregar</button></div>`; }
   const desde = S.quando ? ha(new Date(S.quando).toISOString()) : '';
-  const sub = S.carregando ? 'atualizando…' : S.erro ? `<span style="color:var(--av)">Sem conexão com o Jarvis · dados de ${esc(desde)}</span>` : 'atualizado ' + esc(desde);
+  const sub = S.carregando ? 'atualizando…' : S.erro ? `<span style="color:var(--av)">Sem conexão com o Jarvão · dados de ${esc(desde)}</span>` : 'atualizado ' + esc(desde);
   // guarda foco e cursor para não atrapalhar quem está digitando
   const ativo = document.activeElement, focoId = ativo && ativo.id;
   let selA = null, selB = null; try { selA = ativo.selectionStart; selB = ativo.selectionEnd; } catch (e) { /* sem cursor */ }

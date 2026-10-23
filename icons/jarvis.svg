@@ -2,8 +2,9 @@
 <radialGradient id="c"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a26"/></radialGradient>
 <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe6c8"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient></defs>
 <rect width="64" height="64" rx="14" fill="#090705"/>
-<g transform="translate(32 32) scale(.82) translate(-32 -32)">
-<path d="M32 6A26 26 0 1 1 6 32" fill="none" stroke="url(#a)" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="6" r="2.7" fill="#ffe6c8"/><circle cx="6" cy="32" r="1.8" fill="#ff9a4d"/>
-<path d="M32 14A18 18 0 0 1 50 32M32 50A18 18 0 0 1 14 32" fill="none" stroke="url(#a)" stroke-width="2.4" stroke-linecap="round"/><circle cx="50" cy="32" r="2" fill="#ffb36a"/>
-<path d="M32 21.5A10.5 10.5 0 1 1 21.5 32" fill="none" stroke="#ffcf9a" stroke-width="2" stroke-linecap="round"/>
-<circle cx="32" cy="32" r="5" fill="url(#c)"/></g></svg>
+<g transform="translate(32 32) scale(.86) translate(-32 -32)">
+<circle cx="32" cy="32" r="30.6" fill="none" stroke="#ffb36a" stroke-opacity=".3" stroke-width=".8"/>
+<path d="M32.00 2.20L32.00 5.40M39.71 3.22L39.30 4.76M46.90 6.19L46.10 7.58M53.07 10.93L51.94 12.06M57.81 17.10L56.42 17.90M60.78 24.29L59.24 24.70M61.80 32.00L58.60 32.00M60.78 39.71L59.24 39.30M57.81 46.90L56.42 46.10M53.07 53.07L51.94 51.94M46.90 57.81L46.10 56.42M39.71 60.78L39.30 59.24M32.00 61.80L32.00 58.60M24.29 60.78L24.70 59.24M17.10 57.81L17.90 56.42M10.93 53.07L12.06 51.94M6.19 46.90L7.58 46.10M3.22 39.71L4.76 39.30M2.20 32.00L5.40 32.00M3.22 24.29L4.76 24.70M6.19 17.10L7.58 17.90M10.93 10.93L12.06 12.06M17.10 6.19L17.90 7.58M24.29 3.22L24.70 4.76" fill="none" stroke="#ffb36a" stroke-width=".9" opacity=".75"/>
+<path d="M35.34 8.23A24 24 0 0 1 55.77 35.34M50.91 46.78A24 24 0 0 1 17.22 50.91M9.75 40.99A24 24 0 0 1 23.01 9.75" fill="none" stroke="url(#a)" stroke-width="3.4"/>
+<path d="M37.3 17.43A15.5 15.5 0 0 1 39.75 45.42M26.7 46.57A15.5 15.5 0 0 1 24.25 18.58" fill="none" stroke="#ffcf9a" stroke-width="2.4"/>
+<circle cx="32" cy="32" r="7.2" fill="url(#c)"/><circle cx="32" cy="32" r="2.4" fill="#fff"/></g></svg>

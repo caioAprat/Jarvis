@@ -2,12 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Jarvis</title>
+<title>Jarvão</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080706">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Jarvis">
+<meta name="apple-mobile-web-app-title" content="Jarvão">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
@@ -45,8 +45,8 @@
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   h1, .titulo { text-wrap: balance; } p { text-wrap: pretty; }
   header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 2px 16px; }
-  .marca { font-size: 22px; display: flex; align-items: center; gap: 12px; letter-spacing: normal; }
-  .marca .mk { font-size: 38px; filter: drop-shadow(0 0 10px rgba(255,120,40,.45)); }
+  .marca { font-size: 27px; display: flex; align-items: center; gap: 14px; letter-spacing: normal; }
+  .marca .mk { font-size: 54px; filter: drop-shadow(0 0 10px rgba(255,120,40,.45)); }
   .ic-sv { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -2px; }
   .proj .ic { color: #ffc58a; } .proj .ic .pi { font-size: 22px; }
   h1 { font-size: 23px; font-weight: 750; letter-spacing: -.4px; display: flex; align-items: center; gap: 10px; }
@@ -115,7 +115,7 @@
 </header>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="mapa-vivo.js?v=13"></script>
+<script src="mapa-vivo.js?v=15"></script>
 <div id="app"><div class="skel"></div><div class="skel" style="height:240px"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <footer>Confere seus projetos a cada 10 minutos</footer>
@@ -227,7 +227,7 @@ async function ativarPush() {
   S.ativando = true; render();
   try {
     const perm = await Notification.requestPermission();     // precisa ser a 1ª coisa depois do toque
-    if (perm !== 'granted') { avisar('Permissão negada. Ajustes do iPhone > Notificações > Jarvis > Permitir.', true); }
+    if (perm !== 'granted') { avisar('Permissão negada. Ajustes do iPhone > Notificações > Jarvão > Permitir.', true); }
     else {
       const reg = await navigator.serviceWorker.ready;
       const { chave } = await (await fetch(CFG.u + '?acao=vapid', { redirect: 'follow' })).json();
@@ -247,9 +247,9 @@ async function testarPush() {
 // ---------------------------------------------------------------- telas
 function telaAcesso(motivo) {
   return `<section class="card"><h2 class="titulo">${motivo ? 'Acesso recusado' : 'Primeiro acesso'}</h2>
-    <p>${motivo ? 'A chave não vale mais. Cole o link novo que veio no Telegram.' : 'Cole aqui o <b>link do Jarvis</b> que veio no Telegram (só desta vez).'}</p>
+    <p>${motivo ? 'A chave não vale mais. Cole o link novo que veio no Telegram.' : 'Cole aqui o <b>link do Jarvão</b> que veio no Telegram (só desta vez).'}</p>
     <form data-form="colar" onsubmit="return false">
-      <input class="cola" id="cola" type="url" inputmode="url" aria-label="Link do Jarvis" placeholder="https://caioaprat.github.io/Jarvis/#k=..."
+      <input class="cola" id="cola" type="url" inputmode="url" aria-label="Link do Jarvão" placeholder="https://caioaprat.github.io/Jarvis/#k=..."
              autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
       ${S.erroCola ? `<div class="erroCampo" role="alert">${esc(S.erroCola)}</div>` : ''}
       <button class="grande-btn" data-acao="colar">Entrar</button>
@@ -261,9 +261,9 @@ const ESTADO_FRASE = { ok: 'funcionando', atencao: 'com atenção', erro: 'com p
 
 function cardPush() {
   const p = S.push;
-  if (p === 'instalar') return `<section class="card"><h2 class="titulo">Notificações no iPhone</h2><p class="pequeno">Para receber avisos: no Safari, Compartilhar → <b>Adicionar à Tela de Início</b> e abra pelo ícone do Jarvis.</p></section>`;
+  if (p === 'instalar') return `<section class="card"><h2 class="titulo">Notificações no iPhone</h2><p class="pequeno">Para receber avisos: no Safari, Compartilhar → <b>Adicionar à Tela de Início</b> e abra pelo ícone do Jarvão.</p></section>`;
   if (p === 'sem-suporte') return `<section class="card atencao"><h2 class="titulo">Notificações</h2><p class="pequeno">Este iPhone não aceita notificações de apps da tela inicial. Precisa do iOS 16.4 ou mais novo (Ajustes > Geral > Atualização de Software).</p></section>`;
-  if (p === 'bloqueado') return `<section class="card atencao"><h2 class="titulo">Notificações bloqueadas</h2><p class="pequeno">Ajustes do iPhone → Notificações → Jarvis → Permitir Notificações.</p></section>`;
+  if (p === 'bloqueado') return `<section class="card atencao"><h2 class="titulo">Notificações bloqueadas</h2><p class="pequeno">Ajustes do iPhone → Notificações → Jarvão → Permitir Notificações.</p></section>`;
   if (p === 'desligado' || p === 'reativar') return `<section class="card ${p === 'reativar' ? 'atencao' : ''}"><h2 class="titulo">Notificações</h2>
     <p class="pequeno" style="margin-bottom:10px">${p === 'reativar' ? 'As notificações deste iPhone pararam. Toque para ligar de novo.' : 'Receba os avisos de todos os projetos (inclusive do dinheiro) direto no iPhone.'}</p>
     <button class="grande-btn" data-acao="push" ${S.ativando ? 'disabled' : ''}>${S.ativando ? 'Ativando…' : p === 'reativar' ? 'Reativar notificações' : 'Ativar notificações'}</button></section>`;
@@ -289,13 +289,13 @@ function render() {
   const D = S.D, h = [];
   const contar = s => D.projetos.filter(p => p.status === s).length;
   const erros = contar('erro'), atencoes = contar('atencao');
-  const atrasado = D.verificadoEm && Date.now() - new Date(D.verificadoEm).getTime() > 30 * 60e3;   // o próprio Jarvis parou?
+  const atrasado = D.verificadoEm && Date.now() - new Date(D.verificadoEm).getTime() > 30 * 60e3;   // o próprio Jarvão parou?
   const geral = erros ? 'erro' : (atencoes || atrasado) ? 'atencao' : 'ok';
   $('orbe').className = 'orbe ' + geral;
   $('sub').textContent = (S.carregando ? 'conferindo… · ' : '') + 'conferido ' + ha(D.verificadoEm);
 
   if (S.offline) h.push(`<div class="faixa">Sem conexão: dados de ${ha(new Date(S.quando).toISOString())}.</div>`);
-  const titulo = atrasado ? 'O Jarvis não confere desde ' + new Date(D.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const titulo = atrasado ? 'O Jarvão não confere desde ' + new Date(D.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : geral === 'ok' ? 'Tudo funcionando' : erros ? plural(erros, 'projeto com problema', 'projetos com problema') : plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção');
   S.sit = [geral, titulo];
   h.push(`<section class="card resumo mapa ${geral}"><div class="palco-m"><div id="mapa-slot" style="position:absolute;inset:0"></div></div><div class="grande">${esc(titulo)}</div>
@@ -353,7 +353,7 @@ function render() {
 
 function entrar() {
   const c = cfgDeTexto(($('cola') || {}).value || '');
-  if (!c) { S.erroCola = 'Esse não parece o link do Jarvis. Copie o link inteiro da mensagem do Telegram.'; render(); return; }
+  if (!c) { S.erroCola = 'Esse não parece o link do Jarvão. Copie o link inteiro da mensagem do Telegram.'; render(); return; }
   S.erroCola = ''; CFG = c; salvarCfg(c); S.erro = ''; carregar();
 }
 document.addEventListener('click', ev => {
@@ -384,7 +384,7 @@ async function acao(tipo, extra) {
   try {
     const r = await post(Object.assign({ tipo }, extra));
     avisar(r.ok ? (r.aviso || 'Feito') : 'Não consegui: ' + (r.erro || 'tente de novo'), !r.ok);
-  } catch (e) { avisar('Não consegui falar com o Jarvis. Confira a internet.', true); }
+  } catch (e) { avisar('Não consegui falar com o Jarvão. Confira a internet.', true); }
   S.ocupado = ''; carregar();
 }
 document.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.id === 'cola') { ev.preventDefault(); entrar(); } });

@@ -1,5 +1,5 @@
-// Jarvis: guarda a tela para abrir sem internet e mostra as notificações.
-// O push chega vazio; aqui buscamos o texto do aviso no Jarvis com a chave guardada pelo app.
+// Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
+// O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
 const VERSAO = 'jarvis-v3';
 const CASCA = ['./', 'index.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
@@ -39,13 +39,13 @@ self.addEventListener('push', e => {
       const avisos = (await r.json()).avisos || [];
       if (avisos.length) {
         const a = avisos[0];
-        n = { titulo: a.titulo, corpo: (a.texto || '') + (avisos.length > 1 ? `\n+${avisos.length - 1} aviso(s) no Jarvis` : ''), url: a.url || './', tag: 'aviso-' + a.id };
+        n = { titulo: a.titulo, corpo: (a.texto || '') + (avisos.length > 1 ? `\n+${avisos.length - 1} aviso(s) no Jarvão` : ''), url: a.url || './', tag: 'aviso-' + a.id };
         await gravarCache('ultimo', String(a.id));
         await gravarCache('ultimoAviso', JSON.stringify(n));
       }
     } catch (err) { /* sem conexão ou demorou: usa o último aviso conhecido */ }
     if (!n) { try { n = JSON.parse(await lerCache('ultimoAviso')); } catch (err) { n = null; } }
-    if (!n) n = { titulo: 'Jarvis', corpo: 'Novo aviso. Toque para ver.', url: './', tag: 'jarvis' };
+    if (!n) n = { titulo: 'Jarvão', corpo: 'Novo aviso. Toque para ver.', url: './', tag: 'jarvis' };
     await self.registration.showNotification(n.titulo, { body: String(n.corpo || '').slice(0, 300), tag: n.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: n.url } });
   })());
 });
