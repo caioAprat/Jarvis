@@ -51,6 +51,7 @@
     assistente: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
     painel: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
     atrasos: '<path d="m7.5 4.3 9 5.2"/><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+    pedalada: '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
     cacador: '<circle cx="12" cy="12" r="9"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/>',
     padrao: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/>',
   };
@@ -63,8 +64,9 @@
   .mk-core{animation:mk-bate 2.6s ease-in-out infinite}
   @keyframes mk-giro{to{transform:rotate(360deg)}}
   @keyframes mk-bate{0%,100%{transform:scale(1)}12%{transform:scale(1.16)}24%{transform:scale(1)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
-  .wm{display:inline-block;font:700 1em/1.05 "Saira",sans-serif;letter-spacing:.3em;margin-right:-.3em;text-transform:uppercase;color:transparent;
-    background:linear-gradient(180deg,#fff6e8 0%,#ffd7a8 52%,#ff9f55 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 .45em rgba(255,128,48,.5))}
+  .wm{display:inline-block;font:400 1em/1.05 "Michroma","Saira",sans-serif;letter-spacing:.17em;margin-right:-.17em;text-transform:uppercase;color:transparent;
+    background:linear-gradient(180deg,#fffaf0 0%,#ffdcb0 48%,#ff9a4a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.035em rgba(255,200,140,.55);
+    filter:drop-shadow(0 0 .5em rgba(255,128,48,.55)) drop-shadow(0 0 1.4em rgba(255,100,30,.28))}
   .pi{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.15em}
   .mv{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
   .mv canvas{display:block;width:100%;height:100%}
@@ -88,7 +90,7 @@
   .mv-rotulo[data-st=erro]{box-shadow:0 0 0 1px rgba(255,77,94,.7),0 0 22px rgba(255,77,94,.25),0 6px 18px rgba(0,0,0,.45)}
   .mv-rotulo[data-st=pausado] .mv-st,.mv-rotulo[data-st=config] .mv-st,.mv-rotulo[data-st=aguardando] .mv-st{color:#a99a88}
   .mv-nucleo{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);text-align:center;pointer-events:none;text-transform:uppercase;transition:opacity .3s}
-  .mv-nucleo .wm{font-size:20px}
+  .mv-nucleo .wm{font-size:17px}
   .mv-nucleo span.mv-leg{display:block;margin-top:8px;font:500 9.5px "JetBrains Mono",monospace;letter-spacing:.2em;color:#d9a46a}
   .mv-nucleo[data-st=erro] .mv-leg{color:#ff8a94}.mv-nucleo[data-st=atencao] .mv-leg{color:#ffd37a}
   .mv-compacto .mv-rotulo{min-width:40px;min-height:40px;padding:6px 9px;align-items:center;justify-content:center}
@@ -517,8 +519,9 @@
         tmp.copy(n.P0).project(camera);
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
+        const topoL = FUNDO ? Math.round(Math.min(320, h * .33)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
         const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
-        n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(6, Math.min(h - 50, y - 18)).toFixed(1)}px,0)`;
+        n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
         n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * (FUNDO ? Math.max(0, 1 - (Number(el.style.getPropertyValue('--mv-p')) || 0) * 1.5) : 1)) : '0';
         n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
         n.halo.material.opacity = .65 + Math.sin(t * 2 + i) * .15 + hov(n) * .3;
@@ -605,9 +608,6 @@
       ptr.mx = (e.clientX / innerWidth) * 2 - 1; ptr.my = -(e.clientY / innerHeight) * 2 + 1;
       const n = alvoNo(e);
       if (n) { if (o.aoSelecionar) o.aoSelecionar(n.id); return; }
-      if (reduzido) return;
-      varredura(); pontoMouse(); if (MAXR) faisca(mundoCam, 28, 7);
-      gsap.fromTo(chute, { v: 1 }, { v: 0, duration: 1.2, ease: 'elastic.out(1,.5)', overwrite: true });
     }
     if (FUNDO) { window.addEventListener('pointermove', mover, { passive: true }); window.addEventListener('pointerdown', clicar); document.documentElement.addEventListener('pointerleave', () => { ptr.dentro = false; gsap.to(ptr.presenca, { v: 0, duration: .7, overwrite: true }); }); }
     else if (!baixo) { el.addEventListener('pointermove', mover, { passive: true }); el.addEventListener('pointerleave', () => { ptr.dentro = false; gsap.to(ptr.presenca, { v: 0, duration: .7, overwrite: true }); ox(0); oy(0); ix(0); iy(0); }); el.addEventListener('pointerdown', clicar); }

@@ -40,6 +40,7 @@ function ambiente(opcoes = {}) {
     if (url.includes('acao=widget')) return resp(200, { versao: 4, ok: false, livre: -333, ate: '2026-10-29', conta: 51 });
     if (url.includes('/actions/workflows/')) return resp(200, { state: 'disabled_manually' });
     if (url.includes('github.io')) return resp(200, '<html>');
+    if (url.includes('pedalada-do-delei.caiofelix0709.workers.dev')) return resp(200, '<title>Pedalada do Delei</title>');
     if (url.includes('gabinete-chamados.vercel.app')) return resp(200, '<title>Entrar · Chamados do Gabinete</title>');
     if (url.includes('supabase.co/auth/v1/health')) return resp(op.headers && op.headers.apikey === 'sb_publishable_teste' ? 200 : 401, {});
     if (url.includes('push.apple.com')) return resp(201, '');

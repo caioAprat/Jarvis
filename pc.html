@@ -10,7 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/jarvis.svg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
   /* mesmos tokens do app do celular e do Meu dinheiro */
   :root {
@@ -112,10 +112,10 @@
   #toast div.ruim { background: #2a2414; color: var(--av); }
   .skel { height: 120px; border-radius: 16px; background: linear-gradient(90deg, var(--card), var(--card2), var(--card)); background-size: 200% 100%; animation: b 1.4s infinite; margin-bottom: 14px; }
   @keyframes b { to { background-position: -200% 0; } }
-  .hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 4px; }
+  .hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0 -32px 4px; padding: 18px 32px 26px; background: linear-gradient(to bottom, rgba(8,7,6,.86), rgba(8,7,6,.55) 60%, rgba(8,7,6,0)); }
   .hud > div { padding: 2px 24px; border-left: 1px solid var(--linha); } .hud > div:first-child { padding-left: 0; border-left: 0; }
-  .hud small { display: block; font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--di); }
-  .hud b { display: block; margin-top: 2px; font: 700 21px var(--disp); letter-spacing: .01em; }
+  .hud small { display: block; font: 500 12.5px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: #f2dcbd; text-shadow: 0 1px 10px #000; }
+  .hud b { display: block; margin-top: 4px; font: 700 40px/1.1 var(--disp); letter-spacing: .01em; text-shadow: 0 2px 20px rgba(0,0,0,.95), 0 0 30px rgba(0,0,0,.8); }
   .palco { position: relative; height: max(380px, calc(100vh - 330px)); pointer-events: none; }
   .painel-sel { pointer-events: auto; position: fixed; z-index: 25; top: 92px; right: 24px; max-height: calc(100vh - 220px); width: min(360px, calc(100% - 28px)); overflow: auto; border-radius: 12px; background: rgba(12,9,7,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,160,80,.4), 0 16px 40px rgba(0,0,0,.6); padding: 4px; animation: entra .28s cubic-bezier(.2,0,0,1); }
   .painel-sel .card { background: transparent; border: 0; } .painel-sel .projcard .cab { padding-right: 38px; }
@@ -123,7 +123,7 @@
   @keyframes entra { from { opacity: 0; transform: translateX(14px); } }
   main { padding: 20px 32px 140px; max-width: 1280px; margin: 0 auto; }
   .barra { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
-  .marca { display: flex; align-items: center; gap: 18px; padding: 0; font-size: 34px; }
+  .marca { display: flex; align-items: center; gap: 18px; padding: 0; font-size: 29px; }
   .marca .mk { font-size: 66px; filter: drop-shadow(0 0 14px rgba(255,120,40,.5)); }
   .marca-txt { display: flex; flex-direction: column; gap: 10px; }
   .marca-sub { display: flex; align-items: center; gap: 9px; font: 500 11.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--di); }
@@ -165,7 +165,7 @@
   .acesso { max-width: 520px; margin: 12vh auto; }
   @media (max-width: 900px) {
     .g2, .g3 { grid-template-columns: 1fr; } main { padding: 16px 18px 140px; }
-    .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; } .hud > div:nth-child(3) { padding-left: 0; border-left: 0; } .palco { height: 62vh; } .veu { margin: 0 -18px; padding: 50px 18px 0; }
+    .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; margin: 0 -18px 4px; padding: 14px 18px 20px; } .hud b { font-size: 32px; } .hud > div:nth-child(3) { padding-left: 0; border-left: 0; } .palco { height: 62vh; } .veu { margin: 0 -18px; padding: 50px 18px 0; }
     .buscar kbd, .buscar span { display: none; } .buscar { width: 40px; justify-content: center; padding: 0; } .dock { overflow-x: auto; scrollbar-width: none; } .painel-sel { top: auto; max-height: 62%; width: auto; left: 10px; right: 10px; bottom: 10px; }
     .cfg { grid-template-columns: 1fr auto; } .cfg .inp { grid-column: 1 / -1; order: 2; }
     header.topo { flex-wrap: wrap; }
@@ -185,7 +185,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=15"></script>
+<script src="mapa-vivo.js?v=18"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -349,9 +349,9 @@ function telaGeral() {
   const aberto = S.sel && ps.find(p => p.id === S.sel);
   return `<div class="hud">
       <div><small>Situação</small><b style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</b></div>
-      <div><small>Projetos no ar</small><b>${noAr}/${ativos.length}</b></div>
-      <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
-      <div><small>Avisos novos</small><b>${novos}</b></div>
+      <div><small>Projetos no ar</small><b style="color:var(--${noAr === ativos.length ? 'ok' : 'av'})">${noAr}/${ativos.length}</b></div>
+      <div><small>Pedidos abertos</small><b style="color:${pedAbertos ? '#ffb36a' : 'var(--tx)'}">${pedAbertos}</b></div>
+      <div><small>Avisos novos</small><b style="color:${novos ? '#ffb36a' : 'var(--tx)'}">${novos}</b></div>
     </div>
     <div class="palco">
       ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">${ico('x')}</button>${cardProjeto(aberto)}</aside>` : ''}</div>
