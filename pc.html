@@ -8,6 +8,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" type="image/svg+xml" href="icons/jarvis.svg">
+<link rel="manifest" href="manifest-pc.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -191,7 +192,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=22"></script>
+<script src="mapa-vivo.js?v=23"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -765,6 +766,7 @@ document.addEventListener('click', async ev => {
     }
   }
 });
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});   // com manifesto + service worker o Chrome oferece "Instalar"
 window.addEventListener('popstate', () => irPara(location.hash.slice(1)));
 const digitando = () => /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || S.voltar || S.cancelar || S.apagarToken || S.ocupado;
 setInterval(() => { if (document.visibilityState === 'visible' && !digitando()) carregar(); }, 5 * 60e3);

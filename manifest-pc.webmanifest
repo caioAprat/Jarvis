@@ -1,0 +1,17 @@
+{
+  "name": "Jarvão · Central do PC",
+  "short_name": "Jarvão",
+  "description": "Central de comando do Caio: todos os projetos, pedidos e publicações",
+  "id": "./pc.html",
+  "start_url": "./pc.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080706",
+  "theme_color": "#080706",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/jarvis.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,7 +1,7 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v3';
+const VERSAO = 'jarvis-v4';
 const CASCA = ['./', 'index.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting())));
@@ -12,8 +12,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(VERSAO).then(x => x.put('index.html', c)); return r; })
-      .catch(() => caches.match('index.html')));
+    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(VERSAO).then(x => x.put(url.pathname.endsWith('pc.html') ? 'pc.html' : 'index.html', c)); return r; })
+      .catch(() => caches.match(url.pathname.endsWith('pc.html') ? 'pc.html' : 'index.html')));
     return;
   }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(g => g || fetch(e.request)));
