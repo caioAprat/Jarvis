@@ -18,10 +18,10 @@
   const CSS = `
   .mv{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
   .mv canvas{display:block;width:100%;height:100%}
-  .mv-hud{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+  .mv-hud{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
   .mv-pos{position:absolute;left:0;top:0;will-change:transform;transition:opacity .25s}
   .mv-rotulo{pointer-events:auto;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:44px;min-height:40px;padding:6px 10px;border-radius:7px;
-    background:rgba(12,9,7,.7);color:#f4e7d6;font:500 10.5px/1.25 "IBM Plex Mono",ui-monospace,Consolas,monospace;letter-spacing:.07em;text-transform:uppercase;text-align:left;
+    background:rgba(12,9,7,.7);color:#f4e7d6;font:500 10.5px/1.25 "JetBrains Mono",ui-monospace,Consolas,monospace;letter-spacing:.07em;text-transform:uppercase;text-align:left;
     box-shadow:0 0 0 1px rgba(255,160,80,.26),0 6px 18px rgba(0,0,0,.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
     transition:box-shadow .2s,background-color .2s,scale .12s cubic-bezier(.2,0,0,1);cursor:pointer}
   .mv-rotulo:active{scale:.96}
@@ -33,8 +33,8 @@
   .mv-rotulo[data-st=ok] .mv-st{color:#7bf0b4}.mv-rotulo[data-st=atencao] .mv-st{color:#ffc247}.mv-rotulo[data-st=erro] .mv-st{color:#ff4d5e}
   .mv-rotulo[data-st=erro]{box-shadow:0 0 0 1px rgba(255,77,94,.7),0 0 22px rgba(255,77,94,.25),0 6px 18px rgba(0,0,0,.45)}
   .mv-rotulo[data-st=pausado] .mv-st,.mv-rotulo[data-st=config] .mv-st,.mv-rotulo[data-st=aguardando] .mv-st{color:#a99a88}
-  .mv-nucleo{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);text-align:center;pointer-events:none;text-transform:uppercase;letter-spacing:.22em}
-  .mv-nucleo b{display:block;font:700 13px "Chakra Petch","IBM Plex Mono",sans-serif;color:#ffe9cc;text-shadow:0 0 14px rgba(255,140,60,.7)}
+  .mv-nucleo{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);text-align:center;pointer-events:none;text-transform:uppercase;letter-spacing:.22em}
+  .mv-nucleo b{display:block;font:700 13px "Saira","JetBrains Mono",sans-serif;color:#ffe9cc;text-shadow:0 0 14px rgba(255,140,60,.7)}
   .mv-nucleo span{display:block;margin-top:3px;font-size:9.5px;letter-spacing:.16em;color:#d9a46a}
   .mv-nucleo[data-st=erro] span{color:#ff8a94}.mv-nucleo[data-st=atencao] span{color:#ffd37a}
   .mv-compacto .mv-rotulo{min-width:40px;min-height:40px;padding:6px 9px;align-items:center;justify-content:center}
