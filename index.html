@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Jarvis</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f17">
+<meta name="theme-color" content="#080706">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Jarvis">
@@ -13,15 +13,25 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   /* mesmos tokens do Meu dinheiro */
   :root {
-    --bg: #0b0f17; --card: #141a26; --card2: #1b2333; --linha: rgba(255,255,255,.07);
-    --tx: #eef2f8; --mu: #8c97ab; --di: #7f8a9e;
-    --ok: #34d399; --ok2: rgba(52,211,153,.14); --er: #fb7185; --er2: rgba(251,113,133,.14);
-    --av: #fbbf24; --av2: rgba(251,191,36,.13); --pri: #7c9cff; --pri2: rgba(124,156,255,.16);
+    --bg: #080706; --card: #120e0b; --card2: #1b1510; --linha: rgba(255,170,100,.1);
+    --tx: #f6eadb; --mu: #b09c86; --di: #9a8670;
+    --ok: #7bf0b4; --ok2: rgba(123,240,180,.13); --er: #ff4d5e; --er2: rgba(255,77,94,.14);
+    --av: #ffc247; --av2: rgba(255,194,71,.13); --pri: #ff9a4d; --pri2: rgba(255,138,61,.16);
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace; --disp: "Chakra Petch", -apple-system, sans-serif;
     color-scheme: dark;
   }
+  h1, .resumo .grande, .dinheiro .v { font-family: var(--disp); }
+  .titulo, .pill, .sub, .disp { font-family: var(--mono); }
+  .palco-m { position: relative; height: min(58vw, 330px); min-height: 270px; margin: -18px -18px 14px; overflow: hidden; border-radius: 19px 19px 0 0;
+    background: radial-gradient(ellipse at 50% 50%, #1a0f08 0%, #0a0806 65%, #070605 100%); }
+  .palco-m::before { content: ""; position: absolute; z-index: 2; left: 10px; top: 10px; width: 14px; height: 14px; border: 1.5px solid rgba(255,160,80,.55); border-right: 0; border-bottom: 0; pointer-events: none; }
+  .card.mapa { padding-top: 18px; background: var(--card); }
+  .card.mapa.ok, .card.mapa.atencao, .card.mapa.erro { background: var(--card); }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { background: var(--bg); overflow-x: hidden; }
   html { touch-action: manipulation; }
@@ -105,6 +115,9 @@
   <div><h1><span class="orbe" id="orbe" aria-hidden="true"></span>Jarvis</h1><div class="sub" id="sub">carregando…</div></div>
   <button class="btn" id="atualizar" aria-label="Conferir todos os projetos agora"><span id="giro" aria-hidden="true">↻</span> Conferir</button>
 </header>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="mapa-vivo.js?v=8"></script>
 <div id="app"><div class="skel"></div><div class="skel" style="height:240px"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <footer>Confere seus projetos a cada 10 minutos</footer>
@@ -152,7 +165,12 @@ function avisar(texto, ruim) {
 
 // ---------------------------------------------------------------- rede
 const S = { D: null, quando: 0, carregando: false, offline: false, erro: '', todos: false, push: 'verificando', ativando: false, erroCola: '',
-            pausaAberta: false, ocupado: '' };
+            pausaAberta: false, ocupado: '', sel: '', sit: ['ok', ''] };
+// mapa vivo em versão leve (menos partículas, 30 quadros/s, sem câmera que segue o dedo); sem WebGL a lista abaixo segue igual
+const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ leve: true, aoSelecionar: id => {
+  S.sel = S.sel === id ? '' : id; MV.selecionar(S.sel);
+  const l = S.sel && document.getElementById('p-' + id); if (l) { l.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); l.animate([{ background: 'rgba(255,138,61,.22)' }, { background: 'transparent' }], { duration: 1400, easing: 'ease-out' }); }
+} }); } catch (e) { return null; } })();
 async function api(acao, extra) {
   const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
   const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
@@ -175,6 +193,7 @@ async function carregar(conferir) {
     if (D.avisos[0] && 'caches' in window) caches.open('jarvis-cfg').then(x => x.put('ultimo', new Response(String(D.avisos[0].id)))).catch(() => {});
   } catch (e) { if (e.auth) S.erro = 'auth'; else S.offline = true; }
   S.carregando = false; render();
+  if (MV && !S.erro && !S.offline) MV.varredura();
   conferirPush();
 }
 
@@ -252,6 +271,16 @@ function cardPush() {
   return '';
 }
 
+/** O mapa é um elemento só, criado uma vez (a tela é redesenhada inteira a cada mudança): aqui ele só volta ao lugar. */
+function ligarMapa() {
+  if (!MV) return;
+  const slot = $('mapa-slot');
+  if (!slot || !S.D) { MV.pausar(true); return; }
+  if (MV.el.parentNode !== slot) slot.appendChild(MV.el);
+  MV.pausar(false);
+  MV.atualizar(S.D.projetos, { estado: S.sit[0], titulo: S.sit[1] });
+  MV.selecionar(S.sel);
+}
 function render() {
   $('giro').className = S.carregando ? 'giro' : '';
   const app = $('app');
@@ -269,7 +298,8 @@ function render() {
   if (S.offline) h.push(`<div class="faixa">Sem conexão: dados de ${ha(new Date(S.quando).toISOString())}.</div>`);
   const titulo = atrasado ? 'O Jarvis não confere desde ' + new Date(D.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : geral === 'ok' ? 'Tudo funcionando' : erros ? plural(erros, 'projeto com problema', 'projetos com problema') : plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção');
-  h.push(`<section class="card resumo ${geral}"><div class="grande">${esc(titulo)}</div>
+  S.sit = [geral, titulo];
+  h.push(`<section class="card resumo mapa ${geral}"><div class="palco-m"><div id="mapa-slot" style="position:absolute;inset:0"></div></div><div class="grande">${esc(titulo)}</div>
     <div class="sub">${plural(D.projetos.length, 'projeto', 'projetos')} · ${contar('ok')} ok${contar('pausado') ? ' · ' + contar('pausado') + ' pausado' : ''}${contar('config') ? ' · ' + contar('config') + ' a configurar' : ''}</div></section>`);
 
   h.push(cardPush());
@@ -302,7 +332,7 @@ function render() {
            <input id="pausaAte" type="date" min="${hojeIso()}" max="${hojeIso(60)}" value="${hojeIso(1)}">
            <button type="button" class="mini-btn" data-acao="pausar" ${S.ocupado ? 'disabled' : ''}>${S.ocupado === 'pausar' ? 'Pausando…' : 'Pausar'}</button><button type="button" class="mini-btn sec" data-acao="pausa-fechar">Cancelar</button></form>`
         : `<div class="acoes"><button type="button" class="mini-btn sec" data-acao="pausa-abrir">Pausar (feriado ou férias)</button></div>`;
-    return `<${tag} class="proj" ${link ? `href="${link}"` : ''}><div class="ic" aria-hidden="true">${esc(p.icone)}</div>
+    return `<${tag} class="proj" id="p-${esc(p.id)}" ${link ? `href="${link}"` : ''}><div class="ic" aria-hidden="true">${esc(p.icone)}</div>
       <div><b>${esc(p.nome)}</b><div class="det">${esc(p.detalhe || '')}</div>${disp}<div class="quando">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}</div></div>
       <span class="pill ${esc(p.status)}">${NOMES[p.status] || esc(p.status)}</span></${tag}>${acoes}`;
   };
@@ -319,6 +349,7 @@ function render() {
     ${!S.todos && D.avisos.length > 6 ? '<button class="mais" data-acao="todos">Ver todos</button>' : ''}
     ${S.push === 'ativo' ? '<div class="ativo" style="margin-top:12px">✓ Notificações ativas neste iPhone</div><button class="grande-btn sec" data-acao="teste">Mandar notificação de teste</button>' : ''}</section>`);
   app.innerHTML = h.join('');
+  ligarMapa();
 }
 
 function entrar() {

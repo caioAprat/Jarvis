@@ -37,6 +37,12 @@
   .mv-nucleo b{display:block;font:700 13px "Chakra Petch","IBM Plex Mono",sans-serif;color:#ffe9cc;text-shadow:0 0 14px rgba(255,140,60,.7)}
   .mv-nucleo span{display:block;margin-top:3px;font-size:9.5px;letter-spacing:.16em;color:#d9a46a}
   .mv-nucleo[data-st=erro] span{color:#ff8a94}.mv-nucleo[data-st=atencao] span{color:#ffd37a}
+  .mv-compacto .mv-rotulo{min-width:40px;min-height:40px;padding:6px 9px;align-items:center;justify-content:center}
+  .mv-compacto .mv-rotulo:not(.sel) .mv-tx,.mv-compacto .mv-rotulo:not(.sel) .mv-st{display:none}
+  .mv-compacto .mv-ic{font-size:15px;letter-spacing:0}
+  .mv-compacto .mv-nucleo span{display:none}
+  .mv-compacto .mv-rotulo[data-st=erro]:not(.sel){box-shadow:0 0 0 1.5px #ff4d5e,0 0 16px rgba(255,77,94,.5)}
+  .mv-compacto .mv-rotulo[data-st=atencao]:not(.sel){box-shadow:0 0 0 1.5px #ffc247,0 0 14px rgba(255,194,71,.35)}
   @media (max-width:700px){.mv-rotulo{min-width:36px;min-height:32px;padding:3px 7px;gap:0}.mv-nome{font-size:9px;letter-spacing:.03em}.mv-st{font-size:8.5px}}
   @media (prefers-reduced-motion:reduce){.mv-rotulo{transition:none}}`;
 
@@ -86,7 +92,7 @@
     catch (e) { return null; }
     if (!document.getElementById('mv-css')) { const s = document.createElement('style'); s.id = 'mv-css'; s.textContent = CSS; document.head.appendChild(s); }
 
-    const el = document.createElement('div'); el.className = 'mv'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Mapa vivo dos projetos');
+    const el = document.createElement('div'); el.className = 'mv' + (leve ? ' mv-compacto' : ''); el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Mapa vivo dos projetos');
     const hud = document.createElement('div'); hud.className = 'mv-hud';
     const nucleoRot = document.createElement('div'); nucleoRot.className = 'mv-nucleo'; nucleoRot.innerHTML = '<b>JARVIS</b><span></span>';
     hud.appendChild(nucleoRot);
@@ -176,7 +182,7 @@
       limparNos();
       const qtd = projetos.length;
       projetos.forEach((p, i) => {
-        const n = { id: p.id, i, cliente: !!p.cliente, status: p.status, r: 4.6 + i * .95,
+        const n = { id: p.id, i, cliente: !!p.cliente, status: p.status, r: leve ? 4 + i * .8 : 4.6 + i * .95,
           tx: (i % 2 ? -1 : 1) * (.12 + (i % 3) * .1), tz: (i % 3 - 1) * .1, ang: i / qtd * 6.2832 + .6, vel: (i % 2 ? -1 : 1) * (.055 + (i % 4) * .012),
           esc: { v: 1 }, hov: { v: 0 }, cor: new THREE.Color(COR[p.status] || COR.aguardando), corLink: new THREE.Color(AMBAR), taxa: 6,
           P0: new THREE.Vector3(), P1: new THREE.Vector3(), P2: new THREE.Vector3() };
@@ -195,7 +201,7 @@
         // rótulo (botão de verdade: teclado e leitor de tela)
         const pos = document.createElement('div'); pos.className = 'mv-pos';
         const b = document.createElement('button'); b.type = 'button'; b.className = 'mv-rotulo';
-        b.innerHTML = '<span class="mv-nome"></span><span class="mv-st"></span>';
+        b.innerHTML = '<span class="mv-nome"><span class="mv-ic"></span><span class="mv-tx"></span></span><span class="mv-st"></span>';
         b.addEventListener('click', () => { if (opcoes.aoSelecionar) opcoes.aoSelecionar(n.id); });
         b.addEventListener('mouseenter', () => gsap.to(n.hov, { v: 1, duration: .25, overwrite: true }));
         b.addEventListener('mouseleave', () => gsap.to(n.hov, { v: 0, duration: .4, overwrite: true }));
@@ -208,7 +214,7 @@
     }
     function atualizarRotulo(n, p) {
       n.btn.dataset.st = p.status;
-      n.btn.firstChild.textContent = (p.icone ? p.icone + ' ' : '') + p.nome;
+      n.btn.firstChild.firstChild.textContent = p.icone ? p.icone + ' ' : ''; n.btn.firstChild.lastChild.textContent = p.nome;
       n.btn.lastChild.textContent = ESTADO_TXT[p.status] || p.status;
       n.btn.setAttribute('aria-label', `${p.nome}: ${ESTADO_TXT[p.status] || p.status}. Abrir detalhes`);
       n.btn.classList.toggle('sel', p.id === selecionado);
@@ -311,7 +317,7 @@
     function redimensionar() {
       const r = el.getBoundingClientRect(); if (r.width < 10 || r.height < 10) { w = 0; return; }
       w = r.width; h = r.height; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-      cam.z = Math.min(36, Math.max(15, 12.2 /(Math.tan(20 * Math.PI / 180) * camera.aspect))); cam.y = cam.z * .46;
+      cam.z = Math.min(36, Math.max(15, (leve ? 9.4 : 12.2) / (Math.tan(20 * Math.PI / 180) * camera.aspect))); cam.y = cam.z * (leve ? .4 : .46);
       if (reduzido) estatico();
     }
     const ro = new ResizeObserver(redimensionar); ro.observe(el);
