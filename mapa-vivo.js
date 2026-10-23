@@ -223,7 +223,7 @@
     const ray = new THREE.Raycaster(), plano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), planoCam = new THREE.Plane(), mundo = new THREE.Vector3(), mundoCam = new THREE.Vector3();
     const mDir = new THREE.Vector3(0, 0, 1), mDirAlvo = new THREE.Vector3(0, 0, 1);
     const giro = { v: 1 };                                             // velocidade extra dos anéis quando o cursor está no núcleo
-    const inclina = { x: 0, y: 0 };
+    const inclina = { x: 0, y: 0 }, scr = { v: 0 };              // scr: progresso da rolagem (0 = topo, 1 = longe)
 
     // ------------------------------------------------------------ núcleo
     const tilt = new THREE.Group(); scene.add(tilt);
@@ -459,7 +459,7 @@
         }
       }
       const vel = reduzido ? 0 : 1; t += d * vel;
-      const s = giro.v;
+      const s = giro.v, vis = Math.max(0, 1 - scr.v * 1.7);          // vis: os projetos e as ligações somem conforme a página desce
       fluxos.forEach(m => { m.uniforms.uTime.value = t; });
       plasmaMat.uniforms.uTime.value = t; cascaUni.uTime.value = t; estrelasUni.uTime.value = t;
       if (scene.userData.estrelas) scene.userData.estrelas.rotation.y += d * .004 * vel;
@@ -474,7 +474,7 @@
       uPush.value = ptr.presenca.v * (FUNDO ? 1 : .6);
       plasmaMat.uniforms.uBulge.value = ptr.presenca.v * (.45 + ptr.hoverNucleo.v * .75);
       tilt.rotation.y = inclina.y; tilt.rotation.x = inclina.x;
-      nucleo.scale.setScalar(ESC * (1 + ptr.hoverNucleo.v * .07));
+      nucleo.scale.setScalar(ESC * (1 + ptr.hoverNucleo.v * .07) * (1 - scr.v * .3)); nucleo.rotation.y = scr.v * 4.4;
       malha.rotation.y += d * .1 * vel * s; malha.rotation.x = Math.sin(t * .15) * .2;
       casca.rotation.y -= d * .05 * vel; casca.rotation.z += d * .03 * vel;
       aneis.forEach(a => { a.rotation.y += d * a.userData.vel * vel * s; });
@@ -484,14 +484,14 @@
       interior.userData.raios.material.opacity = .12 + .1 * Math.sin(t * 2.2) + ptr.presenca.v * .1;
       semente.rotation.y += d * 1.4 * vel; semente.scale.setScalar(1 + Math.sin(t * 3) * .1 + ptr.hoverNucleo.v * .25); semGlow.material.opacity = .8 + Math.sin(t * 2.4) * .15;
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
-      camera.position.set(cam.x + off.x, cam.y + off.y, cam.z - chute.v * 1.6); camera.lookAt(0, 0, 0);
+      camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1)); camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
 
       nos.forEach((n, i) => {
         n.ang += d * n.vel * vel;
         posOrbita(n, n.ang, n.P0);
         n.grupo.position.copy(n.P0);
-        const esc = n.esc.v * (1 + hov(n) * .35) * (n.id === selecionado ? 1.25 : 1); n.grupo.scale.setScalar(Math.max(.001, esc));
+        const esc = n.esc.v * (1 + hov(n) * .35) * (n.id === selecionado ? 1.25 : 1); n.grupo.scale.setScalar(Math.max(.001, esc * vis)); n.grupo.visible = n.link.visible = n.vizinho.visible = n.trilho.visible = vis > .01;
         n.malha.rotation.y += d * .8 * vel; n.malha.rotation.x += d * .5 * vel; n.miolo.rotation.y -= d * vel;
         n.P2.copy(n.P0).normalize().multiplyScalar(1.3 * ESC);
         tmp.copy(n.P0).add(n.P2).multiplyScalar(.5);
@@ -503,7 +503,7 @@
         for (let k = 0; k <= 16; k++) { const u = k / 16; tmp.copy(n.P0).lerp(viz.P0, u); const c = Math.sin(u * Math.PI) * .22; tmp.lerp(tmp2.set(0, 0, 0), c); n.vizPos[k * 3] = tmp.x; n.vizPos[k * 3 + 1] = tmp.y; n.vizPos[k * 3 + 2] = tmp.z; }
         n.vizinho.geometry.attributes.position.needsUpdate = true;
         const sel = n.id === selecionado;
-        n.link.material.opacity = .62 + hov(n) * .38 + (sel ? .3 : 0);
+        n.link.material.opacity = (.62 + hov(n) * .38 + (sel ? .3 : 0)) * vis; n.vizinho.material.opacity = .24 * vis; n.trilho.material.opacity = .07 * vis;
         n.link.material.color.copy(n.status === 'erro' ? VERMELHO : n.corLink);
         n.malha.material.color.copy(n.cor); n.miolo.material.color.copy(n.cor); n.halo.material.color.copy(n.cor);
         // fluxo contínuo na ligação: entra (âmbar) e sai (branco quente); mais rápido com mais atividade
@@ -513,16 +513,16 @@
           bezier(n, f.dir > 0 ? f.u : 1 - f.u, tmp);
           sPos[idx * 3] = tmp.x; sPos[idx * 3 + 1] = tmp.y; sPos[idx * 3 + 2] = tmp.z;
           const e = Math.sin(f.u * Math.PI), c = f.dir > 0 ? [1, .55, .22] : [1, .88, .7];
-          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5);
+          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5) * vis;
         }
-        if (!reduzido && Math.random() < n.taxa * d / 60) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9);
+        if (!reduzido && vis > .3 && Math.random() < n.taxa * d / 60) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9);
         tmp.copy(n.P0).project(camera);
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
         const topoL = FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
         const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
         n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
-        n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * (FUNDO ? Math.max(0, 1 - (Number(el.style.getPropertyValue('--mv-p')) || 0) * 1.5) : 1)) : '0';
+        n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * vis) : '0';
         n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
         n.halo.material.opacity = .65 + Math.sin(t * 2 + i) * .15 + hov(n) * .3;
       });
@@ -538,7 +538,7 @@
           const f = 1 - c / CAUDA;
           pPos[k * 3] = tmp.x; pPos[k * 3 + 1] = tmp.y; pPos[k * 3 + 2] = tmp.z;
           pCor[k * 3] = p.cor.r * f; pCor[k * 3 + 1] = p.cor.g * f; pCor[k * 3 + 2] = p.cor.b * f;
-          pTam[k] = (c === 0 ? 5.2 : 3.6 * f) * p.tam;
+          pTam[k] = (c === 0 ? 5.2 : 3.6 * f) * p.tam * vis;
         }
       });
       pg.attributes.position.needsUpdate = pg.attributes.color.needsUpdate = pg.attributes.size.needsUpdate = true;
@@ -635,7 +635,11 @@
     function estatico() { acum = 1; quadro(); }
     function selecionar(id) { selecionado = id || ''; nos.forEach(n => n.btn.classList.toggle('sel', n.id === selecionado)); if (reduzido) estatico(); }
     function modo(m) { el.dataset.modo = m; parado = m === 'fundo'; if (!parado) { revisar(); if (reduzido) setTimeout(estatico, 60); } else revisar(); }
-    function rolagem(p) { p = Math.max(0, Math.min(1, p)); el.style.setProperty('--mv-p', p.toFixed(3)); el.style.pointerEvents = p > .5 || el.dataset.modo === 'fundo' ? 'none' : ''; }
+    function rolagem(p) {
+      p = Math.max(0, Math.min(1, p)); el.style.setProperty('--mv-p', p.toFixed(3));
+      gsap.to(scr, { v: p, duration: .7, ease: 'power2.out', overwrite: true, onUpdate: () => { if (reduzido) estatico(); } });
+      el.style.pointerEvents = p > .5 || el.dataset.modo === 'fundo' ? 'none' : '';
+    }
     function destruir() { desligar(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
     redimensionar();
     return { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, pausar: p => { pausado = !!p; revisar(); } };

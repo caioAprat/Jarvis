@@ -112,17 +112,22 @@
   #toast div.ruim { background: #2a2414; color: var(--av); }
   .skel { height: 120px; border-radius: 16px; background: linear-gradient(90deg, var(--card), var(--card2), var(--card)); background-size: 200% 100%; animation: b 1.4s infinite; margin-bottom: 14px; }
   @keyframes b { to { background-position: -200% 0; } }
-  .hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0 0 4px; }
-  .hud > div { padding: 2px 24px; border-left: 1px solid var(--linha); } .hud > div:first-child { padding-left: 0; border-left: 0; }
-  .hud small { display: block; font: 500 11.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #ecd5b4; text-shadow: 0 0 6px #000, 0 0 14px rgba(0,0,0,.9), 0 1px 2px #000; }
-  .hud b { display: block; margin-top: 2px; font: 700 24px/1.15 var(--disp); text-shadow: 0 0 8px #000, 0 0 18px rgba(0,0,0,.9), 0 2px 3px #000; }
+  .hud { display: flex; align-items: center; justify-content: center; flex: 1 1 0; min-width: 0; margin: 0; }
+  .hud > div { padding: 0 18px; border-left: 1px solid var(--linha); white-space: nowrap; } .hud > div:first-child { border-left: 0; }
+  .hud small { display: block; font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #ecd5b4; text-shadow: 0 0 6px #000, 0 1px 2px #000; }
+  .hud b { display: block; margin-top: 1px; font: 700 21px/1.15 var(--disp); text-shadow: 0 0 8px #000, 0 2px 3px #000; }
   .palco { position: relative; height: max(380px, calc(100vh - 330px)); pointer-events: none; }
   .painel-sel { pointer-events: auto; position: fixed; z-index: 25; top: 92px; right: 24px; max-height: calc(100vh - 220px); width: min(360px, calc(100% - 28px)); overflow: auto; border-radius: 12px; background: rgba(12,9,7,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,160,80,.4), 0 16px 40px rgba(0,0,0,.6); padding: 4px; animation: entra .28s cubic-bezier(.2,0,0,1); }
   .painel-sel .card { background: transparent; border: 0; } .painel-sel .projcard .cab { padding-right: 38px; }
   .painel-sel .fechar { position: absolute; right: 8px; top: 8px; z-index: 1; }
   @keyframes entra { from { opacity: 0; transform: translateX(14px); } }
   main { padding: 20px 32px 140px; max-width: 1280px; margin: 0 auto; }
-  .barra { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
+  .barra { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 10px 24px; margin: 0 -32px 22px; padding: 14px 32px;
+    transition: background-color .35s, box-shadow .35s, padding .35s; }
+  .barra .marca { transform-origin: left center; transition: transform .35s cubic-bezier(.2,0,0,1); }
+  .barra.rolou { background: rgba(8,7,6,.7); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); box-shadow: 0 1px 0 var(--linha); padding-block: 8px; }
+  .barra.rolou .marca { transform: scale(.7); }
+  @media (max-width: 1240px) { .barra { flex-wrap: wrap; } .barra .hud { order: 3; flex-basis: 100%; justify-content: space-between; } .hud > div { padding: 0 12px; } }
   .marca { display: flex; align-items: center; gap: 18px; padding: 0; font-size: 29px; }
   .marca .mk { font-size: 66px; filter: drop-shadow(0 0 14px rgba(255,120,40,.5)); }
   .marca-txt { display: flex; flex-direction: column; gap: 10px; }
@@ -165,7 +170,7 @@
   .acesso { max-width: 520px; margin: 12vh auto; }
   @media (max-width: 900px) {
     .g2, .g3 { grid-template-columns: 1fr; } main { padding: 16px 18px 140px; }
-    .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; } .hud b { font-size: 22px; } .hud > div:nth-child(3) { padding-left: 0; border-left: 0; } .palco { height: 62vh; } .veu { margin: 0 -18px; padding: 50px 18px 0; }
+    .barra { margin: 0 -18px 16px; padding: 10px 18px; } .barra .hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 10px; } .hud > div { padding: 0 10px 0 0; border-left: 0; } .hud b { font-size: 19px; }
     .buscar kbd, .buscar span { display: none; } .buscar { width: 40px; justify-content: center; padding: 0; } .dock { overflow-x: auto; scrollbar-width: none; } .painel-sel { top: auto; max-height: 62%; width: auto; left: 10px; right: 10px; bottom: 10px; }
     .cfg { grid-template-columns: 1fr auto; } .cfg .inp { grid-column: 1 / -1; order: 2; }
     header.topo { flex-wrap: wrap; }
@@ -177,6 +182,7 @@
 <div id="raiz"><div class="acesso"><div class="skel"></div></div></div>
 <div id="toast" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
@@ -185,7 +191,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=19"></script>
+<script src="mapa-vivo.js?v=22"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -250,7 +256,7 @@ const ABAS = [
 ];
 const abaValida = a => ABAS.some(x => x[0] === a) ? a : 'geral';
 const S = { P: null, quando: 0, aba: abaValida(location.hash.slice(1)), carregando: false, erro: '', versoes: {}, pub: null, cfgAssist: null, logAssist: null,
-            sel: '', sit: ['ok', ''], saidaRotina: '', filtro: 'abertos', voltar: null, cancelar: null, apagarToken: null, ocupado: '', busca: '', rasc: {} };
+            sel: '', animar: true, hudHtml: '', sit: ['ok', ''], saidaRotina: '', filtro: 'abertos', voltar: null, cancelar: null, apagarToken: null, ocupado: '', busca: '', rasc: {} };
 try { S.rasc = JSON.parse(localStorage.getItem(LR)) || {}; } catch (e) { S.rasc = {}; }
 // mapa vivo (Three.js + GSAP); sem WebGL ou sem as bibliotecas, a tela segue funcionando só com os cartões
 const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ fundo: true, dica: 'Abrir o sistema', aoSelecionar: id => abrirProjeto(id) }); } catch (e) { return null; } })();
@@ -347,13 +353,13 @@ function telaGeral() {
   S.sit = sit;
   const ativos = ps.filter(p => p.status !== 'pausado'), noAr = ativos.filter(p => p.status === 'ok').length;
   const aberto = S.sel && ps.find(p => p.id === S.sel);
-  return `<div class="hud">
+  S.hudHtml = `<div class="hud">
       <div><small>Situação</small><b style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</b></div>
       <div><small>Projetos no ar</small><b>${noAr}/${ativos.length}</b></div>
       <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
       <div><small>Avisos novos</small><b>${novos}</b></div>
-    </div>
-    <div class="palco">
+    </div>`;
+  return `<div class="palco">
       ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">${ico('x')}</button>${cardProjeto(aberto)}</aside>` : ''}</div>
     <div class="veu"><div class="card" style="margin-bottom:14px"><div class="titulo">O que precisa de você agora</div>${T.length ? `<ul class="lista-tarefas">${T.map(([n, tit, det]) => `<li><span class="ponto ${n}" aria-hidden="true"></span><div><b>${esc(tit)}</b><div class="det">${esc(det || '')}</div></div></li>`).join('')}</ul>` : '<div class="vazio">Nada. Tudo funcionando.</div>'}</div>
     <h2 class="titulo" style="margin:6px 2px 10px">Clientes</h2>
@@ -598,7 +604,7 @@ function render() {
     avisos: [P.estado.avisos.filter(a => a.id > (P.estado.avisosVistosAte || 0)).length, 'novos'],
     clientes: [ps.filter(p => p.cliente && (p.status === 'erro' || p.status === 'atencao')).length, 'com problema'] };
   const telas = { geral: telaGeral, clientes: telaClientes, pedidos: telaPedidos, versoes: telaVersoes, assistente: telaAssistente, mapa: telaMapa, avisos: telaAvisos, ajustes: telaAjustes };
-  let conteudo;
+  let conteudo; S.hudHtml = '';
   try { conteudo = (telas[S.aba] || telaGeral)(); }
   catch (e) { conteudo = `<div class="faixa erro">Esta seção falhou ao montar (${esc(e.message)}). <button type="button" class="btn sec mini" data-acao="tentar">Recarregar</button></div>`; }
   const desde = S.quando ? ha(new Date(S.quando).toISOString()) : '';
@@ -608,6 +614,7 @@ function render() {
   let selA = null, selB = null; try { selA = ativo.selectionStart; selB = ativo.selectionEnd; } catch (e) { /* sem cursor */ }
   const titulo = (ABAS.find(a => a[0] === S.aba) || ABAS[0])[1];
   raiz.innerHTML = `<main><div class="barra"><div class="marca">${MapaVivo.logo()}<span class="marca-txt">${MapaVivo.marca()}<span class="marca-sub"><span class="orbe ${geral}" aria-hidden="true"></span>Núcleo de controle</span></span></div>
+      ${S.hudHtml || ''}
       <div class="barra-dir"><button type="button" class="buscar" data-acao="paleta" aria-label="Buscar e navegar (Ctrl K)">${ico('buscar')}<span>Buscar</span><kbd>Ctrl K</kbd></button>
       <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : ico('refresh') + ' Conferir tudo'}</button></div></div>
     <header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>
@@ -615,7 +622,7 @@ function render() {
     <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></main>
     <nav class="dock" aria-label="Seções">${ABAS.map(([id, nome]) => { const [n, rot] = contagem[id] || [0, '']; return `<button type="button" id="nav-${id}" ${S.aba === id ? 'aria-current="page"' : ''} data-aba="${id}" aria-label="${esc(nome)}">${ico(id)}<span class="rot" aria-hidden="true">${esc(nome)}</span>${n ? `<span class="cont ${id === 'clientes' ? 'alerta' : ''}">${n}<span class="sr"> ${rot}</span></span>` : ''}</button>`; }).join('')}</nav>`;
   raiz.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => { if (el.type !== 'password' && el.id in S.rasc) el.value = S.rasc[el.id]; });
-  ligarMapa();
+  ligarMapa(); revelar();
   if (focoId && $(focoId)) { const n = $(focoId); n.focus({ preventScroll: true }); try { if (selA !== null) n.setSelectionRange(selA, selB); } catch (e) { /* tipo sem cursor */ } }
 }
 
@@ -639,8 +646,29 @@ function abrirProjeto(id) {
   S.sel = S.sel === id ? '' : id; render();
 }
 
+/** Efeito "landing page": os blocos sobem e aparecem quando entram na tela (só ao abrir a aba); o título da Visão geral some com a rolagem. */
+let stOk = false;
+function revelar() {
+  if (!window.ScrollTrigger || !window.gsap || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  if (!stOk) { gsap.registerPlugin(ScrollTrigger); stOk = true; }
+  ScrollTrigger.getAll().forEach(t => t.kill());
+  if (S.aba === 'geral' && document.querySelector('.palco'))
+    gsap.to('.topo', { opacity: 0, y: -50, ease: 'none', scrollTrigger: { trigger: '.palco', start: 'top 38%', end: 'bottom 55%', scrub: true } });
+  if (S.animar) {
+    const alvos = [...document.querySelectorAll('main > .card, main > h2, main > .grade > *, main > .faixa, main > .rodape, .veu > .card, .veu > h2, .veu > .grade > *')];
+    if (!alvos.length) return;
+    S.animar = false;
+    gsap.set(alvos, { autoAlpha: 0, y: 48 });
+    ScrollTrigger.batch(alvos, { start: 'top 94%', once: true,
+      onEnter: b => gsap.to(b, { autoAlpha: 1, y: 0, duration: .9, ease: 'power3.out', stagger: .09, overwrite: true }) });
+    setTimeout(() => alvos.forEach(x => { if (x.isConnected && getComputedStyle(x).visibility === 'hidden' && x.getBoundingClientRect().top < innerHeight) gsap.to(x, { autoAlpha: 1, y: 0, duration: .6, overwrite: true }); }), 2500);   // garantia: nada que já está na tela fica escondido
+  }
+  ScrollTrigger.refresh();
+}
+window.addEventListener('scroll', () => { const b = document.querySelector('.barra'); if (b) b.classList.toggle('rolou', window.scrollY > 24); }, { passive: true });
+
 function irPara(aba, mudarHash) {
-  S.aba = abaValida(aba); S.voltar = null; S.cancelar = null; S.apagarToken = null;
+  S.animar = true; S.aba = abaValida(aba); S.voltar = null; S.cancelar = null; S.apagarToken = null;
   if (mudarHash && location.hash.slice(1) !== S.aba) history.pushState(null, '', '#' + S.aba);
   render(); window.scrollTo(0, 0);
   const h = document.querySelector('main h1'); if (h) h.focus({ preventScroll: true });
