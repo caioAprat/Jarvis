@@ -40,7 +40,7 @@ window.CenaJarvis = (() => {
         }
         const bg=new PIXI.Container();app.stage.addChild(bg);
         const types=Object.keys(universe).filter(k=>!k.startsWith('nebulosa')&&k!=='poeira');
-        types.forEach((type,i)=>{const s=sprite(universe[type],bg,55+(i%4)*38);s.alpha=.25+(i%3)*.09;backgrounds.push({s,x:(i*.381+.09)%1,y:(i*.619+.13)%1,depth:.13+(i%3)*.09,index:i});});
+        types.forEach((type,i)=>{const s=sprite(universe[type],bg,55+(i%4)*38);s.alpha=.16+(i%3)*.055;backgrounds.push({s,x:(i*.271+.09)%1,y:(i*.437+.13)%1,depth:.13+(i%3)*.09,index:i});});
         world=new PIXI.Container();app.stage.addChild(world);
         const orbits=new PIXI.Graphics();world.addChild(orbits);
         for(let i=0;i<3;i++)orbits.ellipse(0,0,350+i*100,155+i*55).stroke({color:0xc58242,width:.6,alpha:.19});
@@ -79,19 +79,19 @@ window.CenaJarvis = (() => {
     function resize(){if(!app||dead)return;app.renderer.resize(el.clientWidth||innerWidth,el.clientHeight||innerHeight);draw(0);if(journey)connectJourney(journey);}
     function draw(dt){
       if(!app||!world||dead||failed)return;
-      const w=app.screen.width,h=app.screen.height,compact=mobile(),base=Math.min(w/(compact?940:1300),h/850);
-      const focus=nodes[Math.round(camera.focus)];
-      const tx=focus?focus.body.x:camera.x,ty=focus?focus.body.y:camera.y;
+      const w=app.screen.width,h=app.screen.height,compact=mobile(),base=Math.min(w/(compact?1100:1300),h/850);
+      
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
-      world.position.set(w*(compact?.5:.57)-camera.x*base*camera.zoom,h*(compact?.43:.53)-camera.y*base*camera.zoom);
+      world.position.set(w*(compact?.5:.62)-camera.x*base*camera.zoom,h*(compact?.43:.53)-camera.y*base*camera.zoom);
       core.scale.set(breath.scale);glow.alpha=.45*breath.alpha;corona.alpha=.32+.12*breath.alpha;
       mesh.gotoAndStop(Math.floor(elapsed*12)%96);mesh.scale.set((440/384)*(1+camera.opening*.18));ring.rotation=Math.sin(elapsed*.08)*.07;
-      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${pt.x}px,${pt.y+24*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
+      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(55,Math.min(w-55,pt.x))}px,${pt.y+24*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
       drawConnections();
-      for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(3,Math.abs(dt)*.025));}}
+      for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
       backgrounds.forEach(b=>{b.s.visible=!compact||b.index<5;b.s.x=((b.x*w-camera.x*b.depth)%(w+180)+w+180)%(w+180)-90;b.s.y=((b.y*h-camera.y*b.depth-camera.progress*h*b.depth)%(h+180)+h+180)%(h+180)-90;b.s.rotation=camera.rotation*b.depth;b.s.scale.set((.25+(b.index%4)*.15)*(1+camera.progress*b.depth));});
       sparks.particleChildren.forEach((p,i)=>{const age=(elapsed*.16+i/90)%1,a=i*2.399;const r=120+age*230;p.x=Math.cos(a)*r;p.y=Math.sin(a)*r*.7;p.alpha=(1-age)*.65;});
       foreground.particleChildren.forEach((p,i)=>{p.x=(i*157.7+elapsed*4)%w;p.y=(i*93.1-elapsed*9-camera.progress*90)%h;});
+      camera.previousProgress=camera.progress;
       app.render();frames++;
     }
     function drawConnections(){
@@ -133,6 +133,7 @@ window.CenaJarvis = (() => {
     function connectJourney(root){
       master?.scrollTrigger?.kill();master?.kill();master=null;journey=root;
       if(!root||!root.isConnected||!world||!window.ScrollTrigger)return;
+      root.style.marginTop=(parseFloat(getComputedStyle(root).marginTop)-(root.getBoundingClientRect().top+scrollY))+'px';
       gsap.registerPlugin(ScrollTrigger);
       if(!lenis&&!media.matches&&window.Lenis){lenis=new Lenis({autoRaf:false,smoothWheel:true,duration:1.15});lenis.on('scroll',ScrollTrigger.update);gsap.ticker.lagSmoothing(0);}
       if(media.matches&&lenis){lenis.destroy();lenis=null;}
@@ -142,7 +143,7 @@ window.CenaJarvis = (() => {
       gsap.set(camera,{x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0});
       const steps=[{x:0,y:0,zoom:1,rotation:0,focus:-1,opening:0},
         {x:mobile()?0:-110,y:0,zoom:1.55,rotation:.025,focus:-1,opening:1},
-        ...nodes.map((n,i)=>({x:n.x-(mobile()?0:160),y:n.y,zoom:mobile()?2.1:1.9,rotation:i%2?.025:-.025,focus:i,opening:0})),
+        ...nodes.map((n,i)=>({x:n.x-(mobile()?0:100),y:n.y,zoom:mobile()?2.1:1.9,rotation:i%2?.025:-.025,focus:i,opening:0})),
         {x:0,y:0,zoom:.78,rotation:0,focus:-1,opening:0}];
       for(let i=1;i<steps.length;i++)master.to(camera,{...steps[i],progress:i/(steps.length-1),duration:1,ease:'power2.inOut'},i-1);
       sections.forEach((section,i)=>{

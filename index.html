@@ -107,21 +107,28 @@
   footer { text-align: center; color: var(--di); font-size: 12px; margin-top: 16px; }
   @media (prefers-reduced-motion: reduce) { .skel, .giro { animation: none; } *, *::before { transition-duration: .01ms !important; } }
 </style>
+<link rel="stylesheet" href="vendor/lenis.css">
+<link rel="stylesheet" href="cena-2d.css">
 </head>
 <body>
 <header>
   <div><h1 class="marca" id="marca"></h1><div class="sub" id="sub">carregando…</div></div>
   <button class="btn" id="atualizar" aria-label="Conferir todos os projetos agora"><span id="giro" aria-hidden="true"><svg viewBox="0 0 24 24" class="ic-sv"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span> Conferir</button>
 </header>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="mapa-vivo.js?v=23"></script>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="cena-2d.js"></script>
+<script src="mapa-2d.js"></script>
+<script src="jornada.js"></script>
+<script src="demo.js"></script>
 <div id="app"><div class="skel"></div><div class="skel" style="height:240px"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <footer>Confere seus projetos a cada 10 minutos</footer>
 <script>
 'use strict';
-const LS = 'jarvis.cfg', LD = 'jarvis.dados';
+const LS = window.JarvisDemo?.ativo ? 'jarvis.demo.cfg' : 'jarvis.cfg', LD = window.JarvisDemo?.ativo ? 'jarvis.demo.dados' : 'jarvis.dados';
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const ler = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const $ = id => document.getElementById(id);
@@ -146,7 +153,7 @@ function cfgDeTexto(texto) {
 }
 function salvarCfg(c) {
   guardar(LS, JSON.stringify(c));
-  if ('caches' in window) caches.open('jarvis-cfg').then(x => x.put('cfg', new Response(JSON.stringify(c)))).catch(() => {});   // o service worker lê daqui
+  if (!window.JarvisDemo?.ativo && 'caches' in window) caches.open('jarvis-cfg').then(x => x.put('cfg', new Response(JSON.stringify(c)))).catch(() => {});   // o service worker lê daqui
   if (location.hash) history.replaceState(null, '', location.pathname);
 }
 let CFG = cfgDeTexto(location.href);
@@ -171,11 +178,13 @@ const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ leve: true
   const l = S.sel && document.getElementById('p-' + id); if (l) { l.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); l.animate([{ background: 'rgba(255,138,61,.22)' }, { background: 'transparent' }], { duration: 1400, easing: 'ease-out' }); }
 } }); } catch (e) { return null; } })();
 async function api(acao, extra) {
+  if (window.JarvisDemo?.ativo) return JarvisDemo.api(acao, extra);
   const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
   const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
   return JSON.parse(await r.text());
 }
 async function post(corpo) {
+  if (window.JarvisDemo?.ativo) return JarvisDemo.post(corpo);
   const r = await fetch(CFG.u + '?k=' + encodeURIComponent(CFG.k), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo) });
   return JSON.parse(await r.text());
 }
@@ -205,6 +214,7 @@ const mesmaChave = (a, b) => a && b && a.byteLength === b.byteLength && new Uint
 
 /** Descobre o estado real: não basta a permissão; precisa existir inscrição com a chave atual e o servidor saber dela. */
 async function conferirPush() {
+  if (window.JarvisDemo?.ativo) return;
   let novo;
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) novo = standalone() ? 'sem-suporte' : 'instalar';
   else if (Notification.permission === 'denied') novo = 'bloqueado';
@@ -224,6 +234,7 @@ async function conferirPush() {
   if (novo !== S.push) { S.push = novo; render(); }
 }
 async function ativarPush() {
+  if (window.JarvisDemo?.ativo) { avisar("Demonstração: notificações não são ativadas."); return; }
   S.ativando = true; render();
   try {
     const perm = await Notification.requestPermission();     // precisa ser a 1ª coisa depois do toque
@@ -273,13 +284,14 @@ function cardPush() {
 /** O mapa é um elemento só, criado uma vez (a tela é redesenhada inteira a cada mudança): aqui ele só volta ao lugar. */
 function ligarMapa() {
   if (!MV) return;
-  const slot = $('mapa-slot');
-  if (!slot || !S.D) { MV.pausar(true); return; }
-  if (MV.el.parentNode !== slot) slot.appendChild(MV.el);
+  if (!S.D) { MV.pausar(true); return; }
+  if (!MV.el.isConnected) document.body.prepend(MV.el);
   MV.pausar(false);
-  MV.atualizar(S.D.projetos, { estado: S.sit[0], titulo: S.sit[1] });
-  MV.selecionar(S.sel);
+  MV.atualizar(S.D.projetos, {estado:S.sit[0],titulo:S.sit[1]});
+  MV.selecionar(S.sel); MV.jornada(document.getElementById('jornada'));
+
 }
+document.addEventListener('click', e=>{const b=e.target.closest('[data-jornada-projeto]');if(b){S.sel=b.dataset.jornadaProjeto;const destino=document.querySelector('[data-proj="'+CSS.escape(S.sel)+'"]');if(destino)destino.scrollIntoView({behavior:'smooth'});else document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});}const a=e.target.closest('.jornada [data-aba]');if(a)document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});});
 function render() {
   $('giro').className = S.carregando ? 'giro' : '';
   const app = $('app');
@@ -298,8 +310,9 @@ function render() {
   const titulo = atrasado ? 'O Jarvão não confere desde ' + new Date(D.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : geral === 'ok' ? 'Tudo funcionando' : erros ? plural(erros, 'projeto com problema', 'projetos com problema') : plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção');
   S.sit = [geral, titulo];
-  h.push(`<section class="card resumo mapa ${geral}"><div class="palco-m"><div id="mapa-slot" style="position:absolute;inset:0"></div></div><div class="grande">${esc(titulo)}</div>
-    <div class="sub">${plural(D.projetos.length, 'projeto', 'projetos')} · ${contar('ok')} ok${contar('pausado') ? ' · ' + contar('pausado') + ' pausado' : ''}${contar('config') ? ' · ' + contar('config') + ' a configurar' : ''}</div></section>`);
+  document.body.classList.add('em-jornada','jornada-mobile');
+  h.push(JornadaJarvis.html(D.projetos,{titulo,avisos:D.avisos?.length||0}));
+
 
   h.push(cardPush());
 
@@ -393,7 +406,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 (function () {
   try { const c = JSON.parse(ler(LD)); if (c && c.D) { S.D = c.D; S.quando = c.t; } } catch (e) {}
   render();
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!window.JarvisDemo?.ativo && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if (CFG) { salvarCfg(CFG); carregar(); } else conferirPush();
 })();
 </script>

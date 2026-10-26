@@ -178,21 +178,20 @@
   }
   @media (prefers-reduced-motion: reduce) { .skel { animation: none; } .btn { transition: none; } }
 </style>
+<link rel="stylesheet" href="vendor/lenis.css">
+<link rel="stylesheet" href="cena-2d.css">
 </head>
 <body>
 <div id="raiz"><div class="acesso"><div class="skel"></div></div></div>
 <div id="toast" aria-live="polite"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" integrity="sha384-GkidzTYmQg24v13sa3xhBBbvOLbVLO1QxfyKLdOWweQqNqS/iWwUst2T1fER2Xrg" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" integrity="sha384-2EpLreWSFuZsk4hcSplXLhlHd/wzvDNF907bTGIXSXM0SlhJNzy4YK0DhBFvkFEs" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=23"></script>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="cena-2d.js"></script>
+<script src="mapa-2d.js"></script>
+<script src="jornada.js"></script>
+<script src="demo.js"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -230,7 +229,7 @@ function avisar(texto, ruim) {
 }
 
 // ---------------------------------------------------------------- acesso (separado do celular: chave do PC)
-const LS = 'jarvis.pc.cfg', LR = 'jarvis.pc.rasc';
+const LS = window.JarvisDemo?.ativo ? 'jarvis.demo.pc.cfg' : 'jarvis.pc.cfg', LR = window.JarvisDemo?.ativo ? 'jarvis.demo.pc.rasc' : 'jarvis.pc.rasc';
 function cfgDeTexto(texto) {
   const i = String(texto || '').indexOf('#');
   const h = new URLSearchParams(String(texto).slice(i + 1).replace(/&amp;/g, '&'));
@@ -241,11 +240,13 @@ if (CFG) { try { localStorage.setItem(LS, JSON.stringify(CFG)); } catch (e) {} h
 else { try { CFG = JSON.parse(localStorage.getItem(LS)); } catch (e) { CFG = null; } }
 
 async function api(acao, extra) {
+  if (window.JarvisDemo?.ativo) return JarvisDemo.api(acao, extra);
   const q = new URLSearchParams(Object.assign({ k: CFG.k, acao }, extra || {}));
   const r = await fetch(CFG.u + '?' + q, { cache: 'no-store', redirect: 'follow' });
   return JSON.parse(await r.text());
 }
 async function post(corpo) {
+  if (window.JarvisDemo?.ativo) return JarvisDemo.post(corpo);
   const r = await fetch(CFG.u + '?k=' + encodeURIComponent(CFG.k), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo) });
   return JSON.parse(await r.text());
 }
@@ -360,13 +361,7 @@ function telaGeral() {
       <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
       <div><small>Avisos novos</small><b>${novos}</b></div>
     </div>`;
-  return `<div class="palco">
-      ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">${ico('x')}</button>${cardProjeto(aberto)}</aside>` : ''}</div>
-    <div class="veu"><div class="card" style="margin-bottom:14px"><div class="titulo">O que precisa de você agora</div>${T.length ? `<ul class="lista-tarefas">${T.map(([n, tit, det]) => `<li><span class="ponto ${n}" aria-hidden="true"></span><div><b>${esc(tit)}</b><div class="det">${esc(det || '')}</div></div></li>`).join('')}</ul>` : '<div class="vazio">Nada. Tudo funcionando.</div>'}</div>
-    <h2 class="titulo" style="margin:6px 2px 10px">Clientes</h2>
-    <div class="grade g2" style="margin-bottom:14px">${ps.filter(p => p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div>
-    <h2 class="titulo" style="margin:6px 2px 10px">Meus projetos</h2>
-    <div class="grade g2">${ps.filter(p => !p.cliente).sort(porGravidade).map(cardProjeto).join('')}</div></div>`;
+  return JornadaJarvis.html(ps, {titulo:sit[1],pedidos:pedAbertos,avisos:novos,tarefas:T});
 }
 
 function telaClientes() {
@@ -591,6 +586,7 @@ document.addEventListener('keydown', ev => {
 
 function render() {
   const raiz = $('raiz');
+  document.body.classList.toggle('em-jornada', S.aba === 'geral' && !!S.P);
   if (!CFG || S.erro === 'auth') {
     raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvão · Central do PC'}</div>
       <p class="det" style="margin-bottom:12px">Cole o <b>link da central do PC</b> que veio no Telegram (só desta vez neste computador).</p>
@@ -638,34 +634,20 @@ function ligarMapa() {
   MV.rolagem(geral ? window.scrollY / (innerHeight * .7) : 0);
   MV.atualizar(S.P.estado.projetos, { estado: S.sit[0], titulo: S.sit[1] });
   MV.selecionar(S.sel);
+  MV.jornada(geral ? document.getElementById('jornada') : null);
 }
 window.addEventListener('scroll', () => { if (MV && S.aba === 'geral') MV.rolagem(window.scrollY / (innerHeight * .7)); }, { passive: true });
 /** Clicar num projeto do núcleo abre o sistema dele; sem endereço (ou sem https), abre o painel de detalhes. */
 function abrirProjeto(id) {
   const p = S.P && S.P.estado.projetos.find(x => x.id === id), link = p && /^https:\/\//.test(String(p.link || '')) ? p.link : '';
   if (link) { window.open(link, '_blank', 'noopener'); return; }
-  S.sel = S.sel === id ? '' : id; render();
+  S.sel = id; irPara(p?.cliente ? 'clientes' : 'mapa', true);
 }
 
 /** Efeito "landing page": os blocos sobem e aparecem quando entram na tela (só ao abrir a aba); o título da Visão geral some com a rolagem. */
 let stOk = false;
-function revelar() {
-  if (!window.ScrollTrigger || !window.gsap || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-  if (!stOk) { gsap.registerPlugin(ScrollTrigger); stOk = true; }
-  ScrollTrigger.getAll().forEach(t => t.kill());
-  if (S.aba === 'geral' && document.querySelector('.palco'))
-    gsap.to('.topo', { opacity: 0, y: -50, ease: 'none', scrollTrigger: { trigger: '.palco', start: 'top 38%', end: 'bottom 55%', scrub: true } });
-  if (S.animar) {
-    const alvos = [...document.querySelectorAll('main > .card, main > h2, main > .grade > *, main > .faixa, main > .rodape, .veu > .card, .veu > h2, .veu > .grade > *')];
-    if (!alvos.length) return;
-    S.animar = false;
-    gsap.set(alvos, { autoAlpha: 0, y: 48 });
-    ScrollTrigger.batch(alvos, { start: 'top 94%', once: true,
-      onEnter: b => gsap.to(b, { autoAlpha: 1, y: 0, duration: .9, ease: 'power3.out', stagger: .09, overwrite: true }) });
-    setTimeout(() => alvos.forEach(x => { if (x.isConnected && getComputedStyle(x).visibility === 'hidden' && x.getBoundingClientRect().top < innerHeight) gsap.to(x, { autoAlpha: 1, y: 0, duration: .6, overwrite: true }); }), 2500);   // garantia: nada que já está na tela fica escondido
-  }
-  ScrollTrigger.refresh();
-}
+function revelar() { if (window.ScrollTrigger) ScrollTrigger.refresh(); }
+document.addEventListener('click', e => {const button=e.target.closest('[data-jornada-projeto]');if(button)abrirProjeto(button.dataset.jornadaProjeto);});
 window.addEventListener('scroll', () => { const b = document.querySelector('.barra'); if (b) b.classList.toggle('rolou', window.scrollY > 24); }, { passive: true });
 
 function irPara(aba, mudarHash) {
@@ -766,7 +748,7 @@ document.addEventListener('click', async ev => {
     }
   }
 });
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});   // com manifesto + service worker o Chrome oferece "Instalar"
+if (!window.JarvisDemo?.ativo && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});   // com manifesto + service worker o Chrome oferece "Instalar"
 window.addEventListener('popstate', () => irPara(location.hash.slice(1)));
 const digitando = () => /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || S.voltar || S.cancelar || S.apagarToken || S.ocupado;
 setInterval(() => { if (document.visibilityState === 'visible' && !digitando()) carregar(); }, 5 * 60e3);
