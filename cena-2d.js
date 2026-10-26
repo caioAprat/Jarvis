@@ -94,7 +94,27 @@ window.CenaJarvis = (() => {
       foreground.particleChildren.forEach((p,i)=>{p.x=(i*157.7+elapsed*4)%w;p.y=(i*93.1-elapsed*9-camera.progress*90)%h;});
       app.render();frames++;
     }
-    function drawConnections(){ /* Fase 3: ligações calculadas nas posições correntes. */ }
+    function drawConnections(){
+      lines.clear();
+      nodes.forEach((n,index)=>{
+        const x=n.body.x,y=n.body.y,cx=x*.42-y*.22,cy=y*.42+x*.12;
+        const point=t=>({x:2*(1-t)*t*cx+t*t*x,y:2*(1-t)*t*cy+t*t*y});
+        const focused=selected===n.p.id||Math.round(camera.focus)===index;
+        const color=cores[n.p.status]||cores.config,waiting=['aguardando','config'].includes(n.p.status),off=n.p.status==='pausado';
+        const strength=off?.14:focused?.9:camera.focus>=0?.18:.45;
+        for(let i=0;i<32;i++){
+          if(waiting&&i%4>1)continue;
+          const t=i/32,a=point(t),b=point((i+1)/32);
+          const mix=(v,w)=>Math.round(v+(w-v)*t);
+          const c=(mix(255,(color>>16)&255)<<16)|(mix(162,(color>>8)&255)<<8)|mix(70,color&255);
+          lines.moveTo(a.x,a.y).lineTo(b.x,b.y).stroke({color:c,width:focused?4:2.4,alpha:strength*.12});
+          lines.moveTo(a.x,a.y).lineTo(b.x,b.y).stroke({color:c,width:focused?1.4:.65,alpha:strength});
+        }
+        lines.circle(x,y,4).fill({color,alpha:strength});
+        const start=point(.2);lines.circle(start.x,start.y,1.5).fill({color:0xffbd6c,alpha:strength});
+        if(!off){for(let k=0;k<4;k++){const t=Math.max(0,n.pulse.value-k*.018),p=point(t);lines.circle(p.x,p.y,k?1.1:2.6).fill({color,alpha:(1-k/5)*(focused?.95:.65)});}}
+      });
+    }
     function tick(time,delta){
       if(paused||!visible||document.hidden||mode==='fundo'||failed)return;
       lenis?.raf(time*1000);elapsed+=Math.min(delta,100)/1000;ticks++;lastTime=time;
