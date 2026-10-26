@@ -4,7 +4,7 @@
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
   const COR = { ok: 0x7bf0b4, atencao: 0xffc247, erro: 0xff4d5e, pausado: 0x7a6e60, config: 0x9a8c7a, aguardando: 0xc4a06a };
   const AMBAR = 0xff8a3d, LARANJA = 0xff5a1f, QUENTE = 0xffe0b8, BRANCO_QUENTE = 0xfff1dc;
-  const TINTA_NUCLEO = { ok: [1, .56, .2], atencao: [1, .74, .18], erro: [1, .3, .24] };
+
 
   // ================================================================== identidade
   const EMOJI = /[\p{Extended_Pictographic}‍️⃣]/gu;
@@ -58,39 +58,7 @@
     background:linear-gradient(180deg,#fffaf0 0%,#ffdcb0 48%,#ff9a4a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.035em rgba(255,200,140,.55);
     filter:drop-shadow(0 0 .5em rgba(255,128,48,.55)) drop-shadow(0 0 1.4em rgba(255,100,30,.28))}
   .pi{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.15em}
-  .mv{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
-  .mv canvas{display:block;width:100%;height:100%}
-  .mv-fundo{position:fixed;inset:0;z-index:0;width:auto;height:auto;touch-action:auto;transition:opacity .5s;opacity:calc(1 - .78 * var(--mv-p,0))}
-  .mv-fundo[data-modo=fundo]{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s,visibility 0s .35s}
-  .mv-fundo[data-modo=fundo] .mv-pos,.mv-fundo[data-modo=fundo] .mv-nucleo{opacity:0!important;pointer-events:none}
-  .mv-hud{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
-  .mv-pos{position:absolute;left:0;top:0;will-change:transform;transition:opacity .25s}
-  .mv-rotulo{pointer-events:auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:44px;min-height:40px;padding:7px 12px;border-radius:7px;
-    background:rgba(12,9,7,.62);color:#f4e7d6;font:500 10.5px/1.25 "JetBrains Mono",ui-monospace,Consolas,monospace;letter-spacing:.07em;text-transform:uppercase;text-align:left;
-    box-shadow:0 0 0 1px rgba(255,160,80,.26),0 6px 18px rgba(0,0,0,.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
-    transition:box-shadow .2s,background-color .2s,scale .12s cubic-bezier(.2,0,0,1);cursor:pointer}
-  .mv-rotulo:active{scale:.96}
-  .mv-rotulo:hover,.mv-rotulo.sel{background:rgba(30,18,10,.88);box-shadow:0 0 0 1px rgba(255,170,90,.7),0 0 22px rgba(255,120,40,.28),0 6px 18px rgba(0,0,0,.5)}
-  .mv-rotulo:focus-visible{outline:2px solid #ffb060;outline-offset:2px}
-  .mv-nome{font-weight:600;font-size:11px;display:flex;align-items:center;gap:7px}
-  .mv-ic{display:inline-flex;font-size:14px;color:#ffc58a}
-  .mv-st{font-size:9.5px;opacity:.9;display:flex;gap:6px;align-items:center}
-  .mv-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
-  .mv-rotulo[data-st=ok] .mv-st{color:#7bf0b4}.mv-rotulo[data-st=atencao] .mv-st{color:#ffc247}.mv-rotulo[data-st=erro] .mv-st{color:#ff4d5e}
-  .mv-rotulo[data-st=erro]{box-shadow:0 0 0 1px rgba(255,77,94,.7),0 0 22px rgba(255,77,94,.25),0 6px 18px rgba(0,0,0,.45)}
-  .mv-rotulo[data-st=pausado] .mv-st,.mv-rotulo[data-st=config] .mv-st,.mv-rotulo[data-st=aguardando] .mv-st{color:#a99a88}
-  .mv-nucleo{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);text-align:center;pointer-events:none;text-transform:uppercase;transition:opacity .3s}
-  .mv-nucleo .wm{font-size:17px}
-  .mv-nucleo span.mv-leg{display:block;margin-top:8px;font:500 9.5px "JetBrains Mono",monospace;letter-spacing:.2em;color:#d9a46a}
-  .mv-nucleo[data-st=erro] .mv-leg{color:#ff8a94}.mv-nucleo[data-st=atencao] .mv-leg{color:#ffd37a}
-  .mv-compacto .mv-rotulo{min-width:40px;min-height:40px;padding:6px 9px;align-items:center;justify-content:center}
-  .mv-compacto .mv-rotulo:not(.sel) .mv-tx,.mv-compacto .mv-rotulo:not(.sel) .mv-st{display:none}
-  .mv-compacto .mv-ic{font-size:16px}
-  .mv-compacto .mv-nucleo span.mv-leg{display:none}.mv-compacto .mv-nucleo{bottom:30px}
-  .mv-compacto .mv-rotulo[data-st=erro]:not(.sel){box-shadow:0 0 0 1.5px #ff4d5e,0 0 16px rgba(255,77,94,.5)}
-  .mv-compacto .mv-rotulo[data-st=atencao]:not(.sel){box-shadow:0 0 0 1.5px #ffc247,0 0 14px rgba(255,194,71,.35)}
-  @media (max-width:700px){.mv-rotulo{min-width:36px;min-height:32px;padding:4px 8px;gap:0}.mv-nome{font-size:9px;letter-spacing:.03em}.mv-st{font-size:8.5px}}
-  @media (prefers-reduced-motion:reduce){.mv-rotulo{transition:none}.mk-r1,.mk-r2,.mk-t,.mk-core{animation:none}}`;
+  @media(prefers-reduced-motion:reduce){.mk-r1,.mk-r2,.mk-t,.mk-core{animation:none}}`;
 
 
   function montar(opcoes) { return CenaJarvis.montar(opcoes); }

@@ -260,7 +260,7 @@ const abaValida = a => ABAS.some(x => x[0] === a) ? a : 'geral';
 const S = { P: null, quando: 0, aba: abaValida(location.hash.slice(1)), carregando: false, erro: '', versoes: {}, pub: null, cfgAssist: null, logAssist: null,
             sel: '', animar: true, hudHtml: '', sit: ['ok', ''], saidaRotina: '', filtro: 'abertos', voltar: null, cancelar: null, apagarToken: null, ocupado: '', busca: '', rasc: {} };
 try { S.rasc = JSON.parse(localStorage.getItem(LR)) || {}; } catch (e) { S.rasc = {}; }
-// mapa vivo (Three.js + GSAP); sem WebGL ou sem as bibliotecas, a tela segue funcionando só com os cartões
+// cena de sprites; sem contexto gráfico, os textos e controles continuam disponíveis
 const MV = (() => { try { return window.MapaVivo && MapaVivo.montar({ fundo: true, dica: 'Abrir o sistema', aoSelecionar: id => abrirProjeto(id) }); } catch (e) { return null; } })();
 const guardarRasc = () => { try { localStorage.setItem(LR, JSON.stringify({ pedTit: S.rasc.pedTit, pedTxt: S.rasc.pedTxt, pedProj: S.rasc.pedProj, pedPrio: S.rasc.pedPrio })); } catch (e) {} };
 
