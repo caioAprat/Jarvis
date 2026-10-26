@@ -130,7 +130,29 @@ window.CenaJarvis = (() => {
       if(!animated&&loopAttached){gsap.ticker.remove(tick);loopAttached=false;}
       if(active)draw(0);
     }
-    function connectJourney(root){journey=root;}
+    function connectJourney(root){
+      master?.scrollTrigger?.kill();master?.kill();master=null;journey=root;
+      if(!root||!root.isConnected||!world||!window.ScrollTrigger)return;
+      gsap.registerPlugin(ScrollTrigger);
+      if(!lenis&&!media.matches&&window.Lenis){lenis=new Lenis({autoRaf:false,smoothWheel:true,duration:1.15});lenis.on('scroll',ScrollTrigger.update);gsap.ticker.lagSmoothing(0);}
+      if(media.matches&&lenis){lenis.destroy();lenis=null;}
+      const sections=[...root.querySelectorAll('.viagem-etapa')];
+      const renderProgress=()=>{if(media.matches)draw(0);};
+      master=gsap.timeline({scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:media.matches?true:1,onUpdate:renderProgress}});
+      gsap.set(camera,{x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0});
+      const steps=[{x:0,y:0,zoom:1,rotation:0,focus:-1,opening:0},
+        {x:mobile()?0:-110,y:0,zoom:1.55,rotation:.025,focus:-1,opening:1},
+        ...nodes.map((n,i)=>({x:n.x-(mobile()?0:160),y:n.y,zoom:mobile()?2.1:1.9,rotation:i%2?.025:-.025,focus:i,opening:0})),
+        {x:0,y:0,zoom:.78,rotation:0,focus:-1,opening:0}];
+      for(let i=1;i<steps.length;i++)master.to(camera,{...steps[i],progress:i/(steps.length-1),duration:1,ease:'power2.inOut'},i-1);
+      sections.forEach((section,i)=>{
+        const content=section.querySelector('.viagem-texto');if(!content)return;
+        if(!media.matches){gsap.set(content,{opacity:i?0:1,y:i?32:0});if(i)master.to(content,{opacity:1,y:0,duration:.38,ease:'power2.out'},i-.55);if(i<sections.length-1)master.to(content,{opacity:0,y:-25,duration:.3},i+.25);}
+        else gsap.set(content,{clearProps:'all'});
+        section.querySelectorAll('[data-contar]').forEach(counter=>{const value={n:0};master.to(value,{n:Number(counter.dataset.contar),duration:.5,onUpdate:()=>counter.textContent=Math.round(value.n)},Math.max(0,i-.6));});
+      });
+      ScrollTrigger.refresh();
+    }
     function contextLost(e){e.preventDefault();fallback('Contexto gráfico indisponível');}
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncLoop();});observer.observe(el);
     const onVisibility=()=>syncLoop(),onMotion=()=>{syncLoop();if(journey)connectJourney(journey);},onScroll=()=>{if(media.matches)draw(0);};
