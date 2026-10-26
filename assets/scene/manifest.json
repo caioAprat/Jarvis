@@ -1,0 +1,60 @@
+{
+  "generatedBy": "scripts/migracao-2d/gerar-assets.cjs",
+  "seed": 7026,
+  "networkFrames": 96,
+  "gemFrames": 64,
+  "backgroundPlanets": [
+    "rochoso",
+    "gasoso",
+    "gelado",
+    "vulcanico",
+    "anel",
+    "lua",
+    "deserto",
+    "gasoso-escuro",
+    "cobre",
+    "gelado-escuro",
+    "lua-verde",
+    "vulcanico-escuro"
+  ],
+  "files": [
+    {
+      "file": "fallback-nucleo.webp",
+      "bytes": 41806
+    },
+    {
+      "file": "gemas.png",
+      "bytes": 62300
+    },
+    {
+      "file": "gemas.webp",
+      "bytes": 32484
+    },
+    {
+      "file": "nucleo-0.png",
+      "bytes": 2145458
+    },
+    {
+      "file": "nucleo-0.webp",
+      "bytes": 1814324
+    },
+    {
+      "file": "nucleo-1.png",
+      "bytes": 543459
+    },
+    {
+      "file": "nucleo-1.webp",
+      "bytes": 326124
+    },
+    {
+      "file": "universo.png",
+      "bytes": 576749
+    },
+    {
+      "file": "universo.webp",
+      "bytes": 268894
+    }
+  ],
+  "totalBytes": 5811598,
+  "budgetBytes": 6000000
+}
