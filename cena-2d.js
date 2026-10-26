@@ -11,12 +11,12 @@ window.CenaJarvis = (() => {
     const media=matchMedia('(prefers-reduced-motion: reduce)');
     let app, world, assets, core, mesh, corona, ring, glow, lines, sparks, foreground;
     let projects=[], nodes=[], backgrounds=[], stars=[], paused=false, visible=true, dead=false, failed=false, selected='', mode='palco';
-    let ticks=0, elapsed=0, frames=0, quality=1, slow=0, loopAttached=false, lastTime=0;
+    let firstRender=null, ticks=0, elapsed=0, frames=0, quality=1, slow=0, loopAttached=false, lastTime=0;
     const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0}, breath={scale:1,alpha:.8};
-    let master=null, lenis=null, journey=null, breathTween=null;
+    let master=null, lenis=null, journey=null, breathTween=null, revealed=false;
     const mobile=()=>innerWidth<700;
     const sprite=(texture,parent,size)=>{ const s=new PIXI.Sprite(texture);s.anchor.set(.5);if(size)s.width=s.height=size;parent.addChild(s);return s; };
-    function fallback(error) { failed=true;el.dataset.fallback='true';boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
+    function fallback(error) { failed=true;el.dataset.fallback='true';boot.hidden=false;boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
     async function start() {
       try {
         if(!window.PIXI || !window.gsap) throw new Error('Biblioteca indisponível');
@@ -31,7 +31,7 @@ window.CenaJarvis = (() => {
         const universe=assets[3].textures;
         const nebula=new PIXI.Container();app.stage.addChild(nebula);
         for(let i=0;i<3;i++){const n=sprite(universe['nebulosa-'+i],nebula,innerWidth*.95);n.position.set(innerWidth*(.2+i*.35),innerHeight*(.25+i*.25));n.alpha=.26;n.blendMode='add';}
-        // Textures pré-calculées, sans filtre de flou au rendu.
+        // Texturas prontas: brilho sem filtro pesado durante o desenho.
         for(let depth=0;depth<3;depth++){
           const container=new PIXI.ParticleContainer({dynamicProperties:{position:true,vertex:true,color:false,rotation:false}});app.stage.addChild(container);
           const points=[];let seed=4821+depth*777;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
@@ -44,6 +44,7 @@ window.CenaJarvis = (() => {
         world=new PIXI.Container();app.stage.addChild(world);
         const orbits=new PIXI.Graphics();world.addChild(orbits);
         for(let i=0;i<3;i++)orbits.ellipse(0,0,350+i*100,155+i*55).stroke({color:0xc58242,width:.6,alpha:.19});
+        orbits.cacheAsTexture({resolution:1});
         lines=new PIXI.Graphics();world.addChild(lines);
         core=new PIXI.Container();world.addChild(core);
         corona=sprite(assets[1].textures.corona,core,640);corona.blendMode='add';corona.alpha=.4;
@@ -90,9 +91,11 @@ window.CenaJarvis = (() => {
       for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
       backgrounds.forEach(b=>{b.s.visible=!compact||b.index<5;b.s.x=((b.x*w-camera.x*b.depth)%(w+180)+w+180)%(w+180)-90;b.s.y=((b.y*h-camera.y*b.depth-camera.progress*h*b.depth)%(h+180)+h+180)%(h+180)-90;b.s.rotation=camera.rotation*b.depth;b.s.scale.set((.25+(b.index%4)*.15)*(1+camera.progress*b.depth));});
       sparks.particleChildren.forEach((p,i)=>{const age=(elapsed*.16+i/90)%1,a=i*2.399;const r=120+age*230;p.x=Math.cos(a)*r;p.y=Math.sin(a)*r*.7;p.alpha=(1-age)*.65;});
-      foreground.particleChildren.forEach((p,i)=>{p.x=(i*157.7+elapsed*4)%w;p.y=(i*93.1-elapsed*9-camera.progress*90)%h;});
+      foreground.particleChildren.forEach((p,i)=>{p.x=(i*157.7+elapsed*4)%w;p.y=((i*93.1-elapsed*9-camera.progress*90)%h+h)%h;});
       camera.previousProgress=camera.progress;
       app.render();frames++;
+      if(firstRender===null)firstRender=performance.now();
+      if(window.__jarvisMeasure?.sampling)window.__jarvisMeasure.frames.push(performance.now());
     }
     function drawConnections(){
       lines.clear();
@@ -112,6 +115,7 @@ window.CenaJarvis = (() => {
         }
         lines.circle(x,y,4).fill({color,alpha:strength});
         const start=point(.2);lines.circle(start.x,start.y,1.5).fill({color:0xffbd6c,alpha:strength});
+        if(focused&&journey){const content=journey.querySelectorAll('.viagem-projeto .viagem-texto')[index];if(content){const rect=content.getBoundingClientRect();if(rect.top>80&&rect.top<innerHeight-100){const end=world.toLocal(new PIXI.Point(mobile()?rect.left+20:rect.right+15,rect.top+6));lines.moveTo(x,y).lineTo(end.x,end.y).stroke({color,width:.65,alpha:.3});lines.circle(end.x,end.y,2).fill({color,alpha:.6});}}}
         if(!off){for(let k=0;k<4;k++){const t=Math.max(0,n.pulse.value-k*.018),p=point(t);lines.circle(p.x,p.y,k?1.1:2.6).fill({color,alpha:(1-k/5)*(focused?.95:.65)});}}
       });
     }
@@ -119,7 +123,7 @@ window.CenaJarvis = (() => {
       if(paused||!visible||document.hidden||mode==='fundo'||failed)return;
       lenis?.raf(time*1000);elapsed+=Math.min(delta,100)/1000;ticks++;lastTime=time;
       if(delta>20)slow+=Math.min(delta,100);else slow=Math.max(0,slow-20);
-      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;el.dataset.quality='adaptativa';}
+      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;app.renderer.resolution=Math.min(devicePixelRatio||1,1);el.dataset.quality='adaptativa';}
       draw(delta);
     }
     function syncLoop(){
@@ -132,7 +136,8 @@ window.CenaJarvis = (() => {
     }
     function connectJourney(root){
       master?.scrollTrigger?.kill();master?.kill();master=null;journey=root;
-      if(!root||!root.isConnected||!world||!window.ScrollTrigger)return;
+      if(!root||!root.isConnected){lenis?.destroy();lenis=null;return;}
+      if(!world||!window.ScrollTrigger)return;
       root.style.marginTop=(parseFloat(getComputedStyle(root).marginTop)-(root.getBoundingClientRect().top+scrollY))+'px';
       gsap.registerPlugin(ScrollTrigger);
       if(!lenis&&!media.matches&&window.Lenis){lenis=new Lenis({autoRaf:false,smoothWheel:true,duration:1.15});lenis.on('scroll',ScrollTrigger.update);gsap.ticker.lagSmoothing(0);}
@@ -152,6 +157,7 @@ window.CenaJarvis = (() => {
         else gsap.set(content,{clearProps:'all'});
         section.querySelectorAll('[data-contar]').forEach(counter=>{const value={n:0};master.to(value,{n:Number(counter.dataset.contar),duration:.5,onUpdate:()=>counter.textContent=Math.round(value.n)},Math.max(0,i-.6));});
       });
+      if(!revealed&&!media.matches){gsap.from('.viagem-letra',{opacity:0,y:12,stagger:.07,duration:.7,ease:'power2.out'});revealed=true;}
       ScrollTrigger.refresh();
     }
     function contextLost(e){e.preventDefault();fallback('Contexto gráfico indisponível');}
@@ -160,7 +166,7 @@ window.CenaJarvis = (() => {
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
     return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(glow&&!media.matches)gsap.fromTo(breath,{alpha:1.8},{alpha:.8,duration:1});},jornada:connectJourney,
-      depurar:()=>({ready:!!world,failed,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,endpoints:nodes.map(n=>({id:n.p.id,x:n.body.x,y:n.body.y,status:n.p.status}))}),
+      depurar:()=>({ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,endpoints:nodes.map(n=>({id:n.p.id,x:n.body.x,y:n.body.y,status:n.p.status}))}),
       destruir(){dead=true;syncLoop();master?.kill();lenis?.destroy();breathTween?.kill();nodes.forEach(n=>n.tween?.kill());observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);media.removeEventListener('change',onMotion);window.removeEventListener('resize',resize);window.removeEventListener('scroll',onScroll);app?.destroy(true,{children:true});el.remove();}
     };
   }

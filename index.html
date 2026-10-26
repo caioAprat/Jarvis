@@ -291,7 +291,7 @@ function ligarMapa() {
   MV.selecionar(S.sel); MV.jornada(document.getElementById('jornada'));
 
 }
-document.addEventListener('click', e=>{const b=e.target.closest('[data-jornada-projeto]');if(b){S.sel=b.dataset.jornadaProjeto;const destino=document.querySelector('[data-proj="'+CSS.escape(S.sel)+'"]');if(destino)destino.scrollIntoView({behavior:'smooth'});else document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});}const a=e.target.closest('.jornada [data-aba]');if(a)document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});});
+document.addEventListener('click', e=>{const b=e.target.closest('[data-jornada-projeto]');if(b){S.sel=b.dataset.jornadaProjeto;const destino=document.getElementById('p-'+S.sel);if(destino)destino.scrollIntoView({behavior:'smooth'});else document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});}const a=e.target.closest('.jornada [data-aba]');if(a)document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});});
 function render() {
   $('giro').className = S.carregando ? 'giro' : '';
   const app = $('app');
