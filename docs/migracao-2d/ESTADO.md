@@ -30,9 +30,9 @@ Histórico detalhado das rodadas anteriores: [historico-estado.md](historico-est
 ## Como rodar
 ```
 cd C:\Bot.ideias\jarvis
-npx serve .            # ou: python -m http.server 8001
+npx serve . --no-clean-urls   # sem isso o serve redireciona pc.html?demo para /pc (404); ou: python -m http.server 8001
 ```
-Abrir `http://localhost:3000/pc.html?demo` (central do PC) ou `index.html?demo` (app). Forçar atualização com Ctrl+Shift+R (cache). Testes do servidor: `node testes/testes.js`. Regerar ícones: `PW_CORE=<node_modules/playwright-core> node scripts/marca/gerar-icones.cjs`.
+Abrir `http://localhost:3000/pc.html?demo` (ou :8001 no Python) (central do PC) ou `index.html?demo` (app). Forçar atualização com Ctrl+Shift+R (cache). Testes do servidor: `node testes/testes.js`. Regerar ícones: `PW_CORE=<node_modules/playwright-core> node scripts/marca/gerar-icones.cjs`.
 Teclas: G visão geral, 1–9 projetos, Esc sai, Ctrl K busca (app), PageUp/Down, setas, espaço, Home/End.
 
 ## Constantes de ajuste
