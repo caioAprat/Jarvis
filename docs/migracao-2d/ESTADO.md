@@ -31,6 +31,8 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 - ✅ JavaScript (27/10/2026): `vendor/pixi.min.js` agora é build enxuto só-WebGL: 843→536 KB (gzip 237→158 KB); total das páginas ~983→~676 KB (gzip ~300→~220 KB, GitHub Pages comprime). Validado no Chrome real: renderer webgl, 7 projetos/fios, planetas, rolagem e console limpos; 140 testes do servidor passam. Corte maior exigiria importar módulos internos do Pixi um a um (risco maior, não feito). Se o WebGL falhar o fallback PNG continua (não há mais canvas/WebGPU do Pixi).
 
+- ✅ Passo C (27/10/2026): o medidor do Codex só olhava o texto da jornada, não os rótulos dos nós (`.cena-label`), por isso não viu colisão em 1024 px. Agora, na abertura, a órbita encolhe e se desloca para a área livre à direita do texto (volta ao normal até 12,5% do scroll). Medido no Chrome real com rótulos × texto: 0 colisões, 0 cortes e 0 rótulos sobrepostos em 1024, 1366 e 1920 px; celular não muda (só leitura do código, não reexecutado). Limite: o núcleo fica menor na abertura em telas estreitas (~73–78% do tamanho antigo em 1366).
+
 ## Rodar e verificar (na raiz do projeto)
 `python3 -m http.server 8001 --bind 127.0.0.1`
 Abrir `http://127.0.0.1:8001/demo.html` (dados fictícios, sem produção).
