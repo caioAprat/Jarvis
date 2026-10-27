@@ -55,6 +55,7 @@ window.CenaJarvis = (() => {
         boot.hidden=true;el.dataset.ready='true';rebuild();resize();syncLoop();
       }catch(e){fallback(e);}
     }
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!dead)medeRotulos();});
     function rebuild(){
       labels.replaceChildren();
       for(const n of nodes){n.body.destroy({children:true});n.tween?.kill();}nodes=[];
@@ -77,7 +78,20 @@ window.CenaJarvis = (() => {
       if(world){fios?.montar(projects);part?.montar(projects);world.setChildIndex(core,world.children.length-1);}
       if(journey)connectJourney(journey);draw(0);
     }
-    function resize(){if(!app||dead)return;app.renderer.resize(el.clientWidth||innerWidth,el.clientHeight||innerHeight);draw(0);if(journey)connectJourney(journey);}
+    // Rótulos que se sobrepõem são afastados (para o lado se couber, senão para baixo); larguras em cache.
+    function medeRotulos(){for(const n of nodes){n.lw=n.button.offsetWidth||100;n.lh=n.button.offsetHeight||40;}}
+    function separaRotulos(w,compact){
+      if(nodes.length&&nodes[0].lw===undefined)medeRotulos();
+      const folga=4,max=w-(compact?20:Math.min(240,Math.max(140,w*.125)))+40;
+      for(let passo=0;passo<3;passo++)for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j],dx=b.lx-a.lx,dy=b.ly-a.ly,lx=(a.lw+b.lw)/2+folga;
+        if(Math.abs(dx)>=lx||Math.abs(dy)>=Math.max(a.lh,b.lh)+folga)continue;
+        const dir=dx>=0?1:-1,novoX=b.lx+dir*(lx-Math.abs(dx));
+        if(novoX>55&&novoX<max){b.lx=novoX;}else{if(dy>=0)b.ly=a.ly+Math.max(a.lh,b.lh)+folga;else a.ly=b.ly+Math.max(a.lh,b.lh)+folga;}
+      }
+      for(const n of nodes)n.button.style.transform=`translate(${n.lx}px,${n.ly}px) translateX(-50%)`;
+    }
+    function resize(){if(!app||dead)return;medeRotulos();app.renderer.resize(el.clientWidth||innerWidth,el.clientHeight||innerHeight);draw(0);if(journey)connectJourney(journey);}
     function draw(dt){
       if(!app||!world||dead||failed)return;
       const w=app.screen.width,h=app.screen.height,compact=mobile();let base=Math.min(w/(compact?1100:1300),h/850),cx=compact?.5:.62;
@@ -87,7 +101,8 @@ window.CenaJarvis = (() => {
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
       world.position.set(w*cx-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
       nuc.suave(media.matches);nuc.atualizar(dt/1000);
-      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*520,Math.sin(a)*330+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:Math.min(240,Math.max(140,w*.125))),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;const vis=geral||camera.geral>.01||camera.progress<=.06;n.button.style.opacity=vis?'1':'0';n.button.style.pointerEvents=vis?'auto':'none';n.button.tabIndex=vis?0:-1;n.alvo.style.transform=`translate(${pt.x}px,${pt.y}px)`;n.alvo.style.pointerEvents=vis?'auto':'none';}
+      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*520,Math.sin(a)*330+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.lx=Math.max(compact?55:90,Math.min(w-(compact?55:Math.min(240,Math.max(140,w*.125))),pt.x));n.ly=pt.y+36*base;const vis=geral||camera.geral>.01||camera.progress<=.06;n.button.style.opacity=vis?'1':'0';n.button.style.pointerEvents=vis?'auto':'none';n.button.tabIndex=vis?0:-1;n.alvo.style.transform=`translate(${pt.x}px,${pt.y}px)`;n.alvo.style.pointerEvents=vis?'auto':'none';}
+      separaRotulos(w,compact);
       const forcas=nodes.map((n,i)=>{const f=selected===n.p.id||Math.round(camera.focus)===i||hover===i;return n.p.status==='pausado'?.14:f?.95:camera.focus>=0?.18:.45;});
       part.suave(media.matches);part.atualizar(dt/1000,nodes.map(n=>n.body));fios.suave(media.matches);fios.atualizar(dt/1000,nodes.map(n=>n.body),forcas,i=>{});
       nodes.forEach((n,i)=>{const fl=fios.flash(i);n.halo.alpha=.7+.9*fl+(hover===i?.5:0);n.body.scale.set(1+.16*fl);});

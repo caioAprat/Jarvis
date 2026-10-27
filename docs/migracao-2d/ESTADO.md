@@ -113,7 +113,7 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 ### Etapa 6 — desempenho e robustez (✅/⚠️)
 - ✅ Movimento reduzido, perda de WebGL, celular 390 px e 140 testes do servidor passam; qualidade adaptativa nunca reduz a resolução nem a nitidez do núcleo.
 - ⚠️ 60 fps em GPU real não comprovados (headless por software: ~3,7 fps). Números e limites em `relatorio.md`.
-- ⚠️ 1024 px: 1 sobreposição de rótulos (gabinete/planilha). Pendências do Codex: retomada após movimento reduzido ✅ (já no passo anterior), fontes ✅, JS 983→751 KB.
+- ✅ 1024 px: sobreposição de rótulos corrigida (`separaRotulos` afasta rótulos para o lado, ou para baixo; medido em 1024, 1100, 1365, 1920 e 390 px: 0 sobreposições, 0 cortes, 0 colisões com texto/mapa). ⚠️ Em 800 px (fora da faixa desktop) o rótulo da Planilha ainda toca o mapa lateral. Pendências do Codex: retomada após movimento reduzido ✅ (já no passo anterior), fontes ✅, JS 983→751 KB.
 
 ### Decisões
 - `index.html` (app do iPhone) é a página aberta em `/Jarvis/`; recebeu composição de desktop ≥1000 px em vez de redirecionar ao `pc.html` (que exige o link privado da central).
