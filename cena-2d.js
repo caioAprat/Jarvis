@@ -12,7 +12,7 @@ window.CenaJarvis = (() => {
     let app, world, assets, core, mesh, corona, ring, glow, lines, sparks, foreground;
     let projects=[], nodes=[], backgrounds=[], stars=[], paused=false, visible=true, dead=false, failed=false, selected='', mode='palco';
     let firstRender=null, ticks=0, elapsed=0, frames=0, quality=1, slow=0, loopAttached=false, lastTime=0;
-    const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0}, breath={scale:1,alpha:.8};
+    const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0,anchorY:.43}, breath={scale:1,alpha:.8};
     let master=null, lenis=null, journey=null, breathTween=null, revealed=false;
     const mobile=()=>innerWidth<700;
     const sprite=(texture,parent,size)=>{ const s=new PIXI.Sprite(texture);s.anchor.set(.5);if(size)s.width=s.height=size;parent.addChild(s);return s; };
@@ -84,7 +84,7 @@ window.CenaJarvis = (() => {
       const w=app.screen.width,h=app.screen.height,compact=mobile(),base=Math.min(w/(compact?1100:1300),h/850);
       
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
-      world.position.set(w*(compact?.5:.62)-camera.x*base*camera.zoom,h*(compact?.43:.53)-camera.y*base*camera.zoom);
+      world.position.set(w*(compact?.5:.62)-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
       core.scale.set(breath.scale);glow.alpha=.45*breath.alpha;corona.alpha=.32+.12*breath.alpha;
       mesh.gotoAndStop(Math.floor(elapsed*12)%96);mesh.scale.set((440/384)*(1+camera.opening*.18));ring.rotation=Math.sin(elapsed*.08)*.07;
       for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(55,Math.min(w-55,pt.x))}px,${pt.y+24*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
@@ -145,22 +145,34 @@ window.CenaJarvis = (() => {
       if(media.matches&&lenis){lenis.destroy();lenis=null;}
       const sections=[...root.querySelectorAll('.viagem-etapa')];
       root.classList.toggle('jornada-ativa',!media.matches);
-      const renderProgress=()=>{const current=Math.round(camera.progress*(sections.length-1));sections.forEach((s,i)=>{const content=s.querySelector('.viagem-texto');if(!media.matches){content.inert=i!==current||root.classList.contains('jornada-fora');content.style.pointerEvents=i===current?'auto':'none';}});if(media.matches)draw(0);};
-      master=gsap.timeline({scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:media.matches?true:1,onUpdate:renderProgress,onLeave:()=>{root.classList.add('jornada-fora');sections.forEach(s=>s.querySelector('.viagem-texto').inert=true);},onEnterBack:()=>{root.classList.remove('jornada-fora');renderProgress();}}});
-      gsap.set(camera,{x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0});
-      const steps=[{x:0,y:0,zoom:1,rotation:0,focus:-1,opening:0},
-        {x:mobile()?0:-110,y:0,zoom:1.55,rotation:.025,focus:-1,opening:1},
-        ...nodes.map((n,i)=>({x:n.x-(mobile()?0:100),y:n.y,zoom:mobile()?2.1:1.9,rotation:i%2?.025:-.025,focus:i,opening:0})),
-        {x:0,y:0,zoom:.78,rotation:0,focus:-1,opening:0}];
+      const renderProgress=()=>{
+        const time=master?.time()||0,current=Math.min(sections.length-1,Math.floor(time+.5));
+        // A atualização pertence à timeline: o scrub continua após a roda parar.
+        sections.forEach((s,i)=>{const content=s.querySelector('.viagem-texto'),active=i===current&&!root.classList.contains('jornada-fora');
+          content.inert=!media.matches&&!active;
+          content.style.pointerEvents=media.matches||active?'auto':'none';
+          if(!media.matches)gsap.set(content,{opacity:active?1:0,y:active?Math.sin((time-i)*Math.PI)*10:0});
+        });
+        if(media.matches)draw(0);
+      };
+      master=gsap.timeline({onUpdate:renderProgress,scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:media.matches?true:1,
+        onLeave:()=>{if(scrollY>root.getBoundingClientRect().bottom+scrollY-innerHeight+2)root.classList.add('jornada-fora');renderProgress();},
+        onEnterBack:()=>{root.classList.remove('jornada-fora');renderProgress();}}});
+      gsap.set(camera,{x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0,anchorY:.43});
+      const steps=[{x:0,y:0,zoom:1,rotation:0,focus:-1,opening:0,anchorY:.43},
+        {x:mobile()?0:-110,y:0,zoom:1.55,rotation:.025,focus:-1,opening:1,anchorY:.43},
+        ...nodes.map((n,i)=>({x:n.x+(mobile()?0:n.x>5?160:-100),y:n.y,zoom:mobile()?2.1:1.9,rotation:i%2?.025:-.025,focus:i,opening:0,anchorY:.18})),
+        {x:0,y:0,zoom:.78,rotation:0,focus:-1,opening:0,anchorY:.43}];
       for(let i=1;i<steps.length;i++)master.to(camera,{...steps[i],progress:i/(steps.length-1),duration:1,ease:'power2.inOut'},i-1);
       sections.forEach((section,i)=>{
         const content=section.querySelector('.viagem-texto');if(!content)return;
-        if(!media.matches){gsap.set(content,{opacity:i?0:1,y:i?32:0});if(i)master.to(content,{opacity:1,y:0,duration:.1,ease:'power2.out'},i-.6);if(i<sections.length-1)master.to(content,{opacity:0,y:-25,duration:.1},i+.3);}
-        else gsap.set(content,{clearProps:'all'});
+        section.querySelector('.viagem-posicao').dataset.side=!mobile()&&nodes[i-2]?.x>5?'right':'left';
+        if(media.matches)gsap.set(content,{clearProps:'all'});
         section.querySelectorAll('[data-contar]').forEach(counter=>{const value={n:0};master.to(value,{n:Number(counter.dataset.contar),duration:.5,onUpdate:()=>counter.textContent=Math.round(value.n)},Math.max(0,i-1));});
       });
       if(!revealed&&!media.matches){gsap.from('.viagem-letra',{opacity:0,y:12,stagger:.07,duration:.7,ease:'power2.out'});revealed=true;}
       ScrollTrigger.refresh();
+      renderProgress();
     }
     function contextLost(e){e.preventDefault();fallback('Contexto gráfico indisponível');}
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncLoop();});observer.observe(el);
@@ -168,7 +180,11 @@ window.CenaJarvis = (() => {
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
     return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(glow&&!media.matches)gsap.fromTo(breath,{alpha:1.8},{alpha:.8,duration:1});},jornada:connectJourney,
-      depurar:()=>({ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,endpoints:nodes.map(n=>({id:n.p.id,x:n.body.x,y:n.body.y,status:n.p.status}))}),
+      depurar:()=>({ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
+        // Caixa conservadora da região incandescente central (não inclui corona transparente).
+        coreBounds:world?{x:world.x-90*world.scale.x*breath.scale,y:world.y-90*world.scale.y*breath.scale,width:180*world.scale.x*breath.scale,height:180*world.scale.y*breath.scale}:null,
+        resolution:app?.renderer.resolution,backgrounds:backgrounds.map(b=>({x:b.s.x,y:b.s.y,visible:b.s.visible,depth:b.depth})),
+        endpoints:nodes.map(n=>({id:n.p.id,x:n.body.x,y:n.body.y,status:n.p.status}))}),
       destruir(){dead=true;syncLoop();master?.kill();lenis?.destroy();breathTween?.kill();nodes.forEach(n=>n.tween?.kill());observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);media.removeEventListener('change',onMotion);window.removeEventListener('resize',resize);window.removeEventListener('scroll',onScroll);app?.destroy(true,{children:true});el.remove();}
     };
   }

@@ -9,18 +9,21 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 | B — núcleo em camadas | ✅ pronto | `cena-2d.js/start/draw`: rede, respiração, corona, glow e faíscas; julgamento estético reservado ao usuário/Claude. |
 | C — fios reais | ✅ pronto | `rebuild/drawConnections` usa projetos e posições correntes; teste adiciona/remove itens. |
 | D — fundo com parallax | ✅ pronto | `start/draw`: 12 planetas, 3 profundidades; cinco visíveis no celular por qualidade. |
-| E — câmera e relógio | ✅ pronto | `connectJourney/tick`: uma master, Lenis sem autoRaf, Application sem ticker automático. |
+| E — câmera e relógio | ✅ pronto | Uma master/ticker; callback corrigido para atualizar durante toda a suavização do scrub, conforme documentação GSAP. |
 | F — textos sem cartões | ⚠️ parcial | `jornada.js/cena-2d.css`: conteúdo solto; falta varredura geométrica de 0–100% a cada 10%. |
 | G — robustez | ⚠️ parcial | Fallback, PNG, pausa e reduced-motion passaram; verificar novamente movimento reduzido e limites de tela. |
 | H — funções existentes | ✅ pronto | `verificar-ui.cjs`: busca, oito seções, conferência e API simulada; servidor com 140 verificações. |
 
 ## Concluído nesta sessão
 - ✅ Checkpoint e diagnóstico curto; sem regenerar assets ou instalar bibliotecas.
+- ✅ Medição inicial: textos dentro da viewport e sem colisão entre textos; encontrou núcleo sobre texto (20/40/50%), vazio em 60% e fechamento mobile oculto.
+- ⚠️ Primeira correção F: alternância de coluna por órbita, cena elevada no mobile, conteúdo contínuo e fechamento com tolerância de 2px; verificar.
 
 ## Pendências
 - ⚠️ Medir caixas de texto, sobreposições, núcleo brilhante e console em três viewports.
 - ⚠️ Relatório final com métricas medidas; não há build/lint/typecheck configurados.
 - ⚠️ CPU, heap e download não diminuíram; 60 fps em hardware real não comprovados.
+- ⚠️ Fontes Google: Chromium rejeita CA atual do proxy; corrigir NSS exige acesso fora do projeto, proibido nesta sessão. Não desativar TLS.
 - ⚠️ Preparar CLAUDE.md, exclusões de temporários e tag final `handoff-claude-code`.
 
 ## Rodar e verificar (na raiz do projeto)
