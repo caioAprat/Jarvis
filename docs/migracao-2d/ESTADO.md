@@ -119,4 +119,4 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 - `index.html` (app do iPhone) é a página aberta em `/Jarvis/`; recebeu composição de desktop ≥1000 px em vez de redirecionar ao `pc.html` (que exige o link privado da central).
 - Pedidos abertos no app mostra "—" (o endpoint do app não traz pedidos) com link para a central do PC.
 - Frequência da rede geodésica = 12 (V=1442) por leitura de referência; "frequência 4/5" do pedido daria 162–252 vértices, esparso demais.
-- Seis das dez visualizações de imagem permitidas foram usadas em recortes/quadros do núcleo e da cena; o resto foi medição.
+- As 10 visualizações de imagem permitidas foram usadas (referência, recortes do núcleo/fios/pacotes e quadros da cena/seções); o resto foi medição.
