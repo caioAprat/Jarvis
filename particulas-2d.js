@@ -16,7 +16,7 @@ window.ParticulasJarvo = (() => {
     const dinamico = {dynamicProperties: {position: true, vertex: true, color: true, rotation: false}};
 
     // ---- brasas: nascem na borda do núcleo e sobem em arco, esfriando
-    const NB = Math.round(150 * densidade), brasasC = new ParticleContainer(dinamico); brasasC.blendMode = 'add';
+    const NB = Math.round(300 * densidade), brasasC = new ParticleContainer(dinamico); brasasC.blendMode = 'add';
     const brasas = []; for (let i = 0; i < NB; i++) { const p = new Particle({texture: tex, anchorX: .5, anchorY: .5, alpha: 0, scaleX: .1, scaleY: .1}); brasasC.addParticle(p); brasas.push({p, vivo: false, x: 0, y: 0, vx: 0, vy: 0, t: 0, dur: 1, sw: 0, tam: .1}); }
     o.nucleo.container.addChild(brasasC);
     function nasce(b) {
@@ -32,7 +32,7 @@ window.ParticulasJarvo = (() => {
       for (const d of detritos) detC.removeParticle(d.p);
       detritos = [];
       projetos.forEach((pr, i) => {
-        const n = pr.status === 'pausado' ? 3 : 8, cor = COR[pr.status] ?? COR.config;
+        const n = pr.status === 'pausado' ? 5 : 16, cor = COR[pr.status] ?? COR.config;
         for (let k = 0; k < n; k++) { const p = new Particle({texture: tex, anchorX: .5, anchorY: .5, alpha: .6, scaleX: .06, scaleY: .06, tint: k % 3 ? cor : 0xffc890}); detC.addParticle(p); detritos.push({p, i, r: 40 + rnd() * 34, a: rnd() * TAU, w: (rnd() < .5 ? -1 : 1) * (.35 + rnd() * 1), q: .45 + rnd() * .5, tilt: rnd() * TAU, tam: .04 + rnd() * .08, f: rnd() * TAU}); }
       });
     }
@@ -41,7 +41,7 @@ window.ParticulasJarvo = (() => {
     function atualizar(dt, nos) {
       tempo += dt;
       // brasas
-      acumula += dt * (suave ? 0 : 7 * qualidade); let novas = acumula | 0; acumula -= novas;
+      acumula += dt * (suave ? 0 : 14 * qualidade); let novas = acumula | 0; acumula -= novas;
       const lim = Math.round(NB * qualidade);
       let ativas = 0;
       for (let i = 0; i < brasas.length; i++) {

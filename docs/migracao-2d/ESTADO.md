@@ -41,3 +41,4 @@ Teclas: G visão geral, 1–9 projetos, Esc sai, Ctrl K busca (app), PageUp/Down
 - Veias: `CONF` (espessuras, bulbos, onda) e a geração em `montarGrupo` (ramos 2–4, sub-ramos 2, capilares 1–2) em `fios-2d.js`.
 - Arquivos: `TAXA`, `VEL`, `TIPOS_PROJ`, `MAXA` (24), rajadas 14%, grandes 6% em `fios-2d.js`.
 - Partículas: contagens em `particulas-2d.js`; qualidade adaptativa só reduz glow/partículas/capilares (nunca a nitidez do núcleo).
+- Rodada 3: veias 135→362 caminhos (5–7 ramos, 2–3 sub-ramos, 2–3 capilares, espessura/comprimento aleatórios por vaso, ligações i→i+1 e i→i+2), arquivos saem sobretudo do Jarvão (72%), brasas 300 e detritos 16/planeta, poeira de fundo 1500/camada e primeiro plano 280 com paralaxe por profundidade. Custo das veias 2,2 ms (limite 3). G→rolar→voltar: câmera idêntica à da pose antes do G (x, y, zoom, rotação), 0 sobreposições.

@@ -36,7 +36,7 @@ window.CenaJarvis = (() => {
         for(let depth=0;depth<3;depth++){
           const container=new PIXI.ParticleContainer({dynamicProperties:{position:true,vertex:true,color:true,rotation:false}});app.stage.addChild(container);
           const points=[];let seed=4821+depth*777;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-          for(let i=0;i<(mobile()?230:850);i++){const x=rnd(),y=rnd(),size=.025+rnd()*.09,al=.2+rnd()*.65;const p=new PIXI.Particle({texture:universe.poeira,x:x*innerWidth,y:y*innerHeight,scaleX:size,scaleY:size,alpha:al,tint:i%5?0xcba77c:0xf4ead6});container.addParticle(p);points.push({p,x,y,size,al,tw:i%4===0?1.2+rnd()*2.8:0,ph:rnd()*6.28});}
+          for(let i=0;i<(mobile()?320:1500);i++){const x=rnd(),y=rnd(),size=.025+rnd()*.09,al=.2+rnd()*.65;const p=new PIXI.Particle({texture:universe.poeira,x:x*innerWidth,y:y*innerHeight,scaleX:size,scaleY:size,alpha:al,tint:i%5?0xcba77c:0xf4ead6});container.addParticle(p);points.push({p,x,y,size,al,tw:i%4===0?1.2+rnd()*2.8:0,ph:rnd()*6.28});}
           stars.push({container,points,depth});
         }
         const bg=new PIXI.Container();app.stage.addChild(bg);
@@ -50,8 +50,8 @@ window.CenaJarvis = (() => {
         nuc=NucleoJarvo.criar(PIXI,{raio:150,tam:mobile()?1024:2048,frequencia:mobile()?8:12,nos:mobile()?90:190});core=nuc.container;world.addChild(core);
         fios=FiosJarvo.criar(PIXI,{mundo:world,nucleo:nuc,densidade:mobile()?.5:1});
         part=ParticulasJarvo.criar(PIXI,{mundo:world,nucleo:nuc,densidade:mobile()?.45:1});
-        foreground=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:false,vertex:false,rotation:false}});app.stage.addChild(foreground);
-        for(let i=0;i<60;i++)foreground.addParticle(new PIXI.Particle({texture:universe.poeira,tint:0xe89b55,alpha:.3,scaleX:.15,scaleY:.15}));
+        foreground=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:true,vertex:true,rotation:false}});app.stage.addChild(foreground);
+        for(let i=0;i<(mobile()?90:280);i++){const z=(i%7)/6;foreground.addParticle(new PIXI.Particle({texture:universe.poeira,tint:i%4?0xe89b55:0xfff0d0,alpha:.12+z*.4,scaleX:.08+z*.3,scaleY:.08+z*.3}));}
         boot.hidden=true;el.dataset.ready='true';rebuild();resize();syncLoop();
       }catch(e){fallback(e);}
     }
@@ -110,7 +110,7 @@ window.CenaJarvis = (() => {
       drawConnections();
       for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;if(q.tw&&!media.matches)q.p.alpha=q.al*(.55+.45*Math.sin(elapsed*q.tw+q.ph));q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
       backgrounds.forEach(b=>{b.s.visible=!compact||b.index<5;b.s.x=((b.x*w-camera.x*b.depth)%(w+180)+w+180)%(w+180)-90;b.s.y=((b.y*h-camera.y*b.depth-camera.progress*h*b.depth)%(h+180)+h+180)%(h+180)-90;b.s.rotation=camera.rotation*b.depth;b.s.scale.set((.25+(b.index%4)*.15)*(1+camera.progress*b.depth));});
-      foreground.particleChildren.forEach((p,i)=>{p.x=(i*157.7+elapsed*4)%w;p.y=((i*93.1-elapsed*9-camera.progress*90)%h+h)%h;});
+      foreground.particleChildren.forEach((p,i)=>{const z=.3+(i%7)/6*1.7;p.x=((i*157.7+elapsed*4*z-camera.x*.35*z)%w+w)%w;p.y=((i*93.1-elapsed*9*z-camera.progress*160*z-camera.y*.35*z)%h+h)%h;p.alpha=(.1+(i%7)/6*.4)*(.75+.25*Math.sin(elapsed*(.8+z)+i));});
       camera.previousProgress=camera.progress;
       if(!pular){app.render();frames++;}
       if(firstRender===null)firstRender=performance.now();
@@ -333,7 +333,7 @@ window.CenaJarvis = (() => {
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
     return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},irPara,visaoGeral(v){v===false?sairGeral():entrarGeral();},passo,estadoCena:()=>({estado,pose:poseAtual(),geral,fila:fila?JSON.stringify(fila):null,y:scrollY,painel:painelId}),get emGeral(){return geral;},evento(id,tipo){fios?.evento(id,tipo);},ritmo(avisos){nuc?.ritmo(avisos);},avancar(ms,n=1){for(let i=0;i<n;i++){elapsed+=ms/1000;pular=i<n-1;draw(ms);}pular=false;},pausar(value){paused=value;syncLoop();},varredura(){if(nuc&&!media.matches){const o=nuc.ondas.find(w=>w.t>window.BATIMENTO_CONFIG.onda.duracao)||nuc.ondas[0];o.t=0;}},jornada:connectJourney,
-      depurar:()=>({nucleo:nuc,fiosApi:fios,partApi:part,ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
+      depurar:()=>({camera:{...camera},nucleo:nuc,fiosApi:fios,partApi:part,ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
         // Caixa conservadora da região incandescente central (não inclui corona transparente).
         nucleoPx:world&&nuc?{x:world.x,y:world.y,r:nuc.raio*1.34*world.scale.x*nuc.batida.escala}:null,coreBounds:world?{x:world.x-90*world.scale.x*(nuc?nuc.batida.escala:1),y:world.y-90*world.scale.y*(nuc?nuc.batida.escala:1),width:180*world.scale.x*(nuc?nuc.batida.escala:1),height:180*world.scale.y*(nuc?nuc.batida.escala:1)}:null,
         resolution:app?.renderer.resolution,backgrounds:backgrounds.map(b=>({x:b.s.x,y:b.s.y,visible:b.s.visible,depth:b.depth})),

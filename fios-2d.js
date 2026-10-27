@@ -107,18 +107,18 @@ window.FiosJarvo = (() => {
       const st = pr.status, pausado = st === 'pausado', paths = [], ang0 = -Math.PI / 2 + i * TAU / Math.max(1, n);
       const principal = novoPath(0, 6, 44, pausado ? 2.6 : CONF.raiz, pausado ? .9 : CONF.ponta, {curv: (rnd() * .16 + .05) * (rnd() < .5 ? -1 : 1), fase: rnd() * TAU, amp: pausado ? 2 : 5, raizOff: (rnd() - .5) * .5, fimOff: (rnd() - .5) * 14, comp: 1});
       paths.push(principal);
-      const nB = pausado ? 1 : st === 'aguardando' ? 2 : 3 + (rnd() < .6 ? 1 : 0), usados = [];
+      const nB = pausado ? 1 : st === 'aguardando' ? 3 : 5 + ((rnd() * 3) | 0), usados = [];
       for (let b = 0; b < nB; b++) {
-        let t; do { t = .18 + rnd() * .62; } while (usados.some(u => Math.abs(u - t) < .1)); usados.push(t);
-        const l1 = novoPath(1, 5, 28, 0, .8, {pai: principal, t, ang: (b % 2 ? 1 : -1) * (.5 + rnd() * .6), comp: .2 + rnd() * .22, curv: (rnd() * .4 - .2), fase: rnd() * TAU, amp: 4, vs: .12 + t * .55, ve: Math.min(1, .5 + t * .5)});
+        let t; let tent = 0; do { t = .12 + rnd() * .72; } while (usados.some(u => Math.abs(u - t) < .065) && ++tent < 30); usados.push(t);
+        const l1 = novoPath(1, 5, 28, 0, .8, {pai: principal, t, ang: (b % 2 ? 1 : -1) * (.5 + rnd() * .6), comp: .16 + rnd() * .34, wf: .7 + rnd() * .8, curv: (rnd() * .5 - .25), fase: rnd() * TAU, amp: 4, vs: .12 + t * .55, ve: Math.min(1, .5 + t * .5)});
         paths.push(l1);
         if (pausado) continue;
-        const nS = densidade < 1 ? 1 : 2;
+        const nS = densidade < 1 ? 1 : 2 + ((rnd() * 2) | 0);
         for (let s = 0; s < nS; s++) {
-          const l2 = novoPath(2, 4, 20, 0, .7, {pai: l1, t: .28 + rnd() * .5, ang: (s % 2 ? 1 : -1) * (.55 + rnd() * .65), comp: .3 + rnd() * .3, curv: rnd() * .5 - .25, fase: rnd() * TAU, amp: 3, vs: l1.vs + .1, ve: 1});
+          const l2 = novoPath(2, 4, 20, 0, .7, {pai: l1, t: .28 + rnd() * .5, ang: (s % 2 ? 1 : -1) * (.55 + rnd() * .65), comp: .22 + rnd() * .4, wf: .6 + rnd() * .9, curv: rnd() * .6 - .3, fase: rnd() * TAU, amp: 3, vs: l1.vs + .1, ve: 1});
           paths.push(l2);
-          const nC = densidade < 1 ? 0 : 1 + (rnd() < .5 ? 1 : 0);
-          for (let c = 0; c < nC; c++) paths.push(novoPath(3, 3, 14, 0, .3, {pai: l2, t: .3 + rnd() * .5, ang: (c % 2 ? 1 : -1) * (.5 + rnd() * .8), comp: .28 + rnd() * .3, curv: rnd() * .6 - .3, fase: rnd() * TAU, amp: 2.2, vs: l2.vs + .1, ve: 1}));
+          const nC = densidade < 1 ? 0 : 2 + ((rnd() * 2) | 0);
+          for (let c = 0; c < nC; c++) paths.push(novoPath(3, 3, 14, 0, .3, {pai: l2, t: .3 + rnd() * .5, ang: (c % 2 ? 1 : -1) * (.5 + rnd() * .8), comp: .2 + rnd() * .45, wf: .6 + rnd() * 1, curv: rnd() * .7 - .35, fase: rnd() * TAU, amp: 2.2, vs: l2.vs + .1, ve: 1}));
         }
       }
       // geometria única do projeto
@@ -140,8 +140,8 @@ window.FiosJarvo = (() => {
       for (const f of arquivos) { f.ativo = false; f.gl.alpha = 0; for (const t of f.tr) t.alpha = 0; if (f.gp) { f.gp.alpha = 0; f.gp.__uso = false; f.gp = null; } }
       projetos.forEach((pr, i) => grupos.push(montarGrupo(pr, i, projetos.length)));
       // vasos que ligam projetos vizinhos (um corpo só)
-      if (grupos.length > 1) for (let i = 0; i < grupos.length; i++) {
-        const a = grupos[i], b = grupos[(i + 1) % grupos.length]; if (grupos.length === 2 && i === 1) break;
+      if (grupos.length > 1) for (let i = 0; i < grupos.length * (grupos.length > 4 ? 2 : 1); i++) {
+        const salto = i >= grupos.length ? 2 : 1, a = grupos[i % grupos.length], b = grupos[(i + salto) % grupos.length]; if (grupos.length === 2 && i === 1) break;
         const p = novoPath(1, 5, 30, 1.7, 1.7, {curv: .16 + rnd() * .12, fase: rnd() * TAU, amp: 3, vs: .35, ve: .8, ta: .66 + rnd() * .12, tb: .66 + rnd() * .12, ga: a, gb: b});
         const nv = p.N * 2, pos = new Float32Array(nv * 2), uv = new Float32Array(nv * 2), idx = new Uint32Array((p.N - 1) * 6); let ii = 0;
         for (let k = 0; k < p.N; k++) { const v = .35 + .45 * k / (p.N - 1), q = k * 4; uv[q] = 0; uv[q + 1] = v; uv[q + 2] = 1; uv[q + 3] = v; if (k < p.N - 1) { const bb = k * 2; idx[ii++] = bb; idx[ii++] = bb + 1; idx[ii++] = bb + 2; idx[ii++] = bb + 1; idx[ii++] = bb + 3; idx[ii++] = bb + 2; } }
@@ -200,7 +200,7 @@ window.FiosJarvo = (() => {
     }
     function emite(g) {
       const st = g.pr.status; if (st === 'pausado') return;
-      const sentido = st === 'ok' || st === 'erro' ? (rnd() < .6 ? 1 : -1) : 1;
+      const sentido = st === 'ok' || st === 'erro' ? (rnd() < .72 ? 1 : -1) : 1;   // sobretudo do Jarvão para o projeto
       const n = rnd() < .14 && !suave ? 2 + ((rnd() * 3) | 0) : 1;     // rajadas ocasionais de 2–4
       for (let k = 0; k < n; k++) lancar(g, sentido, {atraso: k * (.07 + rnd() * .13)});
     }
@@ -290,8 +290,8 @@ window.FiosJarvo = (() => {
               const f = k / (K - 1), bow = p.curv * L * Math.sin(Math.PI * f) + (k > 0 ? Math.sin(tempo * .9 + p.fase + k * 2.1) * p.amp : 0);
               p.cx[k] = tmp.x + dx * L * f + px * bow; p.cy[k] = tmp.y + dy * L * f + py * bow;
             }
-            if (p.nivel === 1) p.w0 = Math.max(.9, p.pai.w[Math.max(0, Math.min(p.pai.N - 1, Math.round(p.t * (p.pai.N - 1))))] * .5);
-            else p.w0 = Math.max(.6, p.pai.w0 * .55);
+            if (p.nivel === 1) p.w0 = Math.max(.9, p.pai.w[Math.max(0, Math.min(p.pai.N - 1, Math.round(p.t * (p.pai.N - 1))))] * .5 * (p.wf || 1));
+            else p.w0 = Math.max(.6, p.pai.w0 * .55 * (p.wf || 1));
             p.ativo = !(p.nivel === 3 && qualidade < 1);
           }
           if (!p.ativo) { for (let k = 0; k < p.N; k++) p.w[k] = 0; if (p.nivel) { amostra(p); escreve(p, g.pos); } continue; }
