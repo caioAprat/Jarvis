@@ -96,3 +96,10 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 ### Etapa 3 — partículas (✅)
 - `particulas-2d.js`: 150 brasas em arco saindo do núcleo (paleta branco→laranja→vermelho, rajada a cada tum), 8 detritos orbitando cada planeta (3 se pausado); `fios-2d.js`: 80 micro-partículas viajando junto aos fios; estrelas com cintilação (25% por camada). Poeira em parallax e primeiro plano mantidos. Contagens escalam por `qualidade` (adaptativa 0,65) e `densidade` (celular ≈0,45).
 - Custo medido: 1,9 ms/quadro de CPU para toda a cena (240 quadros simulados, sem GPU).
+
+### Etapa 4 — estrutura desktop e Visão geral (✅)
+- A barra superior (Situação, Projetos no ar, Pedidos abertos, Avisos novos), a busca Ctrl K, "Conferir tudo" e o dock inferior já existiam no `pc.html` (barra sticky); o retângulo escuro atrás do cabeçalho era o fundo `.barra.rolou` com blur: removido durante a jornada.
+- `.jornada` agora tem `pointer-events:none` (antes bloqueava cliques nos planetas/rótulos).
+- Mapa de projetos (`.mapa-proj`, em `jornada.js`) substitui o rótulo vertical: um ponto de status por projeto (nome ao passar o mouse/foco), clique ou teclas 1–9 → `MV.irPara` (Lenis.scrollTo até a etapa); botão/tecla G = Visão geral (câmera recua, ScrollTrigger pausado, todos os rótulos visíveis, sem rolar); clique num planeta abre UM painel de detalhes (nome, status, disponibilidade 7/30 dias, detalhe, abrir) com linha-guia; Esc fecha painel e depois a visão geral; hover num planeta/rótulo acende o feixe de fios. Celular: o mapa vira faixa compacta no topo.
+- Ritmo cardíaco acelera (0,82 s) com avisos novos; avisos/pedidos novos geram pacotes maiores (`MV.evento`) até o projeto.
+- Testado headless: tecla 3 → etapa do 3º projeto (progress 0,444), G entra/sai, painel abre/fecha, clique no mapa leva à etapa.
