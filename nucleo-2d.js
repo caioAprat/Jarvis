@@ -162,7 +162,7 @@ window.NucleoJarvo = (() => {
     const CFG = window.BATIMENTO_CONFIG, K_EXPO = 5, EXPO_FIM = Math.exp(-K_EXPO);
     // ataque power2.out; decaimento expo.out (queda exponencial normalizada em [0,1])
     const bump = (t, a, d) => { if (t < 0) return 0; if (t < a) { const x = t / a; return 1 - (1 - x) * (1 - x); } const u = (t - a) / d; return u < 1 ? (Math.exp(-K_EXPO * u) - EXPO_FIM) / (1 - EXPO_FIM) : 0; };
-    const bat = {periodo: CFG.periodo, T: CFG.periodo, t: 0, d1: false, d2: false, escala: 1, glow: .3, env: 0, ouvintes: [], ritmo: 'normal', suave: false};
+    const bat = {periodo: CFG.periodo, T: CFG.periodo, t: 0, d1: false, d2: false, escala: 1, glow: .3, env: 0, ouvintes: [], ritmo: 'normal', suave: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)};
     const sortear = () => bat.T = Math.max(CFG.minimo, bat.periodo * (1 + (rnd() * 2 - 1) * CFG.variacao));
     const emitir = (tipo, f) => { for (const fn of bat.ouvintes) fn(tipo, f); };
     function avancaBatida(dt) {
