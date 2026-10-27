@@ -44,3 +44,5 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 .cena-2d{transition:opacity .6s}html.cena-fundo .cena-2d{opacity:.22}
 @media(min-width:701px) and (max-width:1500px){.mp-tit{display:none}.mp-geral{font-size:0;padding:6px 8px;margin-top:10px}.mp-geral kbd{margin:0;font-size:10px}}
 @media(min-width:701px) and (max-width:1500px){.mp-num{display:none}.mapa-proj{right:18px}}
+/* rótulos sempre acima das veias, com sombra de legibilidade */
+.cena-label{text-shadow:0 0 5px #000,0 0 12px #000,0 1px 2px #000}
