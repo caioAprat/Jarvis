@@ -5,7 +5,7 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 | Critério | Estado | Evidência / limite |
 |---|---|---|
-| A — retirada do 3D | ⚠️ parcial | `e9d00a4` removeu motor antigo isoladamente; referências históricas e biblioteca 2D impedem busca literal zero; JS transferido aumentou. |
+| A — retirada do 3D | ⚠️ parcial | `validacao-3d.md`: zero nas fontes próprias; remoção isolada em `e9d00a4`; busca global zero e JS menor não atingidos. |
 | B — núcleo em camadas | ✅ pronto | `cena-2d.js/start/draw`: rede, respiração, corona, glow e faíscas; julgamento estético reservado ao usuário/Claude. |
 | C — fios reais | ✅ pronto | `rebuild/drawConnections` usa projetos e posições correntes; teste adiciona/remove itens. |
 | D — fundo com parallax | ✅ pronto | `start/draw`: 12 planetas, 3 profundidades; cinco visíveis no celular por qualidade. |
@@ -27,7 +27,7 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 - ⚠️ CPU, heap e download não diminuíram; 60 fps em hardware real não comprovados.
 - ⚠️ Fontes Google: Chromium rejeita CA atual do proxy; corrigir NSS exige acesso fora do projeto, proibido nesta sessão. Não desativar TLS.
 - ⚠️ Após duas tentativas, teste novo `verificar-robustez.cjs` falha na troca reduce → no-preference (timeout na retomada). Não insistido; priorizar no Claude. Demais casos testados separadamente.
-- ✅ CLAUDE.md e exclusões prontos; tag final `handoff-claude-code` será aplicada após o último commit.
+- ✅ CLAUDE.md e exclusões prontos; entrega identificada pela tag local `handoff-claude-code`, sem push.
 
 ## Rodar e verificar (na raiz do projeto)
 `python3 -m http.server 8001 --bind 127.0.0.1`
@@ -50,6 +50,7 @@ Ferramentas já instaladas em `/workspace/.jarvis-audit-tools`; não reinstalar.
 - `demo.js` / `assets/demo.json`: demonstração isolada.
 - `sw.js`: cache offline e push preservado.
 - `baseline.json` / `depois.json`: métricas antes/depois, com metodologia.
+- `relatorio.md` / `validacao-3d.md`: resultados e limites explícitos; sem alegar aceite integral.
 - `CREDITS.md`: procedência e licenças; assets finais já aprovados tecnicamente.
 
 ## Riscos / próximos passos
