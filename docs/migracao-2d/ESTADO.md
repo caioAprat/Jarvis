@@ -127,3 +127,6 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 - Aplicada em: cabeçalhos de `pc.html`/`index.html` (`MapaVivo.logo()`/`marca()` em `mapa-2d.js`, emblema animado), aba (`icons/jarvis.svg`, `favicon.ico`, `favicon-32.png`), iOS (`apple-touch-icon.png` 180), instalação (`icon-192/512.png`, `icon-maskable-512.png`, manifestos), notificações (`icon-192`), `demo.html`, `privacidade.html`, cache offline (`sw.js` v7). Michroma deixou de ser usada no logotipo.
 - Não há skill de ícones instalada no ambiente (só as listadas); o desenho é próprio.
 - Pendente: o ícone do app já instalado no iPhone/PC só muda ao reinstalar; as mensagens do Telegram/Apps Script não usam este ícone.
+### A — batimento lento (✅)
+- Constantes em `window.BATIMENTO_CONFIG` (topo de `nucleo-2d.js`): período 1,6 s (alerta 1,35 s, mínimo 1,3 s, ±3%), tum 1 (ataque 110 ms power2.out, escala 1,06, decaimento 320 ms expo.out), tum 2 em +300 ms (0,65×, 90/280 ms), brilho residual na diástole, onda de choque só no tum 1 (1,1 s, α 0,3→0). Aparência do núcleo intocada.
+- Medido (8 s, passo 1/240 s): 2 picos por ciclo (1,060 e 1,039), gap 279–284 ms, períodos 1,563–1,646 s; em alerta 1,316–1,358 s. Movimento reduzido: pico 1,024 e nenhuma onda.

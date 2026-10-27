@@ -3,6 +3,19 @@
  * Núcleo do Jarvão — tudo é matemática 2D: vértices girados e projetados em 2D (sem Three.js, sem WebGL 3D,
  * sem câmera 3D) e texturas geradas na resolução necessária. Nenhuma sequência de quadros; tudo usa deltaTime.
  */
+/** Ajustes do batimento — tudo em segundos; mexa só aqui. */
+window.BATIMENTO_CONFIG = {
+  periodo: 1.6,          // ciclo normal (faixa boa: 1,5–1,8 s)
+  alerta: 1.35,          // ciclo com avisos novos
+  minimo: 1.3,           // nunca mais rápido que isso
+  variacao: .03,         // ±3% por ciclo, para não parecer mecânico
+  tum1: {pico: .06, ataque: .11, decai: .32},                 // escala 1,06; ataque power2.out; decaimento expo.out
+  gap: .30,              // do primeiro ao segundo tum
+  tum2: {amp: .65, ataque: .09, decai: .28},                  // 0,65 do primeiro
+  residuo: {ganho: .22, tau: .6},                             // brilho que sobra na diástole
+  onda: {duracao: 1.1, alpha: .3, expansao: .9},              // anel só no primeiro tum
+  suave: {amp: .4, onda: false},                              // prefers-reduced-motion
+};
 window.NucleoJarvo = (() => {
   const TAU = Math.PI * 2, PHI = (1 + Math.sqrt(5)) / 2;
   const semente = s => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
@@ -146,19 +159,21 @@ window.NucleoJarvo = (() => {
     container.addChild(nosC); // nós e satélites acima de tudo
 
     // ------------------------------------------------------------------ batimento "tum-tum"
-    const bump = (t, a, d) => { if (t < 0) return 0; if (t < a) { const x = t / a; return 1 - (1 - x) ** 3; } const u = (t - a) / d; return u < 1 ? (1 - u) * (1 - u) : 0; };
-    const bat = {periodo: .95, T: .95, t: 0, d1: false, d2: false, escala: 1, glow: .3, env: 0, ouvintes: [], ritmo: 'normal', suave: false};
-    const sortear = () => bat.T = bat.periodo * (1 + (rnd() * 2 - 1) * .03);
+    const CFG = window.BATIMENTO_CONFIG, K_EXPO = 5, EXPO_FIM = Math.exp(-K_EXPO);
+    // ataque power2.out; decaimento expo.out (queda exponencial normalizada em [0,1])
+    const bump = (t, a, d) => { if (t < 0) return 0; if (t < a) { const x = t / a; return 1 - (1 - x) * (1 - x); } const u = (t - a) / d; return u < 1 ? (Math.exp(-K_EXPO * u) - EXPO_FIM) / (1 - EXPO_FIM) : 0; };
+    const bat = {periodo: CFG.periodo, T: CFG.periodo, t: 0, d1: false, d2: false, escala: 1, glow: .3, env: 0, ouvintes: [], ritmo: 'normal', suave: false};
+    const sortear = () => bat.T = Math.max(CFG.minimo, bat.periodo * (1 + (rnd() * 2 - 1) * CFG.variacao));
     const emitir = (tipo, f) => { for (const fn of bat.ouvintes) fn(tipo, f); };
     function avancaBatida(dt) {
       bat.t += dt;
       if (bat.t >= bat.T) { bat.t -= bat.T; sortear(); bat.d1 = bat.d2 = false; }
-      if (!bat.d1 && bat.t >= 0 && dt >= 0) { bat.d1 = true; const o = ondas.find(w => w.t > .7) || ondas[0]; o.t = 0; emitir('tum', 1); }
-      if (!bat.d2 && bat.t >= .2) { bat.d2 = true; emitir('tum2', .6); }
-      const e1 = bump(bat.t, .07, .18), e2 = .6 * bump(bat.t - .2, .06, .15), env = Math.max(e1, e2), k = bat.suave ? .4 : 1;
+      if (!bat.d1) { bat.d1 = true; if (!(bat.suave && !CFG.suave.onda)) { const o = ondas.find(w => w.t > CFG.onda.duracao) || ondas[0]; o.t = 0; } emitir('tum', 1); }
+      if (!bat.d2 && bat.t >= CFG.gap) { bat.d2 = true; emitir('tum2', CFG.tum2.amp); }
+      const e1 = bump(bat.t, CFG.tum1.ataque, CFG.tum1.decai), e2 = CFG.tum2.amp * bump(bat.t - CFG.gap, CFG.tum2.ataque, CFG.tum2.decai), env = Math.max(e1, e2), k = bat.suave ? CFG.suave.amp : 1;
       bat.env = env * k;
-      bat.escala = 1 + .07 * env * k;
-      bat.glow = Math.min(1.15, .34 + .66 * env * k + .24 * Math.exp(-bat.t / .36));
+      bat.escala = 1 + CFG.tum1.pico * env * k;
+      bat.glow = Math.min(1.15, .34 + .66 * env * k + CFG.residuo.ganho * Math.exp(-bat.t / CFG.residuo.tau));
     }
 
     // ------------------------------------------------------------------ estado e atualização
@@ -200,7 +215,7 @@ window.NucleoJarvo = (() => {
       const c = Math.cos(-.32), sn = Math.sin(-.32);
       for (const s of satelites) { const r = s.r; s.ang += dt * r.v * reduz * 2.2; const a = s.ang + s.off * 2.1, x = Math.cos(a) * r.a, y = Math.sin(a) * r.b; s.s.x = x * c - y * sn; s.s.y = x * sn + y * c; s.s.alpha = .55 + .4 * g; }
       // ondas de choque
-      for (const o of ondas) { if (o.t > .7) { o.g.visible = false; continue; } o.t += dt; const u = Math.min(1, o.t / .7); o.g.visible = true; o.g.scale.set(1 + .9 * (1 - (1 - u) ** 2)); o.g.alpha = .35 * (1 - u) * (bat.suave ? .5 : 1); }
+      for (const o of ondas) { if (o.t > CFG.onda.duracao) { o.g.visible = false; continue; } o.t += dt; const u = Math.min(1, o.t / CFG.onda.duracao); o.g.visible = true; o.g.scale.set(1 + CFG.onda.expansao * (1 - (1 - u) ** 2)); o.g.alpha = CFG.onda.alpha * (1 - u) * (bat.suave ? .5 : 1); }
     }
     atualizar(0);
 
@@ -209,7 +224,7 @@ window.NucleoJarvo = (() => {
       batida: bat,
       aoBater: fn => bat.ouvintes.push(fn),
       /** Ritmo cardíaco: 0,95 s normal; 0,82 s com avisos novos. */
-      ritmo(avisos) { bat.periodo = avisos ? .82 : .95; },
+      ritmo(avisos) { bat.periodo = avisos ? CFG.alerta : CFG.periodo; },
       suave(v) { bat.suave = !!v; },
       qualidade(q) { qualidadeNos = q; /* só efeitos de glow: a nitidez do núcleo (corpo, rede, poliedros) nunca muda */ halos[2].visible = flare2.visible = plasmaB.visible = q >= 1; },
       estado: () => ({escala: bat.escala, glow: bat.glow, fase: bat.t, periodo: bat.T, angulo: ay}),
