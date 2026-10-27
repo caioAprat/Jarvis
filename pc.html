@@ -636,6 +636,14 @@ function ligarMapa() {
   MV.modo(geral ? 'palco' : 'fundo');
   MV.rolagem(geral ? window.scrollY / (innerHeight * .7) : 0);
   MV.atualizar(S.P.estado.projetos, { estado: S.sit[0], titulo: S.sit[1] });
+  // ritmo cardíaco acelera com avisos novos; avisos/pedidos novos viram pacotes maiores até o projeto envolvido
+  const avs = S.P.estado.avisos || [], novosAv = avs.filter(a => a.id > (S.P.estado.avisosVistosAte || 0)).length, maxAv = avs.reduce((m, a) => Math.max(m, a.id || 0), 0);
+  MV.ritmo(novosAv > 0);
+  if (S.avisoVisto === undefined) S.avisoVisto = maxAv;
+  else if (maxAv > S.avisoVisto) { avs.filter(a => a.id > S.avisoVisto).forEach(a => MV.evento(a.projeto, 'aviso')); S.avisoVisto = maxAv; }
+  const peds = S.P.pedidos || [], maxPd = peds.reduce((m, x) => Math.max(m, x.id || 0), 0);
+  if (S.pedidoVisto === undefined) S.pedidoVisto = maxPd;
+  else if (maxPd > S.pedidoVisto) { peds.filter(x => x.id > S.pedidoVisto).forEach(x => MV.evento(x.projeto || 'jarvis', 'pedido')); S.pedidoVisto = maxPd; }
   MV.selecionar(S.sel);
   MV.jornada(geral ? document.getElementById('jornada') : null);
 }
