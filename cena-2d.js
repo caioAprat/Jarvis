@@ -9,18 +9,18 @@ window.CenaJarvis = (() => {
     el.innerHTML = '<img class="cena-reserva" src="assets/scene/fallback-nucleo.webp" alt="Núcleo luminoso do Jarvão"><div class="cena-boot" role="status">Iniciando núcleo…</div><div class="cena-rotulos"></div>';
     const labels=el.lastElementChild, boot=el.querySelector('.cena-boot');
     const media=matchMedia('(prefers-reduced-motion: reduce)');
-    let app, world, assets, core, mesh, corona, ring, glow, lines, sparks, foreground;
+    let app, world, assets, core, nuc, lines, sparks, foreground;
     let projects=[], nodes=[], backgrounds=[], stars=[], paused=false, visible=true, dead=false, failed=false, selected='', mode='palco';
     let firstRender=null, ticks=0, elapsed=0, frames=0, quality=1, slow=0, loopAttached=false, lastTime=0;
-    const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0,anchorY:.43}, breath={scale:1,alpha:.8};
-    let master=null, lenis=null, journey=null, breathTween=null, revealed=false;
+    const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0,anchorY:.43};
+    let master=null, lenis=null, journey=null, revealed=false;
     const mobile=()=>innerWidth<700;
     const sprite=(texture,parent,size)=>{ const s=new PIXI.Sprite(texture);s.anchor.set(.5);if(size)s.width=s.height=size;parent.addChild(s);return s; };
-    function fallback(error) { failed=true;lenis?.destroy();lenis=null;el.dataset.fallback='true';boot.hidden=false;boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
+    function fallback(error) { console.error('Jarvão: cena 2D em modo estático —',error);failed=true;lenis?.destroy();lenis=null;el.dataset.fallback='true';boot.hidden=false;boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
     async function start() {
       try {
         if(!window.PIXI || !window.gsap) throw new Error('Biblioteca indisponível');
-        const sheets=['nucleo-0','nucleo-1','gemas','universo'];
+        const sheets=['nucleo-1','gemas','universo'];
         assets=await Promise.all(sheets.map(async name=>{try{return await PIXI.Assets.load('assets/scene/'+name+'.json');}catch(e){return PIXI.Assets.load('assets/scene/'+name+'-png.json');}}));
         if(dead)return;
         app=new PIXI.Application();
@@ -28,7 +28,7 @@ window.CenaJarvis = (() => {
         if(dead){app.destroy(true,{children:true});return;}
         el.prepend(app.canvas);app.canvas.setAttribute('aria-hidden','true');
         app.canvas.addEventListener('webglcontextlost',contextLost);
-        const universe=assets[3].textures;
+        const universe=assets[2].textures;
         const nebula=new PIXI.Container();app.stage.addChild(nebula);
         for(let i=0;i<3;i++){const n=sprite(universe['nebulosa-'+i],nebula,innerWidth*.95);n.position.set(innerWidth*(.2+i*.35),innerHeight*(.25+i*.25));n.alpha=.26;n.blendMode='add';}
         nebula.cacheAsTexture({resolution:.5});
@@ -47,17 +47,11 @@ window.CenaJarvis = (() => {
         for(let i=0;i<3;i++)orbits.ellipse(0,0,350+i*100,155+i*55).stroke({color:0xc58242,width:.6,alpha:.19});
         orbits.cacheAsTexture({resolution:1});
         lines=new PIXI.Graphics();world.addChild(lines);
-        core=new PIXI.Container();world.addChild(core);
-        corona=sprite(assets[1].textures.corona,core,640);corona.blendMode='add';corona.alpha=.4;
-        ring=sprite(assets[1].textures.aneis,core,720);ring.blendMode='add';ring.alpha=.7;
-        mesh=new PIXI.AnimatedSprite(assets[0].animations.rede,false);mesh.anchor.set(.5);mesh.width=mesh.height=440;mesh.tint=0xffa34e;mesh.alpha=.85;core.addChild(mesh);
-        const center=sprite(assets[1].textures.nucleo,core,480);center.blendMode='add';
-        glow=sprite(assets[1].textures.glow,core,510);glow.blendMode='add';glow.alpha=.55;
+        nuc=NucleoJarvo.criar(PIXI,{raio:165,tam:mobile()?1024:2048,frequencia:mobile()?8:12,nos:mobile()?90:190});core=nuc.container;world.addChild(core);
         sparks=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:true,vertex:true,rotation:false}});core.addChild(sparks);
         for(let i=0;i<90;i++)sparks.addParticle(new PIXI.Particle({texture:universe.poeira,tint:0xffb85e,scaleX:.12,scaleY:.12}));
         foreground=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:false,vertex:false,rotation:false}});app.stage.addChild(foreground);
         for(let i=0;i<60;i++)foreground.addParticle(new PIXI.Particle({texture:universe.poeira,tint:0xe89b55,alpha:.3,scaleX:.15,scaleY:.15}));
-        breathTween=gsap.to(breath,{scale:1.045,alpha:1,duration:2.8,repeat:-1,yoyo:true,ease:'sine.inOut',paused:media.matches});
         boot.hidden=true;el.dataset.ready='true';rebuild();resize();syncLoop();
       }catch(e){fallback(e);}
     }
@@ -69,10 +63,10 @@ window.CenaJarvis = (() => {
         button.innerHTML='<span>'+esc(p.nome)+'</span><small>'+esc(nomes[p.status]||p.status)+'</small>';button.onclick=()=>options.aoSelecionar?.(p.id);labels.appendChild(button);
         if(!world)return;
         const body=new PIXI.Container();world.addChild(body);
-        const halo=sprite(assets[1].textures.glow,body,150);halo.tint=cores[p.status]||cores.config;halo.alpha=.7;halo.blendMode='add';
+        const halo=sprite(assets[0].textures.glow,body,150);halo.tint=cores[p.status]||cores.config;halo.alpha=.7;halo.blendMode='add';
         // Anel de status: mostra de longe quem está ok, parado ou com problema.
         const anel=new PIXI.Graphics().circle(0,0,46).stroke({color:cores[p.status]||cores.config,width:1.4,alpha:p.status==='pausado'?.3:.7});body.addChild(anel);
-        const gem=new PIXI.AnimatedSprite(assets[2].animations.gema,false);gem.anchor.set(.5);gem.width=gem.height=68;gem.tint=cores[p.status]||cores.config;body.addChild(gem);
+        const gem=new PIXI.AnimatedSprite(assets[1].animations.gema,false);gem.anchor.set(.5);gem.width=gem.height=68;gem.tint=cores[p.status]||cores.config;body.addChild(gem);
         const angle=-Math.PI/2+i*Math.PI*2/Math.max(1,projects.length);
         const pulse={value:0};const tween=p.status==='pausado'?null:gsap.to(pulse,{value:1,duration:p.status==='ok'?3:6,repeat:-1,yoyo:p.status==='ok',ease:'sine.inOut',paused:media.matches});
         nodes.push({p,body,gem,halo,button,angle,x:Math.cos(angle)*470,y:Math.sin(angle)*275,pulse,tween});
@@ -89,8 +83,7 @@ window.CenaJarvis = (() => {
       
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
       world.position.set(w*cx-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
-      core.scale.set(breath.scale);glow.alpha=.45*breath.alpha;corona.alpha=.32+.12*breath.alpha;
-      mesh.gotoAndStop(Math.floor(elapsed*12)%96);mesh.scale.set((440/384)*(1+camera.opening*.18));ring.rotation=Math.sin(elapsed*.08)*.07;
+      nuc.suave(media.matches);nuc.atualizar(dt/1000);
       for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
       drawConnections();
       for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
@@ -128,13 +121,13 @@ window.CenaJarvis = (() => {
       if(paused||!visible||document.hidden||mode==='fundo'||failed)return;
       lenis?.raf(time*1000);elapsed+=Math.min(delta,100)/1000;ticks++;lastTime=time;
       if(delta>20)slow+=Math.min(delta,100);else slow=Math.max(0,slow-20);
-      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;app.renderer.resolution=Math.min(devicePixelRatio||1,1,Math.sqrt(600000/(app.screen.width*app.screen.height)));el.dataset.quality='adaptativa';}
+      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;nuc?.qualidade(.65);el.dataset.quality='adaptativa';}
       draw(delta);
     }
     function syncLoop(){
       const active=!dead&&!failed&&!paused&&visible&&!document.hidden&&mode!=='fundo';
       const animated=active&&!media.matches;
-      breathTween?.paused(!animated);nodes.forEach(n=>n.tween?.paused(!animated));
+      nodes.forEach(n=>n.tween?.paused(!animated));
       if(animated&&!loopAttached){gsap.ticker.add(tick);loopAttached=true;}
       if(!animated&&loopAttached){gsap.ticker.remove(tick);loopAttached=false;}
       if(active)draw(0);
@@ -187,13 +180,13 @@ window.CenaJarvis = (() => {
     };
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
-    return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(glow&&!media.matches)gsap.fromTo(breath,{alpha:1.8},{alpha:.8,duration:1});},jornada:connectJourney,
-      depurar:()=>({ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
+    return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(nuc&&!media.matches){const o=nuc.ondas.find(w=>w.t>.7)||nuc.ondas[0];o.t=0;}},jornada:connectJourney,
+      depurar:()=>({nucleo:nuc,ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
         // Caixa conservadora da região incandescente central (não inclui corona transparente).
-        coreBounds:world?{x:world.x-90*world.scale.x*breath.scale,y:world.y-90*world.scale.y*breath.scale,width:180*world.scale.x*breath.scale,height:180*world.scale.y*breath.scale}:null,
+        coreBounds:world?{x:world.x-90*world.scale.x*(nuc?nuc.batida.escala:1),y:world.y-90*world.scale.y*(nuc?nuc.batida.escala:1),width:180*world.scale.x*(nuc?nuc.batida.escala:1),height:180*world.scale.y*(nuc?nuc.batida.escala:1)}:null,
         resolution:app?.renderer.resolution,backgrounds:backgrounds.map(b=>({x:b.s.x,y:b.s.y,visible:b.s.visible,depth:b.depth})),
         endpoints:nodes.map(n=>({id:n.p.id,x:n.body.x,y:n.body.y,status:n.p.status}))}),
-      destruir(){dead=true;syncLoop();master?.kill();lenis?.destroy();breathTween?.kill();nodes.forEach(n=>n.tween?.kill());observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);media.removeEventListener('change',onMotion);window.removeEventListener('resize',resize);window.removeEventListener('scroll',onScroll);app?.destroy(true,{children:true});el.remove();}
+      destruir(){dead=true;syncLoop();master?.kill();lenis?.destroy();nodes.forEach(n=>n.tween?.kill());observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);media.removeEventListener('change',onMotion);window.removeEventListener('resize',resize);window.removeEventListener('scroll',onScroll);app?.destroy(true,{children:true});el.remove();}
     };
   }
   return {montar,cores,nomes};
