@@ -1,6 +1,6 @@
 {
   "phase": 8,
-  "generated_at": "2026-10-26T17:50:20.223Z",
+  "generated_at": "2026-10-27T02:28:25.195Z",
   "browser": "154.0.8037.57",
   "methodology": "5s warmup + 10s estático, cache desativado, trace na mesma janela. FPS = chamadas completas app.render; CPU CDP thread principal; heap JS. Headless com software renderer, mesma máquina e viewport da baseline. Dados fictícios do mesmo simulador. Agora inclui viagem e atlas novos.",
   "runs": [
@@ -11,17 +11,17 @@
         "width": 1920,
         "height": 1080
       },
-      "average_scene_render_calls_per_second": 18.11233629234438,
-      "renderer_main_thread_busy_percent": 99.74061677749197,
-      "js_heap_used_bytes": 23453952,
-      "first_scene_render_completed_ms": 1992.699999999255,
-      "total_encoded_transfer_bytes": 1264171,
-      "javascript_encoded_transfer_bytes": 1005648,
+      "average_scene_render_calls_per_second": 18.939771526551212,
+      "renderer_main_thread_busy_percent": 99.87602151443274,
+      "js_heap_used_bytes": 23440476,
+      "first_scene_render_completed_ms": 703.2000000029802,
+      "total_encoded_transfer_bytes": 1180743,
+      "javascript_encoded_transfer_bytes": 1006669,
       "scene": {
         "ready": true,
         "failed": false,
-        "firstRender": 1992.699999999255,
-        "frames": 248,
+        "firstRender": 703.2000000029802,
+        "frames": 249,
         "ticks": 255,
         "quality": 0.65,
         "projects": 7,
@@ -30,125 +30,205 @@
         "renderer": "webgl",
         "reduced": false,
         "loop": true,
+        "coreBounds": {
+          "x": 1076.0180131764707,
+          "y": 458.01801317647056,
+          "width": 228.7639736470588,
+          "height": 228.7639736470588
+        },
+        "resolution": 0.537914353639919,
+        "backgrounds": [
+          {
+            "x": 82.80000000000018,
+            "y": 50.40000000000009,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 603.1199999999999,
+            "y": 522.3599999999999,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 1123.44,
+            "y": -85.68000000000006,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 1643.7600000000002,
+            "y": 386.27999999999975,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 244.08000000000038,
+            "y": 858.2400000000002,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 764.4000000000001,
+            "y": 250.19999999999982,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 1284.7200000000003,
+            "y": 722.1599999999999,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 1805.0400000000009,
+            "y": 114.12000000000012,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 405.3600000000001,
+            "y": 586.0799999999999,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 925.6799999999998,
+            "y": -21.960000000000264,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 1445.9999999999995,
+            "y": 450,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 46.320000000000164,
+            "y": 921.96,
+            "visible": true,
+            "depth": 0.31
+          }
+        ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 18.924696890678707,
-            "y": -270.1343595726914,
+            "x": 18.413394361195166,
+            "y": -270.80596905643125,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 378.9621501897076,
-            "y": -158.31747034461003,
+            "x": 378.65924953576774,
+            "y": -158.05825828148804,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 453.6333749768021,
-            "y": 72.71570314081775,
+            "x": 453.7669665688699,
+            "y": 73.71054478030827,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 186.7094159718823,
-            "y": 248.99246903118393,
+            "x": 187.17890261635887,
+            "y": 249.9738042014354,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -220.8105414378647,
-            "y": 237.7728272203217,
+            "x": -220.35869276005238,
+            "y": 238.0016905225454,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -462.0556574307101,
-            "y": 47.50539683079456,
+            "x": -461.96169798998807,
+            "y": 46.80944953045551,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -355.3634391604959,
-            "y": -178.53456630581647,
+            "x": -355.6981223321512,
+            "y": -179.63126169682522,
             "status": "pausado"
           }
         ]
       },
       "errors": [],
-      "failures": [],
+      "failures": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "error": "net::ERR_CERT_AUTHORITY_INVALID"
+        }
+      ],
       "resources": [
         {
-          "url": "http://127.0.0.1:8001/pc.html?demo",
+          "url": "http://127.0.0.1:8002/pc.html?demo",
           "type": "Document",
           "status": 200,
           "bytes": 76511
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "url": "http://127.0.0.1:8002/vendor/lenis.css",
           "type": "Stylesheet",
           "status": 200,
           "bytes": 699
         },
         {
-          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "url": "http://127.0.0.1:8002/cena-2d.css",
           "type": "Stylesheet",
           "status": 200,
-          "bytes": 9117
+          "bytes": 9186
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
+          "url": "http://127.0.0.1:8002/vendor/gsap.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 73122
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 44770
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
+          "url": "http://127.0.0.1:8002/vendor/lenis.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 19010
         },
         {
-          "url": "http://127.0.0.1:8001/cena-2d.js",
+          "url": "http://127.0.0.1:8002/vendor/ScrollTrigger.min.js",
           "type": "Script",
           "status": 200,
-          "bytes": 17456
+          "bytes": 44770
         },
         {
-          "url": "http://127.0.0.1:8001/demo.js",
+          "url": "http://127.0.0.1:8002/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 18477
+        },
+        {
+          "url": "http://127.0.0.1:8002/demo.js",
           "type": "Script",
           "status": 200,
           "bytes": 1475
         },
         {
-          "url": "http://127.0.0.1:8001/jornada.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 3277
-        },
-        {
-          "url": "http://127.0.0.1:8001/mapa-2d.js",
+          "url": "http://127.0.0.1:8002/mapa-2d.js",
           "type": "Script",
           "status": 200,
           "bytes": 5679
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "url": "http://127.0.0.1:8002/jornada.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 3277
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/pixi.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 840859
-        },
-        {
-          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
-          "type": "Stylesheet",
-          "status": 200,
-          "bytes": 1443
         },
         {
           "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
@@ -157,7 +237,7 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "url": "http://127.0.0.1:8002/assets/demo.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 6230
@@ -169,60 +249,47 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-1.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 1136
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
-          "type": "Fetch",
-          "status": 200,
-          "bytes": 3450
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
-          "type": "Fetch",
-          "status": 200,
-          "bytes": 13023
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
+          "url": "http://127.0.0.1:8002/assets/scene/fallback-nucleo.webp",
           "type": "Image",
           "status": 200,
           "bytes": 41996
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "url": "http://127.0.0.1:8002/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/scene/universo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 3450
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-0.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 20070
         },
         {
-          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 33468
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 18041
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 31566
-        },
-        {
-          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "url": "http://127.0.0.1:8002/icons/jarvis.svg",
           "type": "Other",
           "status": 200,
           "bytes": 1773
         }
-      ]
+      ],
+      "frame_ms": {
+        "mean": 52.778835978851745,
+        "p95": 63.599999994039536,
+        "max": 68.89999999850988
+      }
     },
     {
       "target": {
@@ -231,18 +298,18 @@
         "width": 390,
         "height": 844
       },
-      "average_scene_render_calls_per_second": 43.975549195772686,
-      "renderer_main_thread_busy_percent": 99.73093465524092,
-      "js_heap_used_bytes": 16893628,
-      "first_scene_render_completed_ms": 1039.699999999255,
-      "total_encoded_transfer_bytes": 1220218,
-      "javascript_encoded_transfer_bytes": 1005648,
+      "average_scene_render_calls_per_second": 47.09450830137684,
+      "renderer_main_thread_busy_percent": 99.68537495728259,
+      "js_heap_used_bytes": 13190632,
+      "first_scene_render_completed_ms": 686.7999999970198,
+      "total_encoded_transfer_bytes": 1136790,
+      "javascript_encoded_transfer_bytes": 1006669,
       "scene": {
         "ready": true,
         "failed": false,
-        "firstRender": 1039.699999999255,
-        "frames": 709,
-        "ticks": 715,
+        "firstRender": 686.7999999970198,
+        "frames": 713,
+        "ticks": 720,
         "quality": 0.65,
         "projects": 7,
         "connections": 7,
@@ -250,125 +317,205 @@
         "renderer": "webgl",
         "reduced": false,
         "loop": true,
+        "coreBounds": {
+          "x": 162.60397636363638,
+          "y": 330.5239763636364,
+          "width": 64.79204727272727,
+          "height": 64.79204727272727
+        },
+        "resolution": 1,
+        "backgrounds": [
+          {
+            "x": -54.89999999999998,
+            "y": 19.720000000000027,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 50.789999999999964,
+            "y": 388.548,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 156.48000000000002,
+            "y": -86.62400000000002,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 262.1700000000001,
+            "y": 282.2039999999997,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": -22.139999999999873,
+            "y": 651.0320000000002,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 83.54999999999995,
+            "y": 175.8599999999999,
+            "visible": false,
+            "depth": 0.31
+          },
+          {
+            "x": 189.24,
+            "y": 544.6879999999996,
+            "visible": false,
+            "depth": 0.13
+          },
+          {
+            "x": 294.93000000000006,
+            "y": 69.51600000000008,
+            "visible": false,
+            "depth": 0.22
+          },
+          {
+            "x": 10.620000000000005,
+            "y": 438.34400000000005,
+            "visible": false,
+            "depth": 0.31
+          },
+          {
+            "x": 116.30999999999995,
+            "y": -36.8280000000002,
+            "visible": false,
+            "depth": 0.13
+          },
+          {
+            "x": 222,
+            "y": 332,
+            "visible": false,
+            "depth": 0.22
+          },
+          {
+            "x": -62.309999999999945,
+            "y": 700.8280000000002,
+            "visible": false,
+            "depth": 0.31
+          }
+        ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 20.565624730233353,
-            "y": -270.3482709425983,
+            "x": 19.408810896759455,
+            "y": -269.80355068974944,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 379.9313071485692,
-            "y": -161.02508979173774,
+            "x": 379.2485423094124,
+            "y": -158.85925564853434,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 453.20096609774873,
-            "y": 69.5532682855276,
+            "x": 453.5063861026587,
+            "y": 71.70929903428832,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 185.2010539603748,
-            "y": 247.75659671567956,
+            "x": 186.26467131622158,
+            "y": 248.27928894116855,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -222.25902922218336,
-            "y": 239.39415450537888,
+            "x": -221.2381400781925,
+            "y": 237.8899103008245,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -462.35353014248193,
-            "y": 50.763031201715854,
+            "x": -462.14411955811556,
+            "y": 48.36457713413741,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -354.2863925722607,
-            "y": -176.0936899739658,
+            "x": -355.04615098874416,
+            "y": -177.58026907213497,
             "status": "pausado"
           }
         ]
       },
       "errors": [],
-      "failures": [],
+      "failures": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "error": "net::ERR_CERT_AUTHORITY_INVALID"
+        }
+      ],
       "resources": [
         {
-          "url": "http://127.0.0.1:8001/index.html?demo",
+          "url": "http://127.0.0.1:8002/index.html?demo",
           "type": "Document",
           "status": 200,
           "bytes": 32558
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "url": "http://127.0.0.1:8002/vendor/lenis.css",
           "type": "Stylesheet",
           "status": 200,
           "bytes": 699
         },
         {
-          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "url": "http://127.0.0.1:8002/cena-2d.css",
           "type": "Stylesheet",
           "status": 200,
-          "bytes": 9117
+          "bytes": 9186
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
+          "url": "http://127.0.0.1:8002/vendor/lenis.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 19010
         },
         {
-          "url": "http://127.0.0.1:8001/cena-2d.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 17456
-        },
-        {
-          "url": "http://127.0.0.1:8001/mapa-2d.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 5679
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 73122
-        },
-        {
-          "url": "http://127.0.0.1:8001/demo.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 1475
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
+          "url": "http://127.0.0.1:8002/vendor/ScrollTrigger.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 44770
         },
         {
-          "url": "http://127.0.0.1:8001/jornada.js",
+          "url": "http://127.0.0.1:8002/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 18477
+        },
+        {
+          "url": "http://127.0.0.1:8002/jornada.js",
           "type": "Script",
           "status": 200,
           "bytes": 3277
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "url": "http://127.0.0.1:8002/demo.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 1475
+        },
+        {
+          "url": "http://127.0.0.1:8002/mapa-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 5679
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/gsap.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 73122
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/pixi.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 840859
-        },
-        {
-          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
-          "type": "Stylesheet",
-          "status": 200,
-          "bytes": 1443
         },
         {
           "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
@@ -377,7 +524,13 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "url": "http://127.0.0.1:8002/assets/scene/fallback-nucleo.webp",
+          "type": "Image",
+          "status": 200,
+          "bytes": 41996
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/demo.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 6230
@@ -389,60 +542,41 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
-          "type": "Fetch",
-          "status": 200,
-          "bytes": 13023
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-1.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 1136
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
+          "url": "http://127.0.0.1:8002/assets/scene/universo.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 3450
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "url": "http://127.0.0.1:8002/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-0.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 20070
         },
         {
-          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 32002
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
-          "type": "Image",
-          "status": 200,
-          "bytes": 41996
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 33031
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 18042
-        },
-        {
-          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "url": "http://127.0.0.1:8002/icons/jarvis.svg",
           "type": "Other",
           "status": 200,
           "bytes": 1773
         }
-      ]
+      ],
+      "frame_ms": {
+        "mean": 21.234394904455435,
+        "p95": 24.399999998509884,
+        "max": 32.899999998509884
+      }
     },
     {
       "target": {
@@ -451,18 +585,18 @@
         "width": 1366,
         "height": 768
       },
-      "average_scene_render_calls_per_second": 19.09118027244705,
-      "renderer_main_thread_busy_percent": 99.86654654180477,
-      "js_heap_used_bytes": 12092172,
-      "first_scene_render_completed_ms": 1575.5999999996275,
-      "total_encoded_transfer_bytes": 1264169,
-      "javascript_encoded_transfer_bytes": 1005648,
+      "average_scene_render_calls_per_second": 19.387359441655537,
+      "renderer_main_thread_busy_percent": 99.83847736388188,
+      "js_heap_used_bytes": 21073124,
+      "first_scene_render_completed_ms": 682,
+      "total_encoded_transfer_bytes": 1180743,
+      "javascript_encoded_transfer_bytes": 1006669,
       "scene": {
         "ready": true,
         "failed": false,
-        "firstRender": 1575.5999999996275,
-        "frames": 293,
-        "ticks": 300,
+        "firstRender": 682,
+        "frames": 280,
+        "ticks": 288,
         "quality": 0.65,
         "projects": 7,
         "connections": 7,
@@ -470,125 +604,205 @@
         "renderer": "webgl",
         "reduced": false,
         "loop": true,
+        "coreBounds": {
+          "x": 765.268462682353,
+          "y": 325.38846268235295,
+          "width": 163.30307463529414,
+          "height": 163.30307463529414
+        },
+        "resolution": 0.7562574491725618,
+        "backgrounds": [
+          {
+            "x": 32.940000000000055,
+            "y": 9.840000000000146,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 403.126,
+            "y": 345.4559999999999,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 773.3119999999999,
+            "y": -86.928,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 1143.498,
+            "y": 248.68799999999987,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 147.6840000000002,
+            "y": 584.3040000000001,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 517.8699999999999,
+            "y": 151.92000000000007,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 888.0560000000005,
+            "y": 487.53599999999983,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 1258.2420000000002,
+            "y": 55.152000000000044,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 262.4279999999999,
+            "y": 390.76800000000003,
+            "visible": true,
+            "depth": 0.31
+          },
+          {
+            "x": 632.614,
+            "y": -41.61600000000021,
+            "visible": true,
+            "depth": 0.13
+          },
+          {
+            "x": 1002.7999999999997,
+            "y": 294,
+            "visible": true,
+            "depth": 0.22
+          },
+          {
+            "x": 6.986000000000331,
+            "y": 629.6160000000002,
+            "visible": true,
+            "depth": 0.31
+          }
+        ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 20.666763276725636,
-            "y": -270.4845678973269,
+            "x": 19.755610947551624,
+            "y": -269.7665106878779,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 379.99089416882674,
-            "y": -161.25024143650882,
+            "x": 379.45346196660023,
+            "y": -159.4008915434086,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 453.174131350164,
-            "y": 69.40880573148323,
+            "x": 453.41511668478057,
+            "y": 70.99685011886729,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 185.1080045572081,
-            "y": 247.80160650205644,
+            "x": 185.9459405564965,
+            "y": 247.9325155698221,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -222.34822518248555,
-            "y": 239.59474334500283,
+            "x": -221.54432141676875,
+            "y": 238.16993989506426,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -462.3717062825461,
-            "y": 50.968151607083406,
+            "x": -462.20719068263406,
+            "y": 49.0605416979381,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -354.2198618878928,
-            "y": -176.03849785179014,
+            "x": -354.818618056026,
+            "y": -176.99244505040514,
             "status": "pausado"
           }
         ]
       },
       "errors": [],
-      "failures": [],
+      "failures": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "error": "net::ERR_CERT_AUTHORITY_INVALID"
+        }
+      ],
       "resources": [
         {
-          "url": "http://127.0.0.1:8001/pc.html?demo",
+          "url": "http://127.0.0.1:8002/pc.html?demo",
           "type": "Document",
           "status": 200,
           "bytes": 76511
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "url": "http://127.0.0.1:8002/vendor/lenis.css",
           "type": "Stylesheet",
           "status": 200,
           "bytes": 699
         },
         {
-          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "url": "http://127.0.0.1:8002/cena-2d.css",
           "type": "Stylesheet",
           "status": 200,
-          "bytes": 9117
+          "bytes": 9186
         },
         {
-          "url": "http://127.0.0.1:8001/mapa-2d.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 5679
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 19010
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 73122
-        },
-        {
-          "url": "http://127.0.0.1:8001/jornada.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 3277
-        },
-        {
-          "url": "http://127.0.0.1:8001/demo.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 1475
-        },
-        {
-          "url": "http://127.0.0.1:8001/cena-2d.js",
-          "type": "Script",
-          "status": 200,
-          "bytes": 17456
-        },
-        {
-          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
+          "url": "http://127.0.0.1:8002/vendor/ScrollTrigger.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 44770
         },
         {
-          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "url": "http://127.0.0.1:8002/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 18477
+        },
+        {
+          "url": "http://127.0.0.1:8002/mapa-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 5679
+        },
+        {
+          "url": "http://127.0.0.1:8002/jornada.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 3277
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/gsap.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 73122
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/lenis.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 19010
+        },
+        {
+          "url": "http://127.0.0.1:8002/demo.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 1475
+        },
+        {
+          "url": "http://127.0.0.1:8002/vendor/pixi.min.js",
           "type": "Script",
           "status": 200,
           "bytes": 840859
-        },
-        {
-          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
-          "type": "Stylesheet",
-          "status": 200,
-          "bytes": 1443
         },
         {
           "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
@@ -597,7 +811,7 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "url": "http://127.0.0.1:8002/assets/demo.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 6230
@@ -609,60 +823,47 @@
           "bytes": 0
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
-          "type": "Image",
-          "status": 200,
-          "bytes": 41996
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
-          "type": "Fetch",
-          "status": 200,
-          "bytes": 13023
-        },
-        {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-1.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 1136
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
+          "url": "http://127.0.0.1:8002/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/scene/fallback-nucleo.webp",
+          "type": "Image",
+          "status": 200,
+          "bytes": 41996
+        },
+        {
+          "url": "http://127.0.0.1:8002/assets/scene/universo.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 3450
         },
         {
-          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "url": "http://127.0.0.1:8002/assets/scene/nucleo-0.json",
           "type": "Fetch",
           "status": 200,
           "bytes": 20070
         },
         {
-          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 32001
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 33031
-        },
-        {
-          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
-          "type": "Font",
-          "status": 200,
-          "bytes": 18041
-        },
-        {
-          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "url": "http://127.0.0.1:8002/icons/jarvis.svg",
           "type": "Other",
           "status": 200,
           "bytes": 1773
         }
-      ]
+      ],
+      "frame_ms": {
+        "mean": 51.52164948451304,
+        "p95": 59.70000000298023,
+        "max": 82.5
+      }
     }
   ]
 }

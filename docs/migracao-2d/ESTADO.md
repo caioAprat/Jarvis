@@ -23,11 +23,11 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 ## Pendências
 - ✅ Geometria medida nas três viewports; console tem somente erro externo de certificado das fontes.
-- ⚠️ Relatório final com métricas medidas; não há build/lint/typecheck configurados.
+- ✅ Relatório final em `relatorio.md`: FPS/frame/CPU/heap/JS/primeiro render; build/lint/typecheck inexistentes, sintaxe e testes verificados.
 - ⚠️ CPU, heap e download não diminuíram; 60 fps em hardware real não comprovados.
 - ⚠️ Fontes Google: Chromium rejeita CA atual do proxy; corrigir NSS exige acesso fora do projeto, proibido nesta sessão. Não desativar TLS.
 - ⚠️ Após duas tentativas, teste novo `verificar-robustez.cjs` falha na troca reduce → no-preference (timeout na retomada). Não insistido; priorizar no Claude. Demais casos testados separadamente.
-- ⚠️ Preparar CLAUDE.md, exclusões de temporários e tag final `handoff-claude-code`.
+- ✅ CLAUDE.md e exclusões prontos; tag final `handoff-claude-code` será aplicada após o último commit.
 
 ## Rodar e verificar (na raiz do projeto)
 `python3 -m http.server 8001 --bind 127.0.0.1`
@@ -35,7 +35,12 @@ Abrir `http://127.0.0.1:8001/demo.html` (dados fictícios, sem produção).
 `/workspace/.jarvis-tools/node_modules/.bin/node testes/testes.js`
 `node scripts/migracao-2d/verificar-ui.cjs`
 `node scripts/migracao-2d/verificar-offline.cjs`
-`node scripts/migracao-2d/medir-depois.cjs`
+`node scripts/migracao-2d/verificar-fontes.cjs`
+`node scripts/migracao-2d/medir-layout.cjs` (33 pontos e capturas, sem abrir imagens)
+`JARVIS_NO_CAPTURES=1 node scripts/migracao-2d/medir-depois.cjs` (FPS, frame, CDP)
+`JARVIS_ROBUST_CASE=scroll node scripts/migracao-2d/verificar-robustez.cjs` (passa)
+`node scripts/migracao-2d/verificar-robustez.cjs` (inclui pendência de troca de preferência)
+Nesta sessão foi usada porta 8002 com `JARVIS_TEST_URL=http://127.0.0.1:8002`; offline mantém 8001.
 Ferramentas já instaladas em `/workspace/.jarvis-audit-tools`; não reinstalar.
 
 ## Arquivos-chave
@@ -48,6 +53,7 @@ Ferramentas já instaladas em `/workspace/.jarvis-audit-tools`; não reinstalar.
 - `CREDITS.md`: procedência e licenças; assets finais já aprovados tecnicamente.
 
 ## Riscos / próximos passos
-1. Medir e corrigir F/G; registrar falhas após duas tentativas sem insistir.
-2. Fechar A honestamente: não apagar histórico nem adulterar Pixi para zerar palavras.
-3. Claude/usuário: polimento estético e teste em GPU/Safari reais antes de publicar.
+1. Corrigir G: retomada na troca de preferência, mantendo acesso nativo e fallback.
+2. Certificado das fontes exige autorização externa; console zero ainda não cumprido.
+3. A: reduzir JS; não apagar histórico nem adulterar Pixi para zerar palavras. FPS melhorou, CPU/heap/JS não.
+4. Claude/usuário: polimento estético e teste em GPU/Safari reais antes de publicar.
