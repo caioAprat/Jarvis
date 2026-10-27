@@ -1,0 +1,16 @@
+{
+  "results": [
+    "Adição e remoção de projetos atualiza sprites e conexões",
+    "Órbitas atualizam posições",
+    "Ctrl K abre busca e Escape fecha",
+    "Oito seções navegam sem erro de montagem",
+    "Conferir tudo atualiza fixture sem acessar produção",
+    "Pausa interrompe renderização",
+    "Perda de contexto usa imagem e mantém texto",
+    "Movimento reduzido sem loop contínuo",
+    "Falha WebP recupera atlas PNG",
+    "Falha total dos atlas mantém texto e imagem estática",
+    "Integração original GET/POST validada contra simulador Apps Script"
+  ],
+  "errors": []
+}

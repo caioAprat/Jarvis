@@ -31,6 +31,7 @@ window.CenaJarvis = (() => {
         const universe=assets[3].textures;
         const nebula=new PIXI.Container();app.stage.addChild(nebula);
         for(let i=0;i<3;i++){const n=sprite(universe['nebulosa-'+i],nebula,innerWidth*.95);n.position.set(innerWidth*(.2+i*.35),innerHeight*(.25+i*.25));n.alpha=.26;n.blendMode='add';}
+        nebula.cacheAsTexture({resolution:.5});
         // Texturas prontas: brilho sem filtro pesado durante o desenho.
         for(let depth=0;depth<3;depth++){
           const container=new PIXI.ParticleContainer({dynamicProperties:{position:true,vertex:true,color:false,rotation:false}});app.stage.addChild(container);
@@ -123,7 +124,7 @@ window.CenaJarvis = (() => {
       if(paused||!visible||document.hidden||mode==='fundo'||failed)return;
       lenis?.raf(time*1000);elapsed+=Math.min(delta,100)/1000;ticks++;lastTime=time;
       if(delta>20)slow+=Math.min(delta,100);else slow=Math.max(0,slow-20);
-      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;app.renderer.resolution=Math.min(devicePixelRatio||1,1);el.dataset.quality='adaptativa';}
+      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;app.renderer.resolution=Math.min(devicePixelRatio||1,1,Math.sqrt(600000/(app.screen.width*app.screen.height)));el.dataset.quality='adaptativa';}
       draw(delta);
     }
     function syncLoop(){
@@ -143,8 +144,9 @@ window.CenaJarvis = (() => {
       if(!lenis&&!media.matches&&window.Lenis){lenis=new Lenis({autoRaf:false,smoothWheel:true,duration:1.15});lenis.on('scroll',ScrollTrigger.update);gsap.ticker.lagSmoothing(0);}
       if(media.matches&&lenis){lenis.destroy();lenis=null;}
       const sections=[...root.querySelectorAll('.viagem-etapa')];
-      const renderProgress=()=>{if(media.matches)draw(0);};
-      master=gsap.timeline({scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:media.matches?true:1,onUpdate:renderProgress}});
+      root.classList.toggle('jornada-ativa',!media.matches);
+      const renderProgress=()=>{const current=Math.round(camera.progress*(sections.length-1));sections.forEach((s,i)=>{const content=s.querySelector('.viagem-texto');if(!media.matches){content.inert=i!==current||root.classList.contains('jornada-fora');content.style.pointerEvents=i===current?'auto':'none';}});if(media.matches)draw(0);};
+      master=gsap.timeline({scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:media.matches?true:1,onUpdate:renderProgress,onLeave:()=>{root.classList.add('jornada-fora');sections.forEach(s=>s.querySelector('.viagem-texto').inert=true);},onEnterBack:()=>{root.classList.remove('jornada-fora');renderProgress();}}});
       gsap.set(camera,{x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0});
       const steps=[{x:0,y:0,zoom:1,rotation:0,focus:-1,opening:0},
         {x:mobile()?0:-110,y:0,zoom:1.55,rotation:.025,focus:-1,opening:1},
@@ -153,9 +155,9 @@ window.CenaJarvis = (() => {
       for(let i=1;i<steps.length;i++)master.to(camera,{...steps[i],progress:i/(steps.length-1),duration:1,ease:'power2.inOut'},i-1);
       sections.forEach((section,i)=>{
         const content=section.querySelector('.viagem-texto');if(!content)return;
-        if(!media.matches){gsap.set(content,{opacity:i?0:1,y:i?32:0});if(i)master.to(content,{opacity:1,y:0,duration:.38,ease:'power2.out'},i-.55);if(i<sections.length-1)master.to(content,{opacity:0,y:-25,duration:.3},i+.25);}
+        if(!media.matches){gsap.set(content,{opacity:i?0:1,y:i?32:0});if(i)master.to(content,{opacity:1,y:0,duration:.1,ease:'power2.out'},i-.6);if(i<sections.length-1)master.to(content,{opacity:0,y:-25,duration:.1},i+.3);}
         else gsap.set(content,{clearProps:'all'});
-        section.querySelectorAll('[data-contar]').forEach(counter=>{const value={n:0};master.to(value,{n:Number(counter.dataset.contar),duration:.5,onUpdate:()=>counter.textContent=Math.round(value.n)},Math.max(0,i-.6));});
+        section.querySelectorAll('[data-contar]').forEach(counter=>{const value={n:0};master.to(value,{n:Number(counter.dataset.contar),duration:.5,onUpdate:()=>counter.textContent=Math.round(value.n)},Math.max(0,i-1));});
       });
       if(!revealed&&!media.matches){gsap.from('.viagem-letra',{opacity:0,y:12,stagger:.07,duration:.7,ease:'power2.out'});revealed=true;}
       ScrollTrigger.refresh();

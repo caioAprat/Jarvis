@@ -1,0 +1,29 @@
+{
+  "versions": {
+    "pixi.js": "8.22.0",
+    "gsap": "3.15.0",
+    "lenis": "1.3.27"
+  },
+  "files": {
+    "pixi.min.js": {
+      "bytes": 840663,
+      "sha256": "06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea"
+    },
+    "gsap.min.js": {
+      "bytes": 72927,
+      "sha256": "92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb"
+    },
+    "ScrollTrigger.min.js": {
+      "bytes": 44575,
+      "sha256": "b0b14d67b55b0c43c756ac0b106cfcb09d0879945f6ead64451065b0672916a2"
+    },
+    "lenis.min.js": {
+      "bytes": 18815,
+      "sha256": "80f53e77f1c13e379fc246d2b5e299188e20bcb2b2fe7ebb13e8e8c7563a6da7"
+    },
+    "lenis.css": {
+      "bytes": 513,
+      "sha256": "2f668ae84a668327f246faf8a770383a2bf69196d214290fbc4d5548910606c5"
+    }
+  }
+}

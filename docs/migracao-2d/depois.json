@@ -1,0 +1,668 @@
+{
+  "phase": 8,
+  "generated_at": "2026-10-26T17:50:20.223Z",
+  "browser": "154.0.8037.57",
+  "methodology": "5s warmup + 10s estático, cache desativado, trace na mesma janela. FPS = chamadas completas app.render; CPU CDP thread principal; heap JS. Headless com software renderer, mesma máquina e viewport da baseline. Dados fictícios do mesmo simulador. Agora inclui viagem e atlas novos.",
+  "runs": [
+    {
+      "target": {
+        "name": "pc-1920x1080",
+        "file": "pc.html",
+        "width": 1920,
+        "height": 1080
+      },
+      "average_scene_render_calls_per_second": 18.11233629234438,
+      "renderer_main_thread_busy_percent": 99.74061677749197,
+      "js_heap_used_bytes": 23453952,
+      "first_scene_render_completed_ms": 1992.699999999255,
+      "total_encoded_transfer_bytes": 1264171,
+      "javascript_encoded_transfer_bytes": 1005648,
+      "scene": {
+        "ready": true,
+        "failed": false,
+        "firstRender": 1992.699999999255,
+        "frames": 248,
+        "ticks": 255,
+        "quality": 0.65,
+        "projects": 7,
+        "connections": 7,
+        "progress": 0,
+        "renderer": "webgl",
+        "reduced": false,
+        "loop": true,
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 18.924696890678707,
+            "y": -270.1343595726914,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 378.9621501897076,
+            "y": -158.31747034461003,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 453.6333749768021,
+            "y": 72.71570314081775,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 186.7094159718823,
+            "y": 248.99246903118393,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -220.8105414378647,
+            "y": 237.7728272203217,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -462.0556574307101,
+            "y": 47.50539683079456,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -355.3634391604959,
+            "y": -178.53456630581647,
+            "status": "pausado"
+          }
+        ]
+      },
+      "errors": [],
+      "failures": [],
+      "resources": [
+        {
+          "url": "http://127.0.0.1:8001/pc.html?demo",
+          "type": "Document",
+          "status": 200,
+          "bytes": 76511
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 699
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 9117
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 73122
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 44770
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 19010
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 17456
+        },
+        {
+          "url": "http://127.0.0.1:8001/demo.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 1475
+        },
+        {
+          "url": "http://127.0.0.1:8001/jornada.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 3277
+        },
+        {
+          "url": "http://127.0.0.1:8001/mapa-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 5679
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 840859
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 1443
+        },
+        {
+          "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 6230
+        },
+        {
+          "url": "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 1136
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 3450
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
+          "type": "Image",
+          "status": 200,
+          "bytes": 41996
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 20070
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 33468
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 18041
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 31566
+        },
+        {
+          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "type": "Other",
+          "status": 200,
+          "bytes": 1773
+        }
+      ]
+    },
+    {
+      "target": {
+        "name": "celular-390x844",
+        "file": "index.html",
+        "width": 390,
+        "height": 844
+      },
+      "average_scene_render_calls_per_second": 43.975549195772686,
+      "renderer_main_thread_busy_percent": 99.73093465524092,
+      "js_heap_used_bytes": 16893628,
+      "first_scene_render_completed_ms": 1039.699999999255,
+      "total_encoded_transfer_bytes": 1220218,
+      "javascript_encoded_transfer_bytes": 1005648,
+      "scene": {
+        "ready": true,
+        "failed": false,
+        "firstRender": 1039.699999999255,
+        "frames": 709,
+        "ticks": 715,
+        "quality": 0.65,
+        "projects": 7,
+        "connections": 7,
+        "progress": 0,
+        "renderer": "webgl",
+        "reduced": false,
+        "loop": true,
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 20.565624730233353,
+            "y": -270.3482709425983,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 379.9313071485692,
+            "y": -161.02508979173774,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 453.20096609774873,
+            "y": 69.5532682855276,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 185.2010539603748,
+            "y": 247.75659671567956,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -222.25902922218336,
+            "y": 239.39415450537888,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -462.35353014248193,
+            "y": 50.763031201715854,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -354.2863925722607,
+            "y": -176.0936899739658,
+            "status": "pausado"
+          }
+        ]
+      },
+      "errors": [],
+      "failures": [],
+      "resources": [
+        {
+          "url": "http://127.0.0.1:8001/index.html?demo",
+          "type": "Document",
+          "status": 200,
+          "bytes": 32558
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 699
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 9117
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 19010
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 17456
+        },
+        {
+          "url": "http://127.0.0.1:8001/mapa-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 5679
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 73122
+        },
+        {
+          "url": "http://127.0.0.1:8001/demo.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 1475
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 44770
+        },
+        {
+          "url": "http://127.0.0.1:8001/jornada.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 3277
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 840859
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 1443
+        },
+        {
+          "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 6230
+        },
+        {
+          "url": "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 1136
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 3450
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 20070
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 32002
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
+          "type": "Image",
+          "status": 200,
+          "bytes": 41996
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 33031
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 18042
+        },
+        {
+          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "type": "Other",
+          "status": 200,
+          "bytes": 1773
+        }
+      ]
+    },
+    {
+      "target": {
+        "name": "pc-1366x768",
+        "file": "pc.html",
+        "width": 1366,
+        "height": 768
+      },
+      "average_scene_render_calls_per_second": 19.09118027244705,
+      "renderer_main_thread_busy_percent": 99.86654654180477,
+      "js_heap_used_bytes": 12092172,
+      "first_scene_render_completed_ms": 1575.5999999996275,
+      "total_encoded_transfer_bytes": 1264169,
+      "javascript_encoded_transfer_bytes": 1005648,
+      "scene": {
+        "ready": true,
+        "failed": false,
+        "firstRender": 1575.5999999996275,
+        "frames": 293,
+        "ticks": 300,
+        "quality": 0.65,
+        "projects": 7,
+        "connections": 7,
+        "progress": 0,
+        "renderer": "webgl",
+        "reduced": false,
+        "loop": true,
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 20.666763276725636,
+            "y": -270.4845678973269,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 379.99089416882674,
+            "y": -161.25024143650882,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 453.174131350164,
+            "y": 69.40880573148323,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 185.1080045572081,
+            "y": 247.80160650205644,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -222.34822518248555,
+            "y": 239.59474334500283,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -462.3717062825461,
+            "y": 50.968151607083406,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -354.2198618878928,
+            "y": -176.03849785179014,
+            "status": "pausado"
+          }
+        ]
+      },
+      "errors": [],
+      "failures": [],
+      "resources": [
+        {
+          "url": "http://127.0.0.1:8001/pc.html?demo",
+          "type": "Document",
+          "status": 200,
+          "bytes": 76511
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 699
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 9117
+        },
+        {
+          "url": "http://127.0.0.1:8001/mapa-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 5679
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/lenis.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 19010
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/gsap.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 73122
+        },
+        {
+          "url": "http://127.0.0.1:8001/jornada.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 3277
+        },
+        {
+          "url": "http://127.0.0.1:8001/demo.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 1475
+        },
+        {
+          "url": "http://127.0.0.1:8001/cena-2d.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 17456
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/ScrollTrigger.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 44770
+        },
+        {
+          "url": "http://127.0.0.1:8001/vendor/pixi.min.js",
+          "type": "Script",
+          "status": 200,
+          "bytes": 840859
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap",
+          "type": "Stylesheet",
+          "status": 200,
+          "bytes": 1443
+        },
+        {
+          "url": "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/demo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 6230
+        },
+        {
+          "url": "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=",
+          "type": "Image",
+          "status": 200,
+          "bytes": 0
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/fallback-nucleo.webp",
+          "type": "Image",
+          "status": 200,
+          "bytes": 41996
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/gemas.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 13023
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-1.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 1136
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/universo.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 3450
+        },
+        {
+          "url": "http://127.0.0.1:8001/assets/scene/nucleo-0.json",
+          "type": "Fetch",
+          "status": 200,
+          "bytes": 20070
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 32001
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/saira/v23/memjYa2wxmKQyPMrZX79wwYZQMhsyuSLiIvS.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 33031
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/michroma/v21/PN_zRfy9qWD8fEagAPg9pTk.woff2",
+          "type": "Font",
+          "status": 200,
+          "bytes": 18041
+        },
+        {
+          "url": "http://127.0.0.1:8001/icons/jarvis.svg",
+          "type": "Other",
+          "status": 200,
+          "bytes": 1773
+        }
+      ]
+    }
+  ]
+}

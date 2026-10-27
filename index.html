@@ -291,7 +291,7 @@ function ligarMapa() {
   MV.selecionar(S.sel); MV.jornada(document.getElementById('jornada'));
 
 }
-document.addEventListener('click', e=>{const b=e.target.closest('[data-jornada-projeto]');if(b){S.sel=b.dataset.jornadaProjeto;const destino=document.getElementById('p-'+S.sel);if(destino)destino.scrollIntoView({behavior:'smooth'});else document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});}const a=e.target.closest('.jornada [data-aba]');if(a)document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});});
+document.addEventListener('click', e=>{const b=e.target.closest('[data-jornada-projeto]');if(b){S.sel=b.dataset.jornadaProjeto;const destino=document.getElementById('p-'+S.sel);if(destino)destino.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});else document.getElementById('jornada')?.nextElementSibling?.scrollIntoView({behavior:'smooth'});}const a=e.target.closest('.jornada [data-aba]');if(a){if(a.dataset.aba==='avisos')document.getElementById('avisos-mobile')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});else location.href='pc.html'+(window.JarvisDemo?.ativo?'?demo':'')+'#pedidos';}});
 function render() {
   $('giro').className = S.carregando ? 'giro' : '';
   const app = $('app');
@@ -311,7 +311,7 @@ function render() {
     : geral === 'ok' ? 'Tudo funcionando' : erros ? plural(erros, 'projeto com problema', 'projetos com problema') : plural(atencoes, 'projeto pedindo atenção', 'projetos pedindo atenção');
   S.sit = [geral, titulo];
   document.body.classList.add('em-jornada','jornada-mobile');
-  h.push(JornadaJarvis.html(D.projetos,{titulo,avisos:D.avisos?.length||0}));
+  h.push(JornadaJarvis.html(D.projetos,{titulo,avisos:D.avisos.filter(a=>a.id>(D.avisosVistosAte||0)).length}));
 
 
   h.push(cardPush());
@@ -355,7 +355,7 @@ function render() {
   const NIVEL = { urgente: 'Urgente: ', atencao: 'Atenção: ', ok: 'Resolvido: ', info: '' };
   const avisos = S.todos ? D.avisos : D.avisos.slice(0, 6);
   const vistos = D.avisosVistosAte || 0, novos = D.avisos.filter(a => a.id > vistos).length;
-  h.push(`<section class="card"><h2 class="titulo"><span>Avisos${novos ? `<span class="badge" aria-label="${novos} novos">${novos}</span>` : ''}</span><small>${plural(D.inscricoes, 'aparelho recebendo', 'aparelhos recebendo')}</small></h2>${avisos.map(a => `
+  h.push(`<section class="card" id="avisos-mobile"><h2 class="titulo"><span>Avisos${novos ? `<span class="badge" aria-label="${novos} novos">${novos}</span>` : ''}</span><small>${plural(D.inscricoes, 'aparelho recebendo', 'aparelhos recebendo')}</small></h2>${avisos.map(a => `
     <div class="aviso ${a.id > vistos ? 'novo' : ''}"><i class="${esc(a.nivel)}" aria-hidden="true"></i><div><b><span class="sr">${NIVEL[a.nivel] || ''}</span>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}<small>${ha(a.quando)}</small></div></div>`).join('') || '<div class="vazio">Nenhum aviso ainda.</div>'}
     ${novos ? `<button class="mais" data-acao="vistos">Marcar ${plural(novos, 'aviso como visto', 'avisos como vistos')}</button>` : ''}
     ${!S.todos && D.avisos.length > 6 ? '<button class="mais" data-acao="todos">Ver todos</button>' : ''}
