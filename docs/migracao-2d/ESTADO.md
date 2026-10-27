@@ -25,7 +25,7 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 - ✅ Geometria medida nas três viewports; console tem somente erro externo de certificado das fontes.
 - ✅ Relatório final em `relatorio.md`: FPS/frame/CPU/heap/JS/primeiro render; build/lint/typecheck inexistentes, sintaxe e testes verificados.
 - ⚠️ CPU, heap e download não diminuíram; 60 fps em hardware real não comprovados.
-- ⚠️ Fontes Google: Chromium rejeita CA atual do proxy; corrigir NSS exige acesso fora do projeto, proibido nesta sessão. Não desativar TLS.
+- ✅ Fontes Google: o erro de certificado era só do proxy do sandbox do Codex. No Chrome real (27/10/2026) o CSS do Google Fonts carrega e Saira (300/400/700), Michroma e JetBrains Mono (400/500) ficam `loaded`; console limpo. Falta apenas conferir no Safari/iPhone.
 - ✅ Retomada após movimento reduzido: NÃO reproduzida no Chrome real (Claude Code, 27/10/2026). Alternando reduce → normal com `matchMedia` simulado, em 1024 e 390 px: `loop` volta a true, Lenis é recriado, há 1 ScrollTrigger, rolar move a câmera (progress 0,44) e os textos trocam. A falha do Codex parece ser do teste/ambiente (Chromium headless por software), não do código; o `verificar-robustez.cjs` completo não foi rodado aqui (Playwright só existia no sandbox do Codex).
 - ✅ CLAUDE.md e exclusões prontos; entrega identificada pela tag local `handoff-claude-code`, sem push.
 
