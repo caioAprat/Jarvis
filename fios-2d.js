@@ -113,11 +113,11 @@ window.FiosJarvo = (() => {
         const l1 = novoPath(1, 5, 28, 0, .8, {pai: principal, t, ang: (b % 2 ? 1 : -1) * (.5 + rnd() * .6), comp: .2 + rnd() * .22, curv: (rnd() * .4 - .2), fase: rnd() * TAU, amp: 4, vs: .12 + t * .55, ve: Math.min(1, .5 + t * .5)});
         paths.push(l1);
         if (pausado) continue;
-        const nS = 2;
+        const nS = densidade < 1 ? 1 : 2;
         for (let s = 0; s < nS; s++) {
           const l2 = novoPath(2, 4, 20, 0, .7, {pai: l1, t: .28 + rnd() * .5, ang: (s % 2 ? 1 : -1) * (.55 + rnd() * .65), comp: .3 + rnd() * .3, curv: rnd() * .5 - .25, fase: rnd() * TAU, amp: 3, vs: l1.vs + .1, ve: 1});
           paths.push(l2);
-          const nC = 1 + (rnd() < .5 ? 1 : 0);
+          const nC = densidade < 1 ? 0 : 1 + (rnd() < .5 ? 1 : 0);
           for (let c = 0; c < nC; c++) paths.push(novoPath(3, 3, 14, 0, .3, {pai: l2, t: .3 + rnd() * .5, ang: (c % 2 ? 1 : -1) * (.5 + rnd() * .8), comp: .28 + rnd() * .3, curv: rnd() * .6 - .3, fase: rnd() * TAU, amp: 2.2, vs: l2.vs + .1, ve: 1}));
         }
       }

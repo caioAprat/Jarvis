@@ -86,3 +86,26 @@ Branch `visual/jarvis-2d`, sem push. Núcleo, batimento, fios, pacotes, partícu
 | Testes do servidor | 140 passam |
 
 **Não medido / limites:** FPS em GPU real. O Chrome headless usa renderização por software (SwiftShader), onde esta cena mais pesada roda a ~3,7 fps a DPR 1 (antes, 18,9 fps com a cena simples); o gargalo é preenchimento de pixels dos halos aditivos de 2048 px, barato em GPU, mas **60 fps não estão comprovados** — precisa de teste na máquina do Caio (e Safari/iPhone). Rótulos sem sobreposição em 1024, 1100, 1365, 1920 e 390 px (afastamento automático); em 800 px o rótulo da Planilha ainda toca o mapa lateral. Os scripts de auditoria do Codex (`verificar-ui.cjs` etc.) não foram executados (dependem do Playwright do sandbox dele); a validação usou um harness equivalente fora do projeto.
+
+
+## Rodada 2 (27/10/2026): marca, batimento, máquina de estados, veias e arquivos
+
+Comparação com a rodada anterior (mesmo método: Chrome headless por software, 1920×1080):
+
+| Medida | Rodada 1 | Rodada 2 |
+|---|---|---|
+| Período do batimento | 0,92–0,95 s | 1,56–1,65 s (alerta 1,32–1,36 s) |
+| Picos por ciclo / gap entre eles | 2 / ~190 ms | 2 / 279–284 ms |
+| Custo JS do núcleo | 0,2–0,45 ms | 0,26 ms |
+| Custo JS das veias + arquivos | (fios+pacotes) ~1 ms | 0,9 ms (orçamento 3 ms) |
+| CPU JS da cena inteira (sem GPU) | 1,9–2,8 ms | 4,3 ms (veias densas, glifos, partículas) |
+| Caminhos de veia/fio | 44 fios | 135 (55 no celular) |
+| JavaScript raw | 751 KB | 776 KB |
+| FPS (software, adaptativa em 0,65) | 3,7 | 3,9 |
+| Testes do servidor | 140 | 140 |
+
+- **Snap (1920 e 1365)**: wheel 30/80/120/240/500 → 1 etapa cada, repouso a 0,000 do alvo (limite ±0,4%); trackpad de 70 eventos (1434 px) → 1 etapa, inverso volta; inversão no meio e interrupção no snap OK.
+- **Modo G**: 6 sequências (G→rolar, G→G, G→Esc, G→planeta→rolar, rolar→G→rolar, G→PageDown) sem sobreposição e sem erros; 10 poses + 45 intermediárias: 0 sobreposições e 0 textos sobre o núcleo.
+- **Veias**: 1 principal, 2–4 ramos, 4–8 sub-ramos e 7–13 capilares por projeto; afunilamento 9,7 → 2,7 (3,6×); onda atinge 20/50/80% do vaso em +0,08/+0,20/+0,32 s.
+- **Arquivos (60 s)**: CV dos intervalos 0,87–1,32; 191 arquivos, 6 tipos; coincidências entre veias 21 (esperado 28,9).
+- **Limites**: sem GPU real o FPS não é conclusivo (a cena ficou mais pesada em pixels: halos, glifos, ~135 malhas finas); Safari/iPhone não testados; lint inexistente (`node --check` + testes do servidor).
