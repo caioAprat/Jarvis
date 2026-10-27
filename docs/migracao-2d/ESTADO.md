@@ -33,6 +33,8 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 - ✅ Passo C (27/10/2026): o medidor do Codex só olhava o texto da jornada, não os rótulos dos nós (`.cena-label`), por isso não viu colisão em 1024 px. Agora, na abertura, a órbita encolhe e se desloca para a área livre à direita do texto (volta ao normal até 12,5% do scroll). Medido no Chrome real com rótulos × texto: 0 colisões, 0 cortes e 0 rótulos sobrepostos em 1024, 1366 e 1920 px; celular não muda (só leitura do código, não reexecutado). Limite: o núcleo fica menor na abertura em telas estreitas (~73–78% do tamanho antigo em 1366).
 
+- ✅ Passo D (27/10/2026): nós com anel de status (verde no ar, âmbar aguardando, apagado pausado), gema 55→68 e halo maior; planetas de fundo mais visíveis (alpha 0,16–0,27 → 0,30–0,44). Sem assets novos. Verificado no Chrome real a 1366 px: 0 colisões/cortes, console sem erros próprios. Não verificado: celular e Safari. Julgamento estético final é do Caio.
+
 ## Rodar e verificar (na raiz do projeto)
 `python3 -m http.server 8001 --bind 127.0.0.1`
 Abrir `http://127.0.0.1:8001/demo.html` (dados fictícios, sem produção).

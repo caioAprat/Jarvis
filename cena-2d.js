@@ -41,7 +41,7 @@ window.CenaJarvis = (() => {
         }
         const bg=new PIXI.Container();app.stage.addChild(bg);
         const types=Object.keys(universe).filter(k=>!k.startsWith('nebulosa')&&k!=='poeira');
-        types.forEach((type,i)=>{const s=sprite(universe[type],bg,55+(i%4)*38);s.alpha=.16+(i%3)*.055;backgrounds.push({s,x:(i*.271+.09)%1,y:(i*.437+.13)%1,depth:.13+(i%3)*.09,index:i});});
+        types.forEach((type,i)=>{const s=sprite(universe[type],bg,55+(i%4)*38);s.alpha=.3+(i%3)*.07;backgrounds.push({s,x:(i*.271+.09)%1,y:(i*.437+.13)%1,depth:.13+(i%3)*.09,index:i});});
         world=new PIXI.Container();app.stage.addChild(world);
         const orbits=new PIXI.Graphics();world.addChild(orbits);
         for(let i=0;i<3;i++)orbits.ellipse(0,0,350+i*100,155+i*55).stroke({color:0xc58242,width:.6,alpha:.19});
@@ -69,8 +69,10 @@ window.CenaJarvis = (() => {
         button.innerHTML='<span>'+esc(p.nome)+'</span><small>'+esc(nomes[p.status]||p.status)+'</small>';button.onclick=()=>options.aoSelecionar?.(p.id);labels.appendChild(button);
         if(!world)return;
         const body=new PIXI.Container();world.addChild(body);
-        const halo=sprite(assets[1].textures.glow,body,105);halo.tint=cores[p.status]||cores.config;halo.alpha=.65;halo.blendMode='add';
-        const gem=new PIXI.AnimatedSprite(assets[2].animations.gema,false);gem.anchor.set(.5);gem.width=gem.height=55;gem.tint=cores[p.status]||cores.config;body.addChild(gem);
+        const halo=sprite(assets[1].textures.glow,body,150);halo.tint=cores[p.status]||cores.config;halo.alpha=.7;halo.blendMode='add';
+        // Anel de status: mostra de longe quem está ok, parado ou com problema.
+        const anel=new PIXI.Graphics().circle(0,0,46).stroke({color:cores[p.status]||cores.config,width:1.4,alpha:p.status==='pausado'?.3:.7});body.addChild(anel);
+        const gem=new PIXI.AnimatedSprite(assets[2].animations.gema,false);gem.anchor.set(.5);gem.width=gem.height=68;gem.tint=cores[p.status]||cores.config;body.addChild(gem);
         const angle=-Math.PI/2+i*Math.PI*2/Math.max(1,projects.length);
         const pulse={value:0};const tween=p.status==='pausado'?null:gsap.to(pulse,{value:1,duration:p.status==='ok'?3:6,repeat:-1,yoyo:p.status==='ok',ease:'sine.inOut',paused:media.matches});
         nodes.push({p,body,gem,halo,button,angle,x:Math.cos(angle)*470,y:Math.sin(angle)*275,pulse,tween});
@@ -89,7 +91,7 @@ window.CenaJarvis = (() => {
       world.position.set(w*cx-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
       core.scale.set(breath.scale);glow.alpha=.45*breath.alpha;corona.alpha=.32+.12*breath.alpha;
       mesh.gotoAndStop(Math.floor(elapsed*12)%96);mesh.scale.set((440/384)*(1+camera.opening*.18));ring.rotation=Math.sin(elapsed*.08)*.07;
-      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+24*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
+      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
       drawConnections();
       for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
       backgrounds.forEach(b=>{b.s.visible=!compact||b.index<5;b.s.x=((b.x*w-camera.x*b.depth)%(w+180)+w+180)%(w+180)-90;b.s.y=((b.y*h-camera.y*b.depth-camera.progress*h*b.depth)%(h+180)+h+180)%(h+180)-90;b.s.rotation=camera.rotation*b.depth;b.s.scale.set((.25+(b.index%4)*.15)*(1+camera.progress*b.depth));});
