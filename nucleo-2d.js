@@ -50,7 +50,7 @@ window.NucleoJarvo = (() => {
     for (let i = 0; i < 520; i++) {
       const a = rnd() * TAU, d = Math.sqrt(rnd()) * n * .46, x = n / 2 + Math.cos(a) * d, y = n / 2 + Math.sin(a) * d, r = n * (.025 + rnd() * .1), alongado = .35 + rnd() * .5;
       g.save(); g.translate(x, y); g.rotate(rnd() * TAU); g.scale(1, alongado);
-      const q = g.createRadialGradient(0, 0, 0, 0, 0, r), al = .07 + rnd() * .2, gb = 90 + rnd() * 120 | 0;
+      const q = g.createRadialGradient(0, 0, 0, 0, 0, r), al = .05 + rnd() * .12, gb = 60 + rnd() * 90 | 0;
       q.addColorStop(0, `rgba(255,${gb},${20 + rnd() * 60 | 0},${al})`); q.addColorStop(.6, `rgba(255,${gb * .6 | 0},10,${al * .45})`); q.addColorStop(1, 'rgba(255,80,0,0)');
       g.fillStyle = q; g.fillRect(-r, -r, r * 2, r * 2); g.restore();
     }
@@ -77,7 +77,7 @@ window.NucleoJarvo = (() => {
     const corpo = sprite(tCorpo, container, R * 2);
     const tPlasma = textura(plasma(tam, 99));
     const plasmaA = sprite(tPlasma, container, R * 2), plasmaB = sprite(tPlasma, container, R * 1.9);
-    plasmaA.blendMode = 'add'; plasmaA.alpha = .8; plasmaB.blendMode = 'add'; plasmaB.alpha = .4; plasmaB.scale.x *= -1;
+    plasmaA.blendMode = 'add'; plasmaA.alpha = .5; plasmaB.blendMode = 'add'; plasmaB.alpha = .4; plasmaB.scale.x *= -1;
     const quente = sprite(tHalo, container, R * 1.3); quente.blendMode = 'add'; quente.alpha = .9;
 
     // ---- c) rede geodésica (arestas em Mesh 'line-list', buffers reaproveitados)
@@ -125,7 +125,7 @@ window.NucleoJarvo = (() => {
 
     // ---- e) anel de limbo (Fresnel)
     const tLimbo = textura(gradiente(tam, [[0, 'rgba(255,150,60,0)'], [.72, 'rgba(255,150,60,0)'], [.9, 'rgba(255,170,80,.16)'], [.955, 'rgba(255,170,80,.5)'], [.985, 'rgba(255,214,150,.85)'], [1, 'rgba(255,200,120,0)']]));
-    const limbo = sprite(tLimbo, container, R * 2.1); limbo.blendMode = 'add'; limbo.alpha = .55;
+    const limbo = sprite(tLimbo, container, R * 2.1); limbo.blendMode = 'add'; limbo.alpha = .55; limbo.tint = 0xffa860;
 
     // ---- f) anéis orbitais elípticos tracejados + satélites
     const aneis = [{a: R * 1.55, b: R * .58, rot: -.32, dash: 46, v: .18}, {a: R * 1.95, b: R * .74, rot: -.32, dash: 70, v: -.11}, {a: R * 2.42, b: R * .92, rot: -.32, dash: 120, v: .07}];
@@ -176,7 +176,7 @@ window.NucleoJarvo = (() => {
       flare.alpha = .16 + .2 * g; flare2.alpha = .08 + .1 * g;
       // b) corpo: contra-rotação lenta
       plasmaA.rotation = tempo * .035 * reduz; plasmaB.rotation = -tempo * .052 * reduz + 1.2;
-      plasmaA.alpha = .75 + .15 * g; plasmaB.alpha = .55 + .15 * g;
+      plasmaA.alpha = .45 + .12 * g; plasmaB.alpha = .32 + .1 * g;
       quente.alpha = .55 + .45 * g; limbo.alpha = .4 + .3 * g;
       // c) rede
       projeta(rede, tras.geo, R * 1.5, ay, ax, .07, sRede);
