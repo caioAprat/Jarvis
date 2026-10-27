@@ -16,7 +16,7 @@ window.CenaJarvis = (() => {
     let master=null, lenis=null, journey=null, breathTween=null, revealed=false;
     const mobile=()=>innerWidth<700;
     const sprite=(texture,parent,size)=>{ const s=new PIXI.Sprite(texture);s.anchor.set(.5);if(size)s.width=s.height=size;parent.addChild(s);return s; };
-    function fallback(error) { failed=true;el.dataset.fallback='true';boot.hidden=false;boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
+    function fallback(error) { failed=true;lenis?.destroy();lenis=null;el.dataset.fallback='true';boot.hidden=false;boot.textContent='Visual estático · seus controles continuam disponíveis';if(app)app.canvas.hidden=true;syncLoop();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)})); }
     async function start() {
       try {
         if(!window.PIXI || !window.gsap) throw new Error('Biblioteca indisponível');
@@ -176,7 +176,11 @@ window.CenaJarvis = (() => {
     }
     function contextLost(e){e.preventDefault();fallback('Contexto gráfico indisponível');}
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncLoop();});observer.observe(el);
-    const onVisibility=()=>syncLoop(),onMotion=()=>{syncLoop();if(journey)connectJourney(journey);},onScroll=()=>{if(media.matches)draw(0);};
+    const onVisibility=()=>syncLoop(),onMotion=()=>{syncLoop();if(journey)connectJourney(journey);},onScroll=()=>{
+      // Também cobre scroll após o término do trigger, onde onUpdate já não muda.
+      if(journey)journey.classList.toggle('jornada-fora',journey.getBoundingClientRect().bottom<innerHeight-2);
+      if(media.matches)draw(0);
+    };
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
     return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(glow&&!media.matches)gsap.fromTo(breath,{alpha:1.8},{alpha:.8,duration:1});},jornada:connectJourney,
