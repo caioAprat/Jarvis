@@ -29,6 +29,8 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 - ✅ Retomada após movimento reduzido: NÃO reproduzida no Chrome real (Claude Code, 27/10/2026). Alternando reduce → normal com `matchMedia` simulado, em 1024 e 390 px: `loop` volta a true, Lenis é recriado, há 1 ScrollTrigger, rolar move a câmera (progress 0,44) e os textos trocam. A falha do Codex parece ser do teste/ambiente (Chromium headless por software), não do código; o `verificar-robustez.cjs` completo não foi rodado aqui (Playwright só existia no sandbox do Codex).
 - ✅ CLAUDE.md e exclusões prontos; entrega identificada pela tag local `handoff-claude-code`, sem push.
 
+- ✅ JavaScript (27/10/2026): `vendor/pixi.min.js` agora é build enxuto só-WebGL: 843→536 KB (gzip 237→158 KB); total das páginas ~983→~676 KB (gzip ~300→~220 KB, GitHub Pages comprime). Validado no Chrome real: renderer webgl, 7 projetos/fios, planetas, rolagem e console limpos; 140 testes do servidor passam. Corte maior exigiria importar módulos internos do Pixi um a um (risco maior, não feito). Se o WebGL falhar o fallback PNG continua (não há mais canvas/WebGPU do Pixi).
+
 ## Rodar e verificar (na raiz do projeto)
 `python3 -m http.server 8001 --bind 127.0.0.1`
 Abrir `http://127.0.0.1:8001/demo.html` (dados fictícios, sem produção).

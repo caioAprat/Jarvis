@@ -2,7 +2,7 @@
 
 Distribuições oficiais, versões exatas, sem CDN em tempo de execução:
 
-- pixi.js 8.22.0 / dist/pixi.min.js
+- pixi.js 8.22.0, **build enxuto** (`vendor/pixi.min.js`): só WebGL (sem WebGPU e sem canvas), gerado com esbuild a partir do pacote oficial; receita em `scripts/migracao-2d/pixi-enxuto/` (`npm i pixi.js@8.22.0 esbuild` e `node build.mjs`). 843 KB → 536 KB (237 → 158 KB com gzip). O original oficial continua no histórico do Git.
 - gsap 3.15.0 / dist/gsap.min.js e dist/ScrollTrigger.min.js
 - lenis 1.3.27 / dist/lenis.min.js e dist/lenis.css
 

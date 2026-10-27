@@ -6,8 +6,9 @@
   },
   "files": {
     "pixi.min.js": {
-      "bytes": 840663,
-      "sha256": "06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea"
+      "bytes": 535994,
+      "sha256": "62d781cd9624387a81a1333610049aa09f8d95ed7a075edc05c1349f93dd2909",
+      "observacao": "build enxuto do pixi.js 8.22.0: so WebGL, sem WebGPU/canvas; receita em scripts/migracao-2d/pixi-enxuto"
     },
     "gsap.min.js": {
       "bytes": 72927,
