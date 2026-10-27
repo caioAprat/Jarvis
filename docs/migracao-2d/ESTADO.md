@@ -120,3 +120,10 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 - Pedidos abertos no app mostra "—" (o endpoint do app não traz pedidos) com link para a central do PC.
 - Frequência da rede geodésica = 12 (V=1442) por leitura de referência; "frequência 4/5" do pedido daria 162–252 vértices, esparso demais.
 - As 10 visualizações de imagem permitidas foram usadas (referência, recortes do núcleo/fios/pacotes e quadros da cena/seções); o resto foi medição.
+
+## Rodada 2 (27/10/2026) — checkpoint `checkpoint-polimento-2`
+### Marca (✅)
+- Nova identidade: emblema = globo geodésico (a rede do núcleo) com núcleo incandescente que bate e órbita com satélite; logotipo JARVÃO desenhado em traço contínuo, com o núcleo dentro do "O". Fonte única: `scripts/marca/marca.cjs`; geração: `scripts/marca/gerar-icones.cjs` (usa playwright-core + Chrome; variáveis `PW_CORE` e `CHROME`).
+- Aplicada em: cabeçalhos de `pc.html`/`index.html` (`MapaVivo.logo()`/`marca()` em `mapa-2d.js`, emblema animado), aba (`icons/jarvis.svg`, `favicon.ico`, `favicon-32.png`), iOS (`apple-touch-icon.png` 180), instalação (`icon-192/512.png`, `icon-maskable-512.png`, manifestos), notificações (`icon-192`), `demo.html`, `privacidade.html`, cache offline (`sw.js` v7). Michroma deixou de ser usada no logotipo.
+- Não há skill de ícones instalada no ambiente (só as listadas); o desenho é próprio.
+- Pendente: o ícone do app já instalado no iPhone/PC só muda ao reinstalar; as mensagens do Telegram/Apps Script não usam este ícone.

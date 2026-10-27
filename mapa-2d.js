@@ -18,23 +18,25 @@
     const pt = d => [(32 + R * Math.cos(rad(d))).toFixed(2), (32 + R * Math.sin(rad(d))).toFixed(2)], [x0, y0] = pt(a0), [x1, y1] = pt(a1);
     return `M${x0} ${y0}A${R} ${R} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`;
   }
-  /** Logotipo: emblema com anel de marcações, três arcos externos, dois internos e o núcleo que bate. O tamanho vem do font-size do pai. */
+  /** Emblema da marca (globo geodésico + núcleo que bate + órbita com satélite). O tamanho vem do font-size do pai. Fonte do desenho: scripts/marca/marca.cjs. */
   function logo(extra) {
-    const ext = [0, 1, 2].map(i => arcoSvg(24, i * 120 + 8, i * 120 + 98)).join('');
-    const inn = [0, 1].map(i => arcoSvg(15.5, i * 180 + 20, i * 180 + 150)).join('');
-    let tk = '';
-    for (let i = 0; i < 24; i++) { const an = i * 15 * Math.PI / 180, r1 = i % 6 === 0 ? 26.6 : 28.2; tk += `M${(32 + 29.8 * Math.sin(an)).toFixed(2)} ${(32 - 29.8 * Math.cos(an)).toFixed(2)}L${(32 + r1 * Math.sin(an)).toFixed(2)} ${(32 - r1 * Math.cos(an)).toFixed(2)}`; }
     return `<svg class="mk ${extra || ''}" viewBox="0 0 64 64" aria-hidden="true"><defs>
-      <radialGradient id="mkc"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a26"/></radialGradient>
-      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe6c8"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient></defs>
-      <circle cx="32" cy="32" r="30.6" fill="none" stroke="#ffb36a" stroke-opacity=".3" stroke-width=".8"/>
-      <path class="mk-t" d="${tk}" fill="none" stroke="#ffb36a" stroke-width=".9" opacity=".75"/>
-      <path class="mk-r1" d="${ext}" fill="none" stroke="url(#mka)" stroke-width="3.4"/>
-      <path class="mk-r2" d="${inn}" fill="none" stroke="#ffcf9a" stroke-width="2.4"/>
-      <g class="mk-core"><circle cx="32" cy="32" r="7.2" fill="url(#mkc)"/><circle cx="32" cy="32" r="2.4" fill="#fff"/></g></svg>`;
+      <radialGradient id="mkc"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#ffe3b4"/><stop offset="1" stop-color="#ff7a26"/></radialGradient>
+      <radialGradient id="mkg"><stop offset="0" stop-color="#ff9a45" stop-opacity=".5"/><stop offset="1" stop-color="#ff6a1a" stop-opacity=".05"/></radialGradient>
+      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3df"/><stop offset=".45" stop-color="#ffb36a"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="29.6" fill="none" stroke="#ffb36a" stroke-opacity=".32" stroke-width=".5" stroke-dasharray=".3 1.9" stroke-linecap="round"/>
+      <g transform="translate(32 32) rotate(-28)"><path d="M-27.3 0A27.3 9.3 0 0 1 27.3 0" fill="none" stroke="url(#mka)" stroke-width="1.1" stroke-linecap="round" stroke-opacity=".55"/></g>
+      <circle cx="32" cy="32" r="16.8" fill="url(#mkg)"/>
+      <g fill="none" stroke="url(#mka)" stroke-width=".85" stroke-linecap="round"><circle cx="32" cy="32" r="16.8"/><ellipse cx="32" cy="32" rx="16.8" ry="4.8"/><ellipse cx="32" cy="23" rx="14" ry="3.8"/><ellipse cx="32" cy="41" rx="14" ry="3.8"/><ellipse cx="32" cy="32" rx="6.3" ry="16.8"/><ellipse cx="32" cy="32" rx="12.5" ry="16.8" stroke-opacity=".8"/><path d="M32 15.4V48.6" stroke-opacity=".7"/></g>
+      <g class="mk-core"><circle cx="32" cy="32" r="9.2" fill="url(#mkc)" fill-opacity=".85"/><circle cx="32" cy="32" r="3" fill="#fff"/></g>
+      <g transform="translate(32 32) rotate(-28)"><path d="M27.3 0A27.3 9.3 0 0 1 -27.3 0" fill="none" stroke="url(#mka)" stroke-width="1.3" stroke-linecap="round"/><circle class="mk-sat" r="1.9" fill="#fff"/></g></svg>`;
   }
-  /** Nome: JARVÃO, em caixa alta, com degradê quente. */
-  function marca() { return '<span class="wm" role="img" aria-label="Jarvão">JARVÃO</span>'; }
+  /** Logotipo JARVÃO desenhado em traço contínuo (o "O" carrega o núcleo). Mesmo desenho de icons/jarvao-logotipo.svg. */
+  let wmN = 0;
+  function marca() {
+    const id = 'wm' + (++wmN);
+    return `<svg class="wm-svg" viewBox="-6 -5 316 75" role="img" aria-label="Jarvão"><defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6e6"/><stop offset=".5" stop-color="#ffcf9a"/><stop offset="1" stop-color="#ff8a3d"/></linearGradient><radialGradient id="${id}c"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a26"/></radialGradient></defs><g fill="none" stroke="url(#${id}g)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"><path d="M31 16V45a14 14 0 0 1-14 14h-1a12 12 0 0 1-10-5"/><path transform="translate(52 0)" d="M4 62 20 16 36 62M10.5 45h19"/><path transform="translate(104 0)" d="M7 62V16h14a13 13 0 0 1 0 26H7M21 42l13 20"/><path transform="translate(156 0)" d="M4 16 20 62 36 16"/><path transform="translate(208 0)" d="M4 62 20 16 36 62M10.5 45h19M9 7q5-7 11-3t11-2"/><circle cx="283" cy="39" r="22.5"/><circle cx="283" cy="39" r="11" stroke-width="1.6" stroke-opacity=".55"/></g><circle cx="283" cy="39" r="5.2" fill="url(#${id}c)"/></svg>`;
+  }
   const ICONE_PROJ = {
     gabinete: '<path d="M3 22h18"/><path d="M6 18v-7M10 18v-7M14 18v-7M18 18v-7"/><path d="M12 2 3 8h18z"/>',
     planilha: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
@@ -49,16 +51,13 @@
 
   const CSS = `
   .mk{width:1em;height:1em;display:inline-block;flex:none;overflow:visible;vertical-align:middle}
-  .mk-r1,.mk-r2,.mk-t,.mk-core{transform-origin:32px 32px}
-  .mk-r1{animation:mk-giro 24s linear infinite}.mk-r2{animation:mk-giro 15s linear infinite reverse}.mk-t{animation:mk-giro 60s linear infinite}
-  .mk-core{animation:mk-bate 2.6s ease-in-out infinite}
-  @keyframes mk-giro{to{transform:rotate(360deg)}}
-  @keyframes mk-bate{0%,100%{transform:scale(1)}12%{transform:scale(1.16)}24%{transform:scale(1)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
-  .wm{display:inline-block;font:400 1em/1.05 "Michroma","Saira",sans-serif;letter-spacing:.17em;margin-right:-.17em;text-transform:uppercase;color:transparent;
-    background:linear-gradient(180deg,#fffaf0 0%,#ffdcb0 48%,#ff9a4a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.035em rgba(255,200,140,.55);
-    filter:drop-shadow(0 0 .5em rgba(255,128,48,.55)) drop-shadow(0 0 1.4em rgba(255,100,30,.28))}
+  .mk-core{transform-origin:32px 32px;animation:mk-bate 1.6s ease-in-out infinite}
+  .mk-sat{offset-path:path("M-27.3 0a27.3 9.3 0 1 0 54.6 0a27.3 9.3 0 1 0 -54.6 0");offset-rotate:0deg;animation:mk-sat 11s linear infinite}
+  @keyframes mk-sat{to{offset-distance:100%}}
+  @keyframes mk-bate{0%,100%{transform:scale(1)}7%{transform:scale(1.16)}20%{transform:scale(1.02)}24%{transform:scale(1.1)}38%{transform:scale(1)}}
+  .wm-svg{display:block;height:1.5em;width:auto;overflow:visible;filter:drop-shadow(0 0 .35em rgba(255,128,48,.5)) drop-shadow(0 0 1em rgba(255,100,30,.25))}
   .pi{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.15em}
-  @media(prefers-reduced-motion:reduce){.mk-r1,.mk-r2,.mk-t,.mk-core{animation:none}}`;
+  @media(prefers-reduced-motion:reduce){.mk-core,.mk-sat{animation:none}}`;
 
 
   function montar(opcoes) { return CenaJarvis.montar(opcoes); }

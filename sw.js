@@ -1,8 +1,8 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v6-nucleo';
-const CASCA = ['./', 'index.html', 'pc.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
+const VERSAO = 'jarvis-v7-marca';
+const CASCA = ['./', 'index.html', 'pc.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png', 'icons/jarvis.svg', 'icons/favicon.ico', 'icons/favicon-32.png', 'icons/icon-maskable-512.png',
   'mapa-2d.js', 'nucleo-2d.js', 'fios-2d.js', 'particulas-2d.js', 'cena-2d.js', 'cena-2d.css', 'desktop-2d.css', 'desktop-2d.js', 'jornada.js', 'demo.js',
   'vendor/pixi.min.js', 'vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js', 'vendor/lenis.min.js', 'vendor/lenis.css',
   'assets/scene/fallback-nucleo.webp', ...['nucleo-1','gemas','universo'].flatMap(n=>['json','webp'].map(ext=>'assets/scene/'+n+'.'+ext))];

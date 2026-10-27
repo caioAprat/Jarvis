@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+<radialGradient id="fundo" cx=".5" cy=".42" r=".78"><stop offset="0" stop-color="#2b170b"/><stop offset=".55" stop-color="#130a06"/><stop offset="1" stop-color="#070403"/></radialGradient>
+<linearGradient id="fio" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3df"/><stop offset=".45" stop-color="#ffb36a"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient>
+<radialGradient id="globo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff9a45" stop-opacity=".55"/><stop offset=".7" stop-color="#ff6a1a" stop-opacity=".16"/><stop offset="1" stop-color="#ff6a1a" stop-opacity=".05"/></radialGradient>
+<radialGradient id="nucleo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#ffe3b4"/><stop offset=".62" stop-color="#ff8a3d" stop-opacity=".85"/><stop offset="1" stop-color="#ff5a10" stop-opacity="0"/></radialGradient>
+<radialGradient id="halo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#ffb36a" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="512" height="512" fill="url(#fundo)"/>
+<g transform="translate(256 256) scale(1) translate(-256 -256)">
+<circle cx="256" cy="256" r="216" fill="none" stroke="#ffb36a" stroke-opacity=".3" stroke-width="3" stroke-dasharray="2 13" stroke-linecap="round"/>
+<g transform="translate(256 256) rotate(-28)"><path d="M-218 0A218 74 0 0 1 218 0" fill="none" stroke="url(#fio)" stroke-width="9" stroke-linecap="round" stroke-opacity=".55"/></g>
+<circle cx="256" cy="256" r="134" fill="url(#globo)"/>
+<g fill="none" stroke="url(#fio)" stroke-width="6" stroke-linecap="round">
+<circle cx="256" cy="256" r="134"/>
+<ellipse cx="256" cy="256" rx="134" ry="38"/><ellipse cx="256" cy="184" rx="113" ry="31" /><ellipse cx="256" cy="328" rx="113" ry="31" />
+<ellipse cx="256" cy="256" rx="50" ry="134"/><ellipse cx="256" cy="256" rx="100" ry="134" stroke-opacity=".8"/>
+<path d="M256 122V390" stroke-opacity=".7"/>
+</g>
+<circle cx="256" cy="124" r="7" fill="#fff1dc"/><circle cx="256" cy="388" r="7" fill="#fff1dc"/><circle cx="356" cy="256" r="7" fill="#fff1dc"/><circle cx="156" cy="256" r="7" fill="#fff1dc"/><circle cx="322" cy="186" r="5" fill="#fff1dc"/><circle cx="190" cy="326" r="5" fill="#fff1dc"/><circle cx="318" cy="330" r="5" fill="#fff1dc"/><circle cx="194" cy="182" r="5" fill="#fff1dc"/><circle cx="256" cy="186" r="5" fill="#fff1dc"/><circle cx="256" cy="326" r="5" fill="#fff1dc"/>
+<circle cx="256" cy="256" r="74" fill="url(#nucleo)"/><circle cx="256" cy="256" r="24" fill="#fff"/>
+<g transform="translate(256 256) rotate(-28)"><path d="M218 0A218 74 0 0 1 -218 0" fill="none" stroke="url(#fio)" stroke-width="10" stroke-linecap="round"/></g>
+<g transform="translate(256 256) rotate(-28)"><circle cx="192.5" cy="34.7" r="26" fill="url(#halo)"/><circle cx="192.5" cy="34.7" r="13" fill="#fff"/></g>
+</g>
+</svg>
