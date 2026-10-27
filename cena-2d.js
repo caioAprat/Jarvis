@@ -9,8 +9,8 @@ window.CenaJarvis = (() => {
     el.innerHTML = '<img class="cena-reserva" src="assets/scene/fallback-nucleo.webp" alt="Núcleo luminoso do Jarvão"><div class="cena-boot" role="status">Iniciando núcleo…</div><div class="cena-rotulos"></div>';
     const labels=el.lastElementChild, boot=el.querySelector('.cena-boot');
     const media=matchMedia('(prefers-reduced-motion: reduce)');
-    let app, world, assets, core, nuc, lines, sparks, foreground;
-    let projects=[], nodes=[], backgrounds=[], stars=[], paused=false, visible=true, dead=false, failed=false, selected='', mode='palco';
+    let app, world, assets, core, nuc, fios, lines, sparks, foreground;
+    let hover=-1, projects=[], nodes=[], backgrounds=[], stars=[], paused=false, visible=true, dead=false, failed=false, selected='', mode='palco';
     let firstRender=null, ticks=0, elapsed=0, frames=0, quality=1, slow=0, loopAttached=false, lastTime=0;
     const camera={x:0,y:0,zoom:1,rotation:0,progress:0,focus:-1,opening:0,anchorY:.43};
     let master=null, lenis=null, journey=null, revealed=false;
@@ -48,6 +48,7 @@ window.CenaJarvis = (() => {
         orbits.cacheAsTexture({resolution:1});
         lines=new PIXI.Graphics();world.addChild(lines);
         nuc=NucleoJarvo.criar(PIXI,{raio:150,tam:mobile()?1024:2048,frequencia:mobile()?8:12,nos:mobile()?90:190});core=nuc.container;world.addChild(core);
+        fios=FiosJarvo.criar(PIXI,{mundo:world,nucleo:nuc,densidade:mobile()?.5:1});
         sparks=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:true,vertex:true,rotation:false}});core.addChild(sparks);
         for(let i=0;i<90;i++)sparks.addParticle(new PIXI.Particle({texture:universe.poeira,tint:0xffb85e,scaleX:.12,scaleY:.12}));
         foreground=new PIXI.ParticleContainer({dynamicProperties:{position:true,color:false,vertex:false,rotation:false}});app.stage.addChild(foreground);
@@ -69,9 +70,9 @@ window.CenaJarvis = (() => {
         const gem=new PIXI.AnimatedSprite(assets[1].animations.gema,false);gem.anchor.set(.5);gem.width=gem.height=68;gem.tint=cores[p.status]||cores.config;body.addChild(gem);
         const angle=-Math.PI/2+i*Math.PI*2/Math.max(1,projects.length);
         const pulse={value:0};const tween=p.status==='pausado'?null:gsap.to(pulse,{value:1,duration:p.status==='ok'?3:6,repeat:-1,yoyo:p.status==='ok',ease:'sine.inOut',paused:media.matches});
-        nodes.push({p,body,gem,halo,button,angle,x:Math.cos(angle)*470,y:Math.sin(angle)*275,pulse,tween});
+        nodes.push({p,body,gem,halo,button,angle,x:Math.cos(angle)*520,y:Math.sin(angle)*330,pulse,tween});
       });
-      if(world)world.setChildIndex(core,world.children.length-1);
+      if(world){fios?.montar(projects);world.setChildIndex(core,world.children.length-1);}
       if(journey)connectJourney(journey);draw(0);
     }
     function resize(){if(!app||dead)return;app.renderer.resize(el.clientWidth||innerWidth,el.clientHeight||innerHeight);draw(0);if(journey)connectJourney(journey);}
@@ -79,12 +80,15 @@ window.CenaJarvis = (() => {
       if(!app||!world||dead||failed)return;
       const w=app.screen.width,h=app.screen.height,compact=mobile();let base=Math.min(w/(compact?1100:1300),h/850),cx=compact?.5:.62;
       // Abertura: a órbita (com os rótulos) cabe na área livre à direita do texto; volta ao normal quando a câmera entra.
-      if(!compact){const tr=w*.08+Math.min(w*.38,560)+16,fit=Math.min(1,((w-tr-24)/2)/(500*base)),t=Math.min(1,camera.progress/.125),cf=(tr+w-24)/2/w;cx=cf+(cx-cf)*t;base*=fit+(1-fit)*t;}
+      if(!compact){const tr=w*.08+Math.min(w*.38,560)+16,fit=Math.min(1,((w-tr-24)/2)/(560*base)),t=Math.min(1,camera.progress/.125),cf=(tr+w-24)/2/w;cx=cf+(cx-cf)*t;base*=fit+(1-fit)*t;}
       
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
       world.position.set(w*cx-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
       nuc.suave(media.matches);nuc.atualizar(dt/1000);
-      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*470,Math.sin(a)*275+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
+      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*520,Math.sin(a)*330+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;n.button.style.opacity=camera.progress>.06?'0':'1';n.button.style.pointerEvents=camera.progress>.06?'none':'auto';n.button.tabIndex=camera.progress>.06?-1:0;}
+      const forcas=nodes.map((n,i)=>{const f=selected===n.p.id||Math.round(camera.focus)===i||hover===i;return n.p.status==='pausado'?.14:f?.95:camera.focus>=0?.18:.45;});
+      fios.suave(media.matches);fios.atualizar(dt/1000,nodes.map(n=>n.body),forcas,i=>{});
+      nodes.forEach((n,i)=>{const fl=fios.flash(i);n.halo.alpha=.7+.9*fl+(hover===i?.5:0);n.body.scale.set(1+.16*fl);});
       drawConnections();
       for(const layer of stars){layer.container.alpha=quality<1&&layer.depth===0?.35:1;const d=(layer.depth+1)*.13;for(const q of layer.points){q.p.x=((q.x*w-camera.x*d+elapsed*d*2)%w+w)%w;q.p.y=((q.y*h-camera.y*d-camera.progress*120*d)%h+h)%h;q.p.scaleX=q.size*(1+Math.min(2,Math.abs(camera.progress-(camera.previousProgress||0))*100));}}
       backgrounds.forEach(b=>{b.s.visible=!compact||b.index<5;b.s.x=((b.x*w-camera.x*b.depth)%(w+180)+w+180)%(w+180)-90;b.s.y=((b.y*h-camera.y*b.depth-camera.progress*h*b.depth)%(h+180)+h+180)%(h+180)-90;b.s.rotation=camera.rotation*b.depth;b.s.scale.set((.25+(b.index%4)*.15)*(1+camera.progress*b.depth));});
@@ -98,30 +102,17 @@ window.CenaJarvis = (() => {
     function drawConnections(){
       lines.clear();
       nodes.forEach((n,index)=>{
-        const x=n.body.x,y=n.body.y,cx=x*.42-y*.22,cy=y*.42+x*.12;
-        const point=t=>({x:2*(1-t)*t*cx+t*t*x,y:2*(1-t)*t*cy+t*t*y});
         const focused=selected===n.p.id||Math.round(camera.focus)===index;
-        const color=cores[n.p.status]||cores.config,waiting=['aguardando','config'].includes(n.p.status),off=n.p.status==='pausado';
-        const strength=off?.14:focused?.9:camera.focus>=0?.18:.45;
-        for(let i=0;i<32;i++){
-          if(waiting&&i%4>1)continue;
-          const t=i/32,a=point(t),b=point((i+1)/32);
-          const mix=(v,w)=>Math.round(v+(w-v)*t);
-          const c=(mix(255,(color>>16)&255)<<16)|(mix(162,(color>>8)&255)<<8)|mix(70,color&255);
-          lines.moveTo(a.x,a.y).lineTo(b.x,b.y).stroke({color:c,width:focused?4:2.4,alpha:strength*.12});
-          lines.moveTo(a.x,a.y).lineTo(b.x,b.y).stroke({color:c,width:focused?1.4:.65,alpha:strength});
-        }
-        lines.circle(x,y,4).fill({color,alpha:strength});
-        const start=point(.2);lines.circle(start.x,start.y,1.5).fill({color:0xffbd6c,alpha:strength});
-        if(focused&&journey){const content=journey.querySelectorAll('.viagem-projeto .viagem-texto')[index];if(content){const rect=content.getBoundingClientRect();if(rect.top>80&&rect.top<innerHeight-100){const end=world.toLocal(new PIXI.Point(mobile()?rect.left+20:rect.right+15,rect.top+6));lines.moveTo(x,y).lineTo(end.x,end.y).stroke({color,width:.65,alpha:.3});lines.circle(end.x,end.y,2).fill({color,alpha:.6});}}}
-        if(!off){for(let k=0;k<4;k++){const t=Math.max(0,n.pulse.value-k*.018),p=point(t);lines.circle(p.x,p.y,k?1.1:2.6).fill({color,alpha:(1-k/5)*(focused?.95:.65)});}}
+        if(!focused||!journey)return;
+        const x=n.body.x,y=n.body.y,color=cores[n.p.status]||cores.config;
+        const content=journey.querySelectorAll('.viagem-projeto .viagem-texto')[index];if(content){const rect=content.getBoundingClientRect();if(rect.top>80&&rect.top<innerHeight-100){const end=world.toLocal(new PIXI.Point(mobile()?rect.left+20:rect.right+15,rect.top+6));lines.moveTo(x,y).lineTo(end.x,end.y).stroke({color,width:.65,alpha:.3});lines.circle(end.x,end.y,2).fill({color,alpha:.6});}}
       });
     }
     function tick(time,delta){
       if(paused||!visible||document.hidden||mode==='fundo'||failed)return;
       lenis?.raf(time*1000);elapsed+=Math.min(delta,100)/1000;ticks++;lastTime=time;
       if(delta>20)slow+=Math.min(delta,100);else slow=Math.max(0,slow-20);
-      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;nuc?.qualidade(.65);el.dataset.quality='adaptativa';}
+      if(slow>3000&&quality===1){quality=.65;stars[0].container.visible=false;foreground.visible=false;nuc?.qualidade(.65);fios?.qualidade(.65);el.dataset.quality='adaptativa';}
       draw(delta);
     }
     function syncLoop(){
@@ -180,8 +171,8 @@ window.CenaJarvis = (() => {
     };
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
     start();
-    return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},pausar(value){paused=value;syncLoop();},varredura(){if(nuc&&!media.matches){const o=nuc.ondas.find(w=>w.t>.7)||nuc.ondas[0];o.t=0;}},jornada:connectJourney,
-      depurar:()=>({nucleo:nuc,ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
+    return {el,atualizar(ps){const signature=JSON.stringify(ps);if(signature===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(id){selected=id;draw(0);},modo(value){mode=value;el.hidden=value==='fundo';syncLoop();},rolagem(){},avancar(ms){elapsed+=ms/1000;draw(ms);},pausar(value){paused=value;syncLoop();},varredura(){if(nuc&&!media.matches){const o=nuc.ondas.find(w=>w.t>.7)||nuc.ondas[0];o.t=0;}},jornada:connectJourney,
+      depurar:()=>({nucleo:nuc,fiosApi:fios,ready:!!world,failed,firstRender,frames,ticks,quality,projects:nodes.length,connections:nodes.length,progress:camera.progress,renderer:app?.renderer.name,reduced:media.matches,loop:loopAttached,
         // Caixa conservadora da região incandescente central (não inclui corona transparente).
         coreBounds:world?{x:world.x-90*world.scale.x*(nuc?nuc.batida.escala:1),y:world.y-90*world.scale.y*(nuc?nuc.batida.escala:1),width:180*world.scale.x*(nuc?nuc.batida.escala:1),height:180*world.scale.y*(nuc?nuc.batida.escala:1)}:null,
         resolution:app?.renderer.resolution,backgrounds:backgrounds.map(b=>({x:b.s.x,y:b.s.y,visible:b.s.visible,depth:b.depth})),

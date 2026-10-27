@@ -142,7 +142,7 @@ window.NucleoJarvo = (() => {
     aneis.forEach((r, k) => { for (let j = 0; j < 2 + (k === 1 ? 1 : 0); j++) { const s = new Particle({texture: tNo, anchorX: .5, anchorY: .5, scaleX: .24, scaleY: .24, tint: 0xfff1d0}); nosC.addParticle(s); satelites.push({s, r, ang: rnd() * TAU, off: j}); } });
 
     // ---- onda de choque (vetor, escala sem perder nitidez)
-    const ondas = [0, 1, 2].map(() => { const g = new Graphics().circle(0, 0, R * 1.02).stroke({color: 0xffc68a, width: 3.5, alpha: 1}); g.blendMode = 'add'; g.visible = false; container.addChild(g); return {g, t: 9}; });
+    const ondas = [0, 1, 2].map(() => { const g = new Graphics().circle(0, 0, R * 1.02).stroke({color: 0xffc68a, width: 2, alpha: 1}); g.blendMode = 'add'; g.visible = false; container.addChild(g); return {g, t: 9}; });
     container.addChild(nosC); // nós e satélites acima de tudo
 
     // ------------------------------------------------------------------ batimento "tum-tum"
@@ -179,7 +179,7 @@ window.NucleoJarvo = (() => {
       plasmaA.alpha = .45 + .12 * g; plasmaB.alpha = .32 + .1 * g;
       quente.alpha = .55 + .45 * g; limbo.alpha = .4 + .3 * g;
       // c) rede
-      projeta(rede, tras.geo, R * 1.5, ay, ax, .07, sRede);
+      projeta(rede, tras.geo, R * 1.34, ay, ax, .07, sRede);
       frente.geo.positions.set(tras.geo.positions); frente2.geo.positions.set(tras.geo.positions);
       dividir(rede, sRede, frente, tras, 0); frente2.geo.indices.set(frente.geo.indices);
       sobe(tras.geo); sobe(frente.geo); sobe(frente2.geo); sobeIdx(tras.geo); sobeIdx(frente.geo); sobeIdx(frente2.geo);

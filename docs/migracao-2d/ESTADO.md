@@ -81,3 +81,14 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 
 ### Decisões
 - O app não usa bundler: a nova cena será JS puro em arquivos novos (`nucleo-2d.js`, etc.) carregados antes de `cena-2d.js`.
+
+### Etapa 1 — núcleo procedural (✅, commits 19b00bc e seguintes)
+- `nucleo-2d.js`: halo (3 sprites aditivos + flare), corpo em gradiente 2048 + 2 camadas de plasma em contra-rotação, rede geodésica (frequência 12 = 1442 vértices, 4320 arestas, jitter 3%) girada a cada quadro (eixo Y + precessão X) e projetada em 2D com Mesh `line-list` (trás α≈0,25, frente α≈0,9, cópia deslocada 0,5 px), icosaedro e dodecaedro internos em contra-rotação, anel de limbo, 3 anéis tracejados com 7 satélites, nós luminosos (190) e onda de choque vetorial. Sem Three.js, sem sequência de quadros; tudo usa deltaTime.
+- Medido (Chrome headless, 120 quadros a 60 Hz simulados): desvio máximo do delta de rotação 8e-14 (critério ±10%); custo JS do núcleo 0,2–0,45 ms/quadro (critério ≤3 ms; não inclui GPU).
+- Texturas: gradientes/plasma gerados em canvas de 2048 px (1024 no celular), sem esticar assets de 1024.
+- Pixi enxuto reconstruído para exportar Mesh/MeshGeometry/Texture.
+
+### Etapa 2 — batimento, fios e pacotes (⚠️ em andamento)
+- Batimento "tum-tum" analítico (sem sine): período 0,95 s ±3% por ciclo (0,82 s com avisos novos via `nucleo.ritmo(true)`), tum 1 (ataque 70 ms power3.out, escala 1,07) e tum 2 (0,6×, em +0,20 s). Medido em 3 s: picos 1,070 e 1,042 espaçados ~0,19 s, período 0,92–0,95 s.
+- `fios-2d.js`: 2 a 5 fios Bézier por projeto + 2 fios secundários entre vizinhos (44 fios, antes 7); extremidades pela posição atual do planeta a cada quadro; pool de 160 pacotes com rastro de cometa.
+- Nó recebe flash ao chegar um pacote; evento real via `MV.evento` (ainda não ligado ao pc.html).
