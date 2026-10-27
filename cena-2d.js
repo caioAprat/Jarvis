@@ -82,12 +82,12 @@ window.CenaJarvis = (() => {
       if(!app||!world||dead||failed)return;
       const w=app.screen.width,h=app.screen.height,compact=mobile();let base=Math.min(w/(compact?1100:1300),h/850),cx=compact?.5:.62;
       // Abertura: a órbita (com os rótulos) cabe na área livre à direita do texto; volta ao normal quando a câmera entra.
-      if(!compact){const tr=w*.08+Math.min(w*.38,560)+16,fit=Math.min(1,((w-tr-24)/2)/(560*base)),t=Math.min(1,camera.progress/.125),cf=(tr+w-24)/2/w;cx=cf+(cx-cf)*t;base*=fit+(1-fit)*t;cx+=(.5-cx)*camera.geral;}
+      if(!compact){const rv=Math.min(240,Math.max(140,w*.125)),tr=w*.08+Math.min(w*.38,560)+16,fit=Math.min(1,((w-tr-rv)/2)/(560*base)),t=Math.min(1,camera.progress/.125),cf=(tr+w-rv)/2/w;cx=cf+(cx-cf)*t;base*=fit+(1-fit)*t;cx+=(.5-cx)*camera.geral;}
       
       world.scale.set(base*camera.zoom);world.rotation=camera.rotation;
       world.position.set(w*cx-camera.x*base*camera.zoom,h*(compact?camera.anchorY:.53)-camera.y*base*camera.zoom);
       nuc.suave(media.matches);nuc.atualizar(dt/1000);
-      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*520,Math.sin(a)*330+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:90),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;const vis=geral||camera.geral>.01||camera.progress<=.06;n.button.style.opacity=vis?'1':'0';n.button.style.pointerEvents=vis?'auto':'none';n.button.tabIndex=vis?0:-1;n.alvo.style.transform=`translate(${pt.x}px,${pt.y}px)`;n.alvo.style.pointerEvents=vis?'auto':'none';}
+      for(const n of nodes){const a=n.angle+(media.matches?0:Math.sin(elapsed*.035)*.08);n.body.position.set(Math.cos(a)*520,Math.sin(a)*330+Math.sin(elapsed*.6+n.angle)*5);n.gem.gotoAndStop(Math.floor(elapsed*12)%64);n.body.alpha=n.p.status==='pausado'?.45:1;const pt=world.toGlobal(n.body.position);n.button.style.transform=`translate(${Math.max(compact?55:90,Math.min(w-(compact?55:Math.min(240,Math.max(140,w*.125))),pt.x))}px,${pt.y+36*base}px) translateX(-50%)`;const vis=geral||camera.geral>.01||camera.progress<=.06;n.button.style.opacity=vis?'1':'0';n.button.style.pointerEvents=vis?'auto':'none';n.button.tabIndex=vis?0:-1;n.alvo.style.transform=`translate(${pt.x}px,${pt.y}px)`;n.alvo.style.pointerEvents=vis?'auto':'none';}
       const forcas=nodes.map((n,i)=>{const f=selected===n.p.id||Math.round(camera.focus)===i||hover===i;return n.p.status==='pausado'?.14:f?.95:camera.focus>=0?.18:.45;});
       part.suave(media.matches);part.atualizar(dt/1000,nodes.map(n=>n.body));fios.suave(media.matches);fios.atualizar(dt/1000,nodes.map(n=>n.body),forcas,i=>{});
       nodes.forEach((n,i)=>{const fl=fios.flash(i);n.halo.alpha=.7+.9*fl+(hover===i?.5:0);n.body.scale.set(1+.16*fl);});

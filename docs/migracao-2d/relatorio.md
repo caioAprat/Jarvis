@@ -57,3 +57,32 @@ Capturas salvas, sem abrir imagens nesta sessão: [capturas/](capturas/), inclui
 4. Polimento estético pelo Claude/usuário, usando as capturas; publicar somente após autorização própria.
 
 Comandos e estado resumidos em [ESTADO.md](ESTADO.md).
+
+
+## Polimento desktop 2 (27/10/2026)
+
+Branch `visual/jarvis-2d`, sem push. Núcleo, batimento, fios, pacotes, partículas, mapa de projetos e composição de desktop novos. Detalhes por etapa em [ESTADO.md](ESTADO.md).
+
+### O que mudou
+- **Núcleo** (`nucleo-2d.js`): rotação contínua por matemática 2D (1442 vértices/4320 arestas projetados a cada quadro em Mesh `line-list`), corpo de plasma procedural, icosaedro e dodecaedro internos, limbo, 3 anéis com 7 satélites; texturas geradas a 2048 px (1024 no celular) — nenhuma camada é esticada acima de 1,0× do asset. Sem Three.js, sem sequência de quadros. Os atlas `nucleo-0` (96 quadros) deixaram de ser carregados.
+- **Batimento** tum-tum analítico (0,95 s ±3%; 0,82 s com avisos novos), onda de choque vetorial, glow com decaimento.
+- **Fios** (`fios-2d.js`): 44 fios (antes 7) seguindo a posição atual dos planetas; 160 pacotes com rastro de cometa (ida laranja, volta verde, âmbar lentos, vermelho em erro; nenhum em pausado), flash no planeta ao chegar; eventos reais (`MV.evento`) viram pacotes grandes de outra cor.
+- **Partículas** (`particulas-2d.js`): 150 brasas em arco, 80 micro-partículas nos fios, 8 detritos por planeta, cintilação de estrelas.
+- **Estrutura**: mapa de projetos (pontos de status, 1–9, G = Visão geral, painel único de detalhes com linha-guia, hover acende o feixe), barra/busca/dock no app, seções de baixo em duas colunas largas sem cartões, retângulo escuro do cabeçalho removido.
+- **Nitidez**: a qualidade adaptativa agora só esconde halos extras/plasma B/nós e partículas; a resolução do renderer nunca é reduzida.
+
+### Medições (Chrome headless, software, 1920×1080)
+| Critério | Resultado |
+|---|---|
+| Delta de rotação em 120 quadros | desvio máx. 8e-14 (exigido ±10%) |
+| Custo JS do núcleo | 0,2–0,45 ms/quadro (exigido ≤ 3 ms) |
+| CPU JS de toda a cena (sem GPU) | 1,9–2,8 ms/quadro |
+| Batimento (3 s, passo 1/240 s) | 2 picos por ciclo (1,070 e 1,042), espaçados ~0,19 s; período 0,92–0,95 s |
+| Fios | 44 (antes 7), 61 pacotes simultâneos medidos |
+| JavaScript raw | 751 KB (antes 983 KB); ~230 KB com gzip |
+| Movimento reduzido | loop parado, batimento suave (0,4×), sem erros |
+| Perda de contexto WebGL | fallback ativo, scroll nativo, sem erro de JS |
+| Celular 390 px | sem erros; 33 fios, densidade de partículas ≈45% |
+| Testes do servidor | 140 passam |
+
+**Não medido / limites:** FPS em GPU real. O Chrome headless usa renderização por software (SwiftShader), onde esta cena mais pesada roda a ~3,7 fps a DPR 1 (antes, 18,9 fps com a cena simples); o gargalo é preenchimento de pixels dos halos aditivos de 2048 px, barato em GPU, mas **60 fps não estão comprovados** — precisa de teste na máquina do Caio (e Safari/iPhone). Em 1024 px ainda há 1 sobreposição entre rótulos (Gabinete × Planilha). Os scripts de auditoria do Codex (`verificar-ui.cjs` etc.) não foram executados (dependem do Playwright do sandbox dele); a validação usou um harness equivalente fora do projeto.

@@ -109,3 +109,14 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 - Decisão: em telas ≥1000 px o `index.html` ganha `desktop-2d.css/js`: duas colunas largas (Clientes + Meus projetos à esquerda; Notificações, Dinheiro e Avisos à direita), tipografia grande e leve, linhas-guia com marcador de luz, status como ponto luminoso (sem pílulas/ícones em caixa), Dinheiro com número gigante contando. No celular nada muda (wrappers `display:contents`).
 - No desktop do app também: barra de indicadores (Situação, Projetos no ar, Pedidos abertos "—" com link para a central, Avisos novos), busca Ctrl K (projetos e seções) e dock inferior. Depois da jornada a cena vira fundo a 22% para não competir com o texto.
 - Verificado headless 1920: 2 colunas (x=210 e x=1103), HUD/busca/dock presentes, paleta abre/filtra/fecha.
+
+### Etapa 6 — desempenho e robustez (✅/⚠️)
+- ✅ Movimento reduzido, perda de WebGL, celular 390 px e 140 testes do servidor passam; qualidade adaptativa nunca reduz a resolução nem a nitidez do núcleo.
+- ⚠️ 60 fps em GPU real não comprovados (headless por software: ~3,7 fps). Números e limites em `relatorio.md`.
+- ⚠️ 1024 px: 1 sobreposição de rótulos (gabinete/planilha). Pendências do Codex: retomada após movimento reduzido ✅ (já no passo anterior), fontes ✅, JS 983→751 KB.
+
+### Decisões
+- `index.html` (app do iPhone) é a página aberta em `/Jarvis/`; recebeu composição de desktop ≥1000 px em vez de redirecionar ao `pc.html` (que exige o link privado da central).
+- Pedidos abertos no app mostra "—" (o endpoint do app não traz pedidos) com link para a central do PC.
+- Frequência da rede geodésica = 12 (V=1442) por leitura de referência; "frequência 4/5" do pedido daria 162–252 vértices, esparso demais.
+- Seis das dez visualizações de imagem permitidas foram usadas em recortes/quadros do núcleo e da cena; o resto foi medição.

@@ -211,7 +211,7 @@ window.NucleoJarvo = (() => {
       /** Ritmo cardíaco: 0,95 s normal; 0,82 s com avisos novos. */
       ritmo(avisos) { bat.periodo = avisos ? .82 : .95; },
       suave(v) { bat.suave = !!v; },
-      qualidade(q) { qualidadeNos = q; },
+      qualidade(q) { qualidadeNos = q; /* só efeitos de glow: a nitidez do núcleo (corpo, rede, poliedros) nunca muda */ halos[2].visible = flare2.visible = plasmaB.visible = q >= 1; },
       estado: () => ({escala: bat.escala, glow: bat.glow, fase: bat.t, periodo: bat.T, angulo: ay}),
       destruir() { container.destroy({children: true}); tex.forEach(t => t.destroy(true)); },
     };

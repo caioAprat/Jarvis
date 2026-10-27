@@ -20,10 +20,10 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 @media(max-width:700px){.jornada-ativa .viagem-posicao,.jornada-ativa .viagem-abertura .viagem-posicao{left:24px;top:auto;bottom:115px;transform:none;width:calc(100vw - 48px)}.jornada-mobile .jornada-ativa .viagem-posicao{bottom:75px}.jornada-mobile .jornada-ativa .viagem-texto{bottom:auto}}
 /* mapa de projetos (índice lateral), Visão geral e painel de detalhes */
 .mapa-proj{position:fixed;right:26px;top:50%;transform:translateY(-50%);z-index:6;display:flex;flex-direction:column;align-items:flex-end;gap:2px;pointer-events:none}.mapa-proj>*{pointer-events:auto}.jornada-fora .mapa-proj{visibility:hidden}
-.mp-tit{font:9px 'JetBrains Mono',monospace;letter-spacing:.22em;color:#8f775e;margin-bottom:12px;text-align:right}.mp-tit b{display:block;font-weight:400;margin-top:3px}
+.mp-tit{max-width:96px;font:9px 'JetBrains Mono',monospace;letter-spacing:.22em;color:#8f775e;margin-bottom:12px;text-align:right}.mp-tit b{display:block;font-weight:400;margin-top:3px}
 .mp-item{--c:#79e9b4;display:flex;align-items:center;gap:10px;background:none;border:0;border-radius:6px;color:#cdb89c;padding:6px 4px;cursor:pointer;font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em}
 .mp-item[data-status=atencao]{--c:#ffc16c}.mp-item[data-status=erro]{--c:#ff5e74}.mp-item[data-status=aguardando]{--c:#e9b66e}.mp-item[data-status=config]{--c:#c2ab8c}.mp-item[data-status=pausado]{--c:#776b61}
-.mp-nome{opacity:0;transform:translateX(6px);transition:opacity .18s,transform .18s;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 6px #000}
+.mp-item{position:relative}.mp-nome{position:absolute;right:calc(100% + 6px);top:50%;margin-top:-8px;opacity:0;transform:translateX(6px);transition:opacity .18s,transform .18s;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 6px #000}
 .mp-item:hover .mp-nome,.mp-item:focus-visible .mp-nome,.mp-item[data-ativo] .mp-nome{opacity:1;transform:none}
 .mp-ponto{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px #0008,0 0 10px var(--c);transition:transform .18s}
 .mp-item:hover .mp-ponto{transform:scale(1.35)}.mp-item[data-ativo] .mp-ponto{outline:1px solid var(--c);outline-offset:4px}
@@ -42,3 +42,5 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 @media(max-width:700px){.mapa-proj{right:0;left:0;top:112px;transform:none;flex-direction:row;justify-content:center;align-items:center;gap:4px;padding:0 12px}.mp-tit,.mp-nome,.mp-num,.mp-geral kbd{display:none}.mp-geral{margin:0 0 0 8px;padding:5px 8px}.mp-item{padding:8px 6px}.painel-proj{left:12px;right:12px;width:auto;top:auto;bottom:90px;transform:none}}
 /* depois da jornada a cena vira fundo discreto (não compete com o texto das seções de baixo) */
 .cena-2d{transition:opacity .6s}html.cena-fundo .cena-2d{opacity:.22}
+@media(min-width:701px) and (max-width:1500px){.mp-tit{display:none}.mp-geral{font-size:0;padding:6px 8px;margin-top:10px}.mp-geral kbd{margin:0;font-size:10px}}
+@media(min-width:701px) and (max-width:1500px){.mp-num{display:none}.mapa-proj{right:18px}}
