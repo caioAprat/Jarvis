@@ -88,7 +88,11 @@ Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness d
 - Texturas: gradientes/plasma gerados em canvas de 2048 px (1024 no celular), sem esticar assets de 1024.
 - Pixi enxuto reconstruído para exportar Mesh/MeshGeometry/Texture.
 
-### Etapa 2 — batimento, fios e pacotes (⚠️ em andamento)
+### Etapa 2 — batimento, fios e pacotes (✅; pacotes conferidos em captura com simulação determinística `MV.avancar`; em headless a 1,7 fps pacotes duram 1–2 quadros e parecem sumir)
 - Batimento "tum-tum" analítico (sem sine): período 0,95 s ±3% por ciclo (0,82 s com avisos novos via `nucleo.ritmo(true)`), tum 1 (ataque 70 ms power3.out, escala 1,07) e tum 2 (0,6×, em +0,20 s). Medido em 3 s: picos 1,070 e 1,042 espaçados ~0,19 s, período 0,92–0,95 s.
 - `fios-2d.js`: 2 a 5 fios Bézier por projeto + 2 fios secundários entre vizinhos (44 fios, antes 7); extremidades pela posição atual do planeta a cada quadro; pool de 160 pacotes com rastro de cometa.
 - Nó recebe flash ao chegar um pacote; evento real via `MV.evento` (ainda não ligado ao pc.html).
+
+### Etapa 3 — partículas (✅)
+- `particulas-2d.js`: 150 brasas em arco saindo do núcleo (paleta branco→laranja→vermelho, rajada a cada tum), 8 detritos orbitando cada planeta (3 se pausado); `fios-2d.js`: 80 micro-partículas viajando junto aos fios; estrelas com cintilação (25% por camada). Poeira em parallax e primeiro plano mantidos. Contagens escalam por `qualidade` (adaptativa 0,65) e `densidade` (celular ≈0,45).
+- Custo medido: 1,9 ms/quadro de CPU para toda a cena (240 quadros simulados, sem GPU).

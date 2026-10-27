@@ -29,6 +29,9 @@ window.FiosJarvo = (() => {
       const tr = []; for (let j = 0; j < TRILHA; j++) { const p = new Particle({texture: tTri, anchorX: .5, anchorY: .5, alpha: 0, scaleX: .1, scaleY: .1}); trilhoC.addParticle(p); tr.push(p); }
       pacotes.push({ativo: false, atraso: 0, u: 0, v: 1, dir: 1, fio: null, g: null, tam: 1, cor: 0xffffff, cab, tr, grande: false});
     }
+    // micro-partículas viajando junto aos fios (poeira de dados)
+    const NM = Math.round(80 * (o.densidade || 1)), microC = new ParticleContainer({dynamicProperties: {position: true, vertex: true, color: true, rotation: false}}); microC.blendMode = 'add';
+    const micro = []; for (let i = 0; i < NM; i++) { const p = new Particle({texture: tTri, anchorX: .5, anchorY: .5, alpha: 0, scaleX: .1, scaleY: .1}); microC.addParticle(p); micro.push({p, g: null, f: null, u: 2, v: .1, dir: 1, a: .5, tam: .08}); }
     let grupos = [], secundarios = null, densidade = o.densidade || 1, suave = false, qualidade = 1, vivos = 0;
 
     function malha(nFios, seg, cor, alpha) {
@@ -60,7 +63,7 @@ window.FiosJarvo = (() => {
         for (const [m, c] of [[base2, 0xff9a45], [ponta2, cor]]) { m.tint = c; m.blendMode = 'add'; m.position.set(.7, .5); camada.addChild(m); }
         grupos.push({pr, i, fios, base, ponta, base2, ponta2, cor, fluxo: 0, forca: .45, flash: 0});
       });
-      camada.addChild(trilhoC); camada.addChild(cabecaC);
+      camada.addChild(microC); camada.addChild(trilhoC); camada.addChild(cabecaC); for (const m of micro) m.u = 2;
       if (projetos.length > 1) {
         secundarios = malha(projetos.length * 2, 24, 0xd88a4a, .2);
         secundarios.curvas = []; for (let i = 0; i < projetos.length * 2; i++) secundarios.curvas.push({a: i >> 1, b: ((i >> 1) + 1) % projetos.length, curv: (i & 1 ? 1 : -1) * (.18 + rnd() * .1)});
@@ -123,6 +126,7 @@ window.FiosJarvo = (() => {
         secundarios.geo.attributes.aPosition.buffer.update();
         secundarios.m.alpha = .12 + .12 * (forcas ? Math.max(...forcas) : .4);
       }
+      microAtualiza(dt);
       // pacotes
       vivos = 0; const nTri = qualidade < 1 ? 3 : TRILHA;
       for (const p of pacotes) {
@@ -146,6 +150,21 @@ window.FiosJarvo = (() => {
           const uu = p.u - p.dir * (j + 1) * .02; if (uu < 0 || uu > 1) { t.alpha = 0; continue; }
           t.x = cubica(fio, uu, 0); t.y = cubica(fio, uu, 1); const k = 1 - (j + 1) / (TRILHA + 1); t.scaleX = t.scaleY = (.42 * k + .06) * p.tam; t.alpha = fade * .8 * k;
         }
+      }
+    }
+    function microAtualiza(dt) {
+      if (!grupos.length) return;
+      const lim = Math.round(micro.length * qualidade);
+      for (let i = 0; i < micro.length; i++) {
+        const m = micro[i];
+        if (i >= lim) { m.p.alpha = 0; continue; }
+        m.u += m.dir * m.v * dt * (suave ? .4 : 1);
+        if (m.u > 1 || m.u < 0) {
+          const g = grupos[(rnd() * grupos.length) | 0]; if (g.pr.status === 'pausado' && rnd() < .8) { m.u = 2; m.p.alpha = 0; continue; }
+          m.g = g; m.f = g.fios[(rnd() * g.fios.length) | 0]; m.dir = rnd() < .5 ? 1 : -1; m.u = m.dir > 0 ? 0 : 1; m.v = .07 + rnd() * .15; m.a = .35 + rnd() * .5; m.tam = .05 + rnd() * .07; m.p.tint = rnd() < .5 ? 0xffb070 : m.g.cor;
+        }
+        const f = m.f; m.p.x = cubica(f, m.u, 0) + Math.sin(tempo * 3 + i) * 1.2; m.p.y = cubica(f, m.u, 1) + Math.cos(tempo * 2.4 + i) * 1.2;
+        m.p.scaleX = m.p.scaleY = m.tam; m.p.alpha = m.a * Math.min(1, m.u * 6, (1 - m.u) * 6);
       }
     }
     // Evento real (aviso, pedido): pacotes maiores e de outra cor, do projeto para o núcleo.
