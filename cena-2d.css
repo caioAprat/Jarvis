@@ -46,3 +46,9 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 @media(min-width:701px) and (max-width:1500px){.mp-num{display:none}.mapa-proj{right:18px}}
 /* rótulos sempre acima das veias, com sombra de legibilidade */
 .cena-label{text-shadow:0 0 5px #000,0 0 12px #000,0 1px 2px #000}
+/* índice lateral: número e nome em TODOS os marcadores (hover/foco); o da etapa atual fica em destaque */
+.mp-nome b{color:#ffb36a;font-weight:600;margin-right:6px}
+.mp-item[data-ativo] .mp-nome{opacity:0;transform:translateX(6px)}
+.mp-item:hover .mp-nome,.mp-item:focus-visible .mp-nome{opacity:1;transform:none;background:#0d0a08cc;padding:3px 8px;border-radius:6px}
+.mp-item[data-ativo]{color:#fff1dc}.mp-item[data-ativo] .mp-ponto{transform:scale(1.5);box-shadow:0 0 0 2px #0008,0 0 14px var(--c)}
+.mp-item[data-ativo] .mp-num{color:#ffb36a}
