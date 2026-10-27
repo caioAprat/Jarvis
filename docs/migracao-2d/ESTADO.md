@@ -64,3 +64,20 @@ Ferramentas já instaladas em `/workspace/.jarvis-audit-tools`; não reinstalar.
 2. Certificado das fontes exige autorização externa; console zero ainda não cumprido.
 3. A: reduzir JS; não apagar histórico nem adulterar Pixi para zerar palavras. FPS melhorou, CPU/heap/JS não.
 4. Claude/usuário: polimento estético e teste em GPU/Safari reais antes de publicar.
+
+## Polimento desktop 2 (missão autônoma, 27/10/2026)
+Checkpoint: tag `checkpoint-polimento-1` (árvore limpa em `3d35c9f`). Harness de validação: Chrome headless via playwright-core (fora do projeto, no scratchpad); alvo visual: `referencias/pc-1920x1080.png` (o `referencia-pc.png` não existe).
+
+### Etapa 0 — diagnóstico (✅)
+1. Núcleo: `AnimatedSprite` 'rede' com 96 quadros avançados a 12/s (`gotoAndStop(floor(elapsed*12)%96)`): rotação em degraus de 12 fps, não contínua.
+2. Quadros de 384 px esticados para 440 (×1,15, ×2 em DPR 2) e atlas `nucleo-1` de 1024 px desenhado a 480–720 px CSS (>1,0× em DPR 2): borrão.
+3. "Pulmão": `breathTween` sine.inOut yoyo 2,8 s em escala 1→1,045.
+4. Renderer 'webgl', resolution = min(DPR,2) = 2 (canvas 3840×2160 em 1920×1080 DPR 2). A qualidade adaptativa (`slow>3000`) reduz `renderer.resolution` e esconde estrelas/primeiro plano: derruba a nitidez do núcleo — deve passar a reduzir só partículas/glow.
+5. Fios: 1 curva de 32 segmentos por projeto (7 no total) + um ponto pulsante; não há pacotes de dados.
+6. Partículas: 3×850 estrelas, 90 faíscas, 60 de primeiro plano; sem brasas em arco, sem poeira junto aos fios, sem detritos orbitais.
+7. Barra superior (`.hud`), busca e dock existem no DOM de `pc.html`, mas a barra rola junto com a página (não é fixa) e some da vista durante a jornada.
+8. O layout de desktop reutilizava a jornada de coluna única pensada no celular (texto pequeno à esquerda, seções de baixo como cartões em coluna): causa de a versão desktop parecer o app de celular.
+9. Medição: headless com SwiftShader a DPR 2 roda ~1,7 fps; FPS real só em GPU de verdade. Custo do núcleo será medido em CPU (JS) com `performance.now`.
+
+### Decisões
+- O app não usa bundler: a nova cena será JS puro em arquivos novos (`nucleo-2d.js`, etc.) carregados antes de `cena-2d.js`.
