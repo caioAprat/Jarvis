@@ -19,6 +19,7 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 - ✅ Medição inicial: textos dentro da viewport e sem colisão entre textos; encontrou núcleo sobre texto (20/40/50%), vazio em 60% e fechamento mobile oculto.
 - ✅ Primeira correção F validada: coluna por órbita, cena elevada no mobile, conteúdo contínuo e tolerância de 2px no fechamento.
 - ✅ G: fallback agora destrói Lenis; scroll nativo após perda de contexto, ocultação após a jornada e DPR passaram em teste separado. Onze regressões de UI passaram novamente.
+- ✅ CLAUDE.md aponta para este registro; temporários ignorados; exportação HTML antiga retirada do Git (gerador preservado). Créditos mantidos, sem regenerar assets.
 
 ## Pendências
 - ✅ Geometria medida nas três viewports; console tem somente erro externo de certificado das fontes.

@@ -2,3 +2,10 @@
 apps-script/Segredos.local.js
 node_modules/
 testes/pc-exemplo.json
+# Intermediários de captura e exportações reproduzíveis (somente dentro do projeto).
+/.jarvis-capture/
+/frames-brutos/
+/scripts/migracao-2d/tmp/
+/preview/Jarvao-2D.html
+*.tmp
+*.log

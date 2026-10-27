@@ -18,5 +18,6 @@ Ferramentas de geração, instaladas fora da aplicação: Sharp 0.35.5 (Apache-2
 - GSAP e ScrollTrigger **3.15.0**, licença padrão gratuita GSAP: `vendor/gsap.min.js`, `vendor/ScrollTrigger.min.js`. Aviso de licença preservado nos arquivos; termos em https://gsap.com/standard-license/ . Não se trata de licença MIT. Uso comercial gratuito conforme https://gsap.com/pricing/ .
 - Lenis **1.3.27**, MIT: `vendor/lenis.min.js`, `vendor/lenis.css`; licença em `vendor/lenis-LICENSE.txt`.
 - Saira, Michroma e JetBrains Mono: fontes já usadas pelo projeto, fornecidas pelo Google Fonts, sob SIL Open Font License. Sem conexão, continuam disponíveis as fontes de sistema declaradas no CSS.
+  Licenças oficiais: [Saira](https://github.com/google/fonts/blob/main/ofl/saira/OFL.txt), [Michroma](https://github.com/google/fonts/blob/main/ofl/michroma/OFL.txt), [JetBrains Mono](https://github.com/google/fonts/blob/main/ofl/jetbrainsmono/OFL.txt).
 
 Sem plugin de filtro ou emissor externo: partículas usam a API nativa do PixiJS. A demonstração usa exclusivamente o simulador local do Jarvis e não contém credenciais de produção.
