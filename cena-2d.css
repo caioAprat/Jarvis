@@ -40,3 +40,5 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 .pp-x{position:absolute;right:8px;top:6px;background:none;border:0;color:#cdb89c;font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:6px}
 .em-jornada .barra.rolou{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
 @media(max-width:700px){.mapa-proj{right:0;left:0;top:112px;transform:none;flex-direction:row;justify-content:center;align-items:center;gap:4px;padding:0 12px}.mp-tit,.mp-nome,.mp-num,.mp-geral kbd{display:none}.mp-geral{margin:0 0 0 8px;padding:5px 8px}.mp-item{padding:8px 6px}.painel-proj{left:12px;right:12px;width:auto;top:auto;bottom:90px;transform:none}}
+/* depois da jornada a cena vira fundo discreto (não compete com o texto das seções de baixo) */
+.cena-2d{transition:opacity .6s}html.cena-fundo .cena-2d{opacity:.22}

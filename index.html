@@ -109,6 +109,7 @@
 </style>
 <link rel="stylesheet" href="vendor/lenis.css">
 <link rel="stylesheet" href="cena-2d.css">
+<link rel="stylesheet" href="desktop-2d.css">
 </head>
 <body>
 <header>
@@ -125,6 +126,7 @@
 <script src="cena-2d.js"></script>
 <script src="mapa-2d.js"></script>
 <script src="jornada.js"></script>
+<script src="desktop-2d.js"></script>
 <script src="demo.js"></script>
 <div id="app"><div class="skel"></div><div class="skel" style="height:240px"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -317,6 +319,7 @@ function render() {
   h.push(JornadaJarvis.html(D.projetos,{titulo,avisos:D.avisos.filter(a=>a.id>(D.avisosVistosAte||0)).length}));
 
 
+  h.push('<div class="desk-grid"><div class="desk-r1">');
   h.push(cardPush());
 
   // dinheiro
@@ -351,9 +354,11 @@ function render() {
       <div><b>${esc(p.nome)}</b><div class="det">${esc(p.detalhe || '')}</div>${disp}<div class="quando">${ESTADO_FRASE[p.status] || ''} ${ha(p.desde)}${p.semDadosDesde ? ' · sem dados novos ' + ha(p.semDadosDesde) : ''}</div></div>
       <span class="pill ${esc(p.status)}">${NOMES[p.status] || esc(p.status)}</span></${tag}>${acoes}`;
   };
+  h.push('</div><div class="desk-l">');
   if (clientes.length) h.push(`<section class="card"><h2 class="titulo">Clientes<small>o que já está vendido</small></h2>${clientes.map(linhaProj).join('')}</section>`);
   h.push(`<section class="card"><h2 class="titulo">Meus projetos</h2>${meus.map(linhaProj).join('')}</section>`);
 
+  h.push('</div><div class="desk-r2">');
   // avisos
   const NIVEL = { urgente: 'Urgente: ', atencao: 'Atenção: ', ok: 'Resolvido: ', info: '' };
   const avisos = S.todos ? D.avisos : D.avisos.slice(0, 6);
@@ -363,8 +368,10 @@ function render() {
     ${novos ? `<button class="mais" data-acao="vistos">Marcar ${plural(novos, 'aviso como visto', 'avisos como vistos')}</button>` : ''}
     ${!S.todos && D.avisos.length > 6 ? '<button class="mais" data-acao="todos">Ver todos</button>' : ''}
     ${S.push === 'ativo' ? '<div class="ativo" style="margin-top:12px">Notificações ativas neste iPhone</div><button class="grande-btn sec" data-acao="teste">Mandar notificação de teste</button>' : ''}</section>`);
+  h.push('</div></div>');
   app.innerHTML = h.join('');
   ligarMapa();
+  if (window.DesktopJarvo) DesktopJarvo.atualizar({ projetos: D.projetos, sit: S.sit, avisosNovos: novos });
 }
 
 function entrar() {

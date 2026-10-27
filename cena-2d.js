@@ -213,7 +213,7 @@ window.CenaJarvis = (() => {
     const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncLoop();});observer.observe(el);
     const onVisibility=()=>syncLoop(),onMotion=()=>{syncLoop();if(journey)connectJourney(journey);},onScroll=()=>{
       // Também cobre scroll após o término do trigger, onde onUpdate já não muda.
-      if(journey)journey.classList.toggle('jornada-fora',journey.getBoundingClientRect().bottom<innerHeight-2);
+      if(journey){journey.classList.toggle('jornada-fora',journey.getBoundingClientRect().bottom<innerHeight-2);document.documentElement.classList.toggle('cena-fundo',journey.classList.contains('jornada-fora'));}
       if(media.matches)draw(0);
     };
     document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);window.addEventListener('resize',resize);window.addEventListener('scroll',onScroll,{passive:true});
