@@ -1,9 +1,9 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v9-terra-eletrica';
-const CASCA = ['./', 'index.html', 'pc.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
-  'mapa-2d.js', 'cena-3d.js', 'cena-3d.css', 'jornada.js', 'demo.js',
+const VERSAO = 'jarvis-v10-plasma-editorial';
+const CASCA = ['./', 'index.html', 'pc.html', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/jarvis.svg', 'icons/apple-touch-icon.png',
+  'mapa-2d.js', 'cena-3d.js', 'cena-3d.css', 'design-tokens.css', 'jornada.js', 'demo.js',
   'vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js'];
 
 self.addEventListener('install', e => e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting())));

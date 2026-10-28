@@ -13,7 +13,7 @@ void main() {
   float lightning = 1.0 - smoothstep(0.012, 0.075, abs(field + branches * 0.18));
   float pulse = 0.85 + 0.15 * sin(u_time * 2.2);
   float rim = pow(1.0 - max(dot(normalize(vNormal), vView), 0.0), 2.5);
-  vec3 energy = uEnergy * (0.32 + 0.18 * field);
+  vec3 energy = mix(uEnergy,uNeon,.3) * (0.6 + 0.25 * field);
   energy += mix(uNeon, uElectric, lightning) * lightning * 3.2 * pulse;
   gl_FragColor = vec4(energy + uElectric * rim * 0.45, 1.0);
 }

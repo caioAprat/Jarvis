@@ -1,0 +1,45 @@
+{
+  "palette": {
+    "background": "#050b12",
+    "surface": "#101c27",
+    "surfaceRaised": "#192a37",
+    "text": "#edf3ef",
+    "muted": "#97acb5",
+    "energy": "#ffac73",
+    "pink": "#ed79ae",
+    "violet": "#a397ef",
+    "electric": "#fff1cb",
+    "neon": "#83d9df",
+    "ocean": "#25546b",
+    "shadow": "#02060a",
+    "border": "#526777",
+    "document": "#edf3ef",
+    "planetCold": "#527687",
+    "planetWarm": "#9d8062",
+    "planetNeutral": "#697d7c"
+  },
+  "status": {
+    "ok": "#8cd6b1",
+    "atencao": "#edc184",
+    "erro": "#ee8c9a",
+    "aguardando": "#edc184",
+    "config": "#97acb5",
+    "pausado": "#697d7c"
+  },
+  "bloom": {
+    "strength": 0.62,
+    "radius": 0.4,
+    "threshold": 1.1
+  },
+  "layout": {
+    "heroRadius": 1.55,
+    "nodeRadius": 0.29,
+    "clearance": 0.18
+  },
+  "traffic": {
+    "streams": 18,
+    "perStream": 8,
+    "size": 0.18,
+    "duration": 3.2
+  }
+}

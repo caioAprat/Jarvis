@@ -14,81 +14,61 @@ export async function createDocumentTexture() {
   return texture;
 }
 
-export function createConnections(hero,nodes,parent,texture) {
+/** Feixes independentes dos projetos: órbitas curvas que mergulham no núcleo. */
+export function createConnections(hero,parent,texture) {
   const root=new THREE.Group();parent.add(root);
   const random=seededRandom(917),veins=[],packets=[];
-  const direction=new THREE.Vector3();
-  nodes.forEach((node,index)=>{
-    direction.copy(node.home).sub(hero.group.position).normalize();
-    const start=hero.group.position.clone().addScaledVector(direction,hero.radius*1.02);
-    const end=node.home.clone().addScaledVector(direction,-node.entity.radius*1.02);
-    for(let branch=0;branch<3+index%3;branch++){
-      const fan=(branch-1)*.075+(random()-.5)*.07;
-      const middle=start.clone().lerp(end,.5).add(new THREE.Vector3(-direction.y*.25+fan,direction.x*.25,fan));
-      const curve=new THREE.CatmullRomCurve3([start,start.clone().lerp(middle,.6),middle,end],false,'centripetal');
-      const radius=.006+random()*.008;
-      const material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,transparent:true,depthWrite:false,uniforms:{u_time:{value:0},uStartDelta:{value:new THREE.Vector3()},uEndDelta:{value:new THREE.Vector3()},uSeed:{value:random()*10},uStrength:{value:.6},uSpeed:{value:node.project.status==='pausado'?0:2+random()*2},uEnergy:{value:new THREE.Color(TOKENS.palette.energy)},uElectric:{value:new THREE.Color(TOKENS.palette.electric)}}});
-      const geometry=new THREE.TubeGeometry(curve,32,radius,5,false);
-      geometry.computeBoundingBox();
-      const mesh=new THREE.Mesh(geometry,material);mesh.frustumCulled=false;root.add(mesh);
-      const vein={curve,mesh,node,index,start,end,radius,bounds:geometry.boundingBox.clone()};veins.push(vein);
-      if(branch<2&&node.project.status!=='pausado'){
-        // Antes: dois sprites/projeto. Agora: quatro instâncias/projeto.
-        for(let copy=0;copy<2;copy++)packets.push({vein,offset:(copy*.5+branch*.21+index*.13)%1,reverse:branch===1,position:new THREE.Vector3(),opacity:0});
-      }
-    }
-  });
+  for(let index=0;index<TOKENS.traffic.streams;index++){
+    const angle=index*Math.PI*2/TOKENS.traffic.streams,reach=2.4+random()*1.1;
+    const point=(a,r,z)=>new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r*.65,z);
+    const curve=new THREE.CatmullRomCurve3([
+      point(angle,reach,-.5),point(angle+.7,reach*.96,.2),
+      point(angle+1.5,reach*.72,1.3),point(angle+2.1,.32,1.0)
+    ],false,'centripetal');
+    const radius=.012+random()*.014;
+    const material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{u_time:{value:0},uStartDelta:{value:new THREE.Vector3()},uEndDelta:{value:new THREE.Vector3()},uSeed:{value:random()*10},uStrength:{value:.65},uSpeed:{value:5+random()*3},uEnergy:{value:new THREE.Color(TOKENS.palette.energy)},uElectric:{value:new THREE.Color(TOKENS.palette.electric)}}});
+    const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,5,false),material);mesh.frustumCulled=false;root.add(mesh);
+    const vein={curve,mesh,index,radius};veins.push(vein);
+    for(let copy=0;copy<TOKENS.traffic.perStream;copy++)packets.push({vein,offset:(copy/TOKENS.traffic.perStream+index*.017)%1,position:new THREE.Vector3(),opacity:0});
+  }
   const geometry=new THREE.PlaneGeometry(1,1);
   const alpha=new THREE.InstancedBufferAttribute(new Float32Array(packets.length),1);
-  const glow=new THREE.InstancedBufferAttribute(new Float32Array(packets.length),1);
-  geometry.setAttribute('aOpacity',alpha);geometry.setAttribute('aGlow',glow);
-  const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:{uMap:{value:texture},uEnergy:{value:new THREE.Color(TOKENS.palette.energy)}},
-    vertexShader:`attribute float aOpacity;attribute float aGlow;varying vec2 vUv;varying float vOpacity;varying float vGlow;void main(){vUv=uv;vOpacity=aOpacity;vGlow=aGlow;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0);}`,
-    fragmentShader:`uniform sampler2D uMap;uniform vec3 uEnergy;varying vec2 vUv;varying float vOpacity;varying float vGlow;void main(){vec4 icon=texture2D(uMap,vUv);float alpha=icon.a*vOpacity;if(alpha<.04)discard;gl_FragColor=vec4(mix(icon.rgb,uEnergy,.12)*(.92+vGlow*.3),alpha);}`
+  geometry.setAttribute('aOpacity',alpha);
+  const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:{uMap:{value:texture},uEnergy:{value:new THREE.Color(TOKENS.palette.electric)}},
+    vertexShader:`attribute float aOpacity;varying vec2 vUv;varying float vOpacity;void main(){vUv=uv;vOpacity=aOpacity;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0);}`,
+    fragmentShader:`uniform sampler2D uMap;uniform vec3 uEnergy;varying vec2 vUv;varying float vOpacity;void main(){float a=texture2D(uMap,vUv).a*vOpacity;if(a<.04)discard;gl_FragColor=vec4(uEnergy*1.5,a);}`
   });
   const instances=new THREE.InstancedMesh(geometry,material,packets.length);
   instances.instanceMatrix.setUsage(THREE.DynamicDrawUsage);instances.frustumCulled=false;root.add(instances);
-  const dummy=new THREE.Object3D(),delta=new THREE.Vector3(),startPoint=new THREE.Vector3(),endPoint=new THREE.Vector3();
-  const worldQuaternion=new THREE.Quaternion(),cameraQuaternion=new THREE.Quaternion(),projected=new THREE.Vector3();
-  const occupied=Array.from({length:packets.length},()=>new THREE.Vector2());
-  const order=packets.map((_,i)=>i);
-  let lastFocus=null;
-
+  // Quatro pontos por documento formam caudas luminosas em uma única chamada.
+  const tailPositions=new Float32Array(packets.length*4*3),tailGeometry=new THREE.BufferGeometry();
+  tailGeometry.setAttribute('position',new THREE.BufferAttribute(tailPositions,3).setUsage(THREE.DynamicDrawUsage));
+  const tailMaterial=new THREE.PointsMaterial({color:TOKENS.palette.energy,size:.035,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending});
+  const trails=new THREE.Points(tailGeometry,tailMaterial);trails.frustumCulled=false;root.add(trails);
+  const dummy=new THREE.Object3D(),tail=new THREE.Vector3(),worldQuaternion=new THREE.Quaternion(),cameraQuaternion=new THREE.Quaternion(),projected=new THREE.Vector3();
   return {
     root,veins,packets,instances,
-    update(time,focus,compact,camera,reserved){
-      for(const vein of veins){
-        const u=vein.mesh.material.uniforms;
-        direction.copy(vein.node.group.position).sub(hero.group.position).normalize();
-        startPoint.copy(hero.group.position).addScaledVector(direction,hero.bounds.radius);
-        endPoint.copy(vein.node.group.position).addScaledVector(direction,-vein.node.entity.bounds.radius);
-        u.uStartDelta.value.copy(startPoint).sub(vein.start);u.uEndDelta.value.copy(endPoint).sub(vein.end);
-        u.u_time.value=time;u.uStrength.value=vein.node.project.status==='pausado'?.12:focus===vein.index?.9:focus>=0?.3:.52;
-      }
-      parent.getWorldQuaternion(worldQuaternion).invert();camera.getWorldQuaternion(cameraQuaternion);
-      dummy.quaternion.copy(worldQuaternion).multiply(cameraQuaternion);
-      let occupiedCount=0;
-      // Reordena somente quando muda o capítulo; sem novas listas por frame.
-      if(lastFocus!==focus){order.sort((a,b)=>Number(packets[b].vein.index===focus)-Number(packets[a].vein.index===focus));lastFocus=focus;}
-      for(const i of order){
-        const packet=packets[i],u=packet.vein.mesh.material.uniforms;
-        const phase=(time/TOKENS.traffic.duration+packet.offset)%1,eased=.5-.5*Math.cos(phase*Math.PI),t=packet.reverse?1-eased:eased;
+    update(time,progress,compact,camera,reserved){
+      root.position.copy(hero.group.position);
+      for(const vein of veins){const u=vein.mesh.material.uniforms;u.u_time.value=time;u.uStrength.value=.45+progress*.25;}
+      parent.getWorldQuaternion(worldQuaternion).invert();camera.getWorldQuaternion(cameraQuaternion);dummy.quaternion.copy(worldQuaternion).multiply(cameraQuaternion);
+      for(let i=0;i<packets.length;i++){
+        const packet=packets[i],phase=(time/TOKENS.traffic.duration+packet.offset)%1,t=phase*phase*(3-2*phase);
         packet.vein.curve.getPointAt(t,packet.position);
-        delta.copy(u.uStartDelta.value).lerp(u.uEndDelta.value,t);packet.position.add(delta);
-        projected.copy(packet.position);parent.localToWorld(projected);projected.project(camera);
+        projected.copy(packet.position).add(root.position);parent.localToWorld(projected);projected.project(camera);
         const x=(projected.x*.5+.5)*innerWidth,y=(.5-projected.y*.5)*innerHeight;
-        const active=packet.vein.index===focus;
-        let opacity=Math.min(1,phase*10,(1-phase)*10)*(active||focus<0?1:.45);
-        let overlaps=false;
-        for(let j=0;j<occupiedCount;j++)if(Math.abs(occupied[j].x-x)<16&&Math.abs(occupied[j].y-y)<19){overlaps=true;break;}
-        if(reserved.some(r=>x>r.left-10&&x<r.right+10&&y>r.top-12&&y<r.bottom+12)||overlaps)opacity=0;
-        if(opacity>.05)occupied[occupiedCount++].set(x,y);
+        let opacity=Math.min(1,phase*14,(1-phase)*8);
+        if(reserved.some(r=>x>r.left-12&&x<r.right+12&&y>r.top-12&&y<r.bottom+12))opacity=0;
         packet.opacity=opacity;
-        dummy.position.copy(packet.position);dummy.scale.setScalar(TOKENS.traffic.size*(compact?1.25:1)*(active?1.12:1));dummy.updateMatrix();instances.setMatrixAt(i,dummy.matrix);
-        alpha.setX(i,opacity);glow.setX(i,.5+.5*Math.sin(time*2-t*12));
+        dummy.position.copy(packet.position);dummy.scale.setScalar(TOKENS.traffic.size*(compact?1.2:1));dummy.updateMatrix();instances.setMatrixAt(i,dummy.matrix);alpha.setX(i,opacity);
+        for(let j=0;j<4;j++){
+          packet.vein.curve.getPointAt(Math.max(0,t-j*.008),tail);
+          if(opacity<.05)tail.set(0,0,-1000);
+          tail.toArray(tailPositions,(i*4+j)*3);
+        }
       }
-      instances.instanceMatrix.needsUpdate=true;alpha.needsUpdate=true;glow.needsUpdate=true;
+      instances.instanceMatrix.needsUpdate=true;alpha.needsUpdate=true;tailGeometry.attributes.position.needsUpdate=true;
     },
-    dispose(){root.removeFromParent();veins.forEach(v=>{v.mesh.geometry.dispose();v.mesh.material.dispose();});instances.dispose();geometry.dispose();material.dispose();root.clear();}
+    dispose(){root.removeFromParent();veins.forEach(v=>{v.mesh.geometry.dispose();v.mesh.material.dispose();});instances.dispose();geometry.dispose();material.dispose();tailGeometry.dispose();tailMaterial.dispose();root.clear();}
   };
 }

@@ -16,7 +16,7 @@ export async function createEntityResources() {
     uElectric:{value:new THREE.Color(TOKENS.palette.electric)},
     uNeon:{value:new THREE.Color(TOKENS.palette.neon)}
   };
-  const geometries={hero:new THREE.SphereGeometry(1,48,32),mini:new THREE.SphereGeometry(1,24,16)};
+  const geometries={hero:new THREE.SphereGeometry(1,48,32)};
   const materials={
     energy:new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:simplex+energy,uniforms}),
     earth:new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:simplex+earth,uniforms})
@@ -28,7 +28,7 @@ export async function createEntityResources() {
   };
 }
 
-/** Hero e projetos são instâncias desta EXATA classe, com duas malhas cada. */
+/** Duas malhas sobrepostas compõem apenas o Jarvis; projetos são UI/plasma. */
 export class JarvisEntity {
   constructor(resources,{radius=TOKENS.layout.heroRadius,seed=0,hero=false}={}) {
     this.group=new THREE.Group();
@@ -36,7 +36,7 @@ export class JarvisEntity {
     this.radius=radius;
     this.seed=seed;
     this.hero=hero;
-    const geometry=resources.geometries[hero?'hero':'mini'];
+    const geometry=resources.geometries.hero;
     this.energy=new THREE.Mesh(geometry,resources.materials.energy);
     this.energy.scale.setScalar(.88);
     this.shell=new THREE.Mesh(geometry,resources.materials.earth);

@@ -6,94 +6,139 @@
         "width": 1366,
         "height": 768
       },
-      "fps": 13.29499941835036,
-      "p95FrameMs": 98.60000000149012,
-      "maxFrameMs": 107.5,
+      "fps": 17.251961581217163,
+      "p95FrameMs": 67.20000000298023,
+      "maxFrameMs": 81.29999999701977,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "scene": {
         "ready": true,
         "failed": false,
         "renderer": "Three.js WebGL2",
-        "firstRender": 390.90000000596046,
-        "frames": 152,
-        "ticks": 152,
+        "firstRender": 358.90000000596046,
+        "frames": 202,
+        "ticks": 202,
         "quality": 0.65,
         "loop": true,
         "reduced": false,
         "progress": 0,
         "chapter": 0,
+        "motion": {
+          "heroYaw": 0,
+          "heroScale": 1,
+          "heroLift": 0,
+          "background": 0
+        },
         "projects": 7,
-        "connections": 27,
-        "packets": 12,
+        "connections": 18,
+        "projectRepresentation": "DOM plasma",
+        "smoothScroll": true,
+        "packets": 144,
+        "trafficDrawCalls": 1,
+        "instancedTraffic": true,
+        "entities": [
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          }
+        ],
+        "entityBounds": [
+          {
+            "x": 801.4005686116857,
+            "y": 227.5005686116857,
+            "width": 282.27886277662856,
+            "height": 282.27886277662856,
+            "cx": 942.54,
+            "cy": 368.64,
+            "radius": 141.13943138831428
+          }
+        ],
+        "entityOverlaps": [],
         "coreBounds": {
-          "x": 730.3001386482842,
-          "y": 211.04013864828437,
-          "width": 315.19972270343123,
-          "height": 315.19972270343123
+          "x": 801.4005686116857,
+          "y": 227.5005686116857,
+          "width": 282.27886277662856,
+          "height": 282.27886277662856,
+          "cx": 942.54,
+          "cy": 368.64,
+          "radius": 141.13943138831428
         },
         "resolution": 0.7871377093927544,
         "shaderErrors": [],
-        "drawCalls": 90,
-        "geometries": 59,
-        "textures": 18,
+        "drawCalls": 47,
+        "geometries": 28,
+        "textures": 16,
         "backgrounds": [
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -13,
+            "y": 12,
+            "z": -24,
+            "kind": "BackgroundPlanet",
+            "rings": 1
+          },
+          {
+            "x": 24,
+            "y": 8,
+            "z": -32,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": -10,
+            "y": -11,
+            "z": -26,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": 19,
+            "y": -10,
+            "z": -28,
+            "kind": "BackgroundPlanet",
+            "rings": 1
           },
           {
             "x": 0,
-            "y": 0,
-            "visible": true
-          },
-          {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "y": 13,
+            "z": -38,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           }
         ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 2.0818995585505003e-16,
-            "y": -2.7271393329800433,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 2.658227040391301,
-            "y": -1.7245464862136293,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 3.3147549014182003,
-            "y": 0.5783203921663518,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 1.4752047129996977,
-            "y": 2.451292445206951,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -1.4752047129996975,
-            "y": 2.482778921313133,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -3.3147549014182003,
-            "y": 0.6438312995601991,
+            "anchor": "DOM plasma",
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -2.6582270403913015,
-            "y": -1.6852415736709918,
+            "anchor": "DOM plasma",
             "status": "pausado"
           }
         ]
@@ -104,94 +149,139 @@
         "width": 390,
         "height": 844
       },
-      "fps": 23.726563796250208,
-      "p95FrameMs": 51.899999998509884,
-      "maxFrameMs": 57.69999999552965,
+      "fps": 24.011392991997013,
+      "p95FrameMs": 59.3999999910593,
+      "maxFrameMs": 97.69999998807907,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "scene": {
         "ready": true,
         "failed": false,
         "renderer": "Three.js WebGL2",
-        "firstRender": 328,
-        "frames": 288,
-        "ticks": 288,
+        "firstRender": 357.5,
+        "frames": 302,
+        "ticks": 302,
         "quality": 0.65,
         "loop": true,
         "reduced": false,
         "progress": 0,
         "chapter": 0,
+        "motion": {
+          "heroYaw": 0,
+          "heroScale": 1,
+          "heroLift": 0,
+          "background": 0
+        },
         "projects": 7,
-        "connections": 27,
-        "packets": 12,
+        "connections": 18,
+        "projectRepresentation": "DOM plasma",
+        "smoothScroll": true,
+        "packets": 144,
+        "trafficDrawCalls": 1,
+        "instancedTraffic": true,
+        "entities": [
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          }
+        ],
+        "entityBounds": [
+          {
+            "x": 108.32291966364097,
+            "y": 139.55729466364096,
+            "width": 173.35416067271805,
+            "height": 173.35416067271805,
+            "cx": 195,
+            "cy": 226.23437499999997,
+            "radius": 86.67708033635903
+          }
+        ],
+        "entityOverlaps": [],
         "coreBounds": {
-          "x": 98.2141782844626,
-          "y": 125.13605328446263,
-          "width": 193.5716434310748,
-          "height": 193.5716434310748
+          "x": 108.32291966364097,
+          "y": 139.55729466364096,
+          "width": 173.35416067271805,
+          "height": 173.35416067271805,
+          "cx": 195,
+          "cy": 226.23437499999997,
+          "radius": 86.67708033635903
         },
         "resolution": 1,
         "shaderErrors": [],
-        "drawCalls": 92,
-        "geometries": 59,
-        "textures": 18,
+        "drawCalls": 47,
+        "geometries": 28,
+        "textures": 16,
         "backgrounds": [
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -4.94,
+            "y": 12,
+            "z": -24,
+            "kind": "BackgroundPlanet",
+            "rings": 1
+          },
+          {
+            "x": 9.120000000000001,
+            "y": 8,
+            "z": -32,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": -3.8,
+            "y": -11,
+            "z": -26,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": 7.22,
+            "y": -10,
+            "z": -28,
+            "kind": "BackgroundPlanet",
+            "rings": 1
           },
           {
             "x": 0,
-            "y": 0,
-            "visible": true
-          },
-          {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "y": 13,
+            "z": -38,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           }
         ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 2.0818995585505003e-16,
-            "y": -2.7602082845573004,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 2.658227040391301,
-            "y": -1.748283461930739,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 3.3147549014182003,
-            "y": 0.5857390583150281,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 1.4752047129996977,
-            "y": 2.483046065777252,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -1.4752047129996975,
-            "y": 2.5096733639920483,
+            "anchor": "DOM plasma",
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -3.3147549014182003,
-            "y": 0.6411399377788106,
+            "anchor": "DOM plasma",
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -2.6582270403913015,
-            "y": -1.7150443143027263,
+            "anchor": "DOM plasma",
             "status": "pausado"
           }
         ]

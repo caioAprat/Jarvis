@@ -87,3 +87,35 @@ body::before{background:transparent!important}
  .jornada *{animation:none!important;transition:none!important}.hud.stats-dock{opacity:1}.em-jornada .barra{position:absolute}
  .viagem-texto{opacity:1!important;transform:none!important;visibility:visible!important}.jornada .viagem-etapa{height:auto;min-height:85svh}.jornada .viagem-texto{margin:120px 24px;width:min(85vw,480px)}
 }
+
+/* Colagem editorial: UI em uma camada independente do canvas fixo. */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+.lenis [data-lenis-prevent]{overscroll-behavior:contain}
+.viagem-projeto .viagem-texto{isolation:isolate;overflow:visible;background:linear-gradient(135deg,color-mix(in srgb,var(--scene-surface) 91%,transparent),color-mix(in srgb,var(--scene-shadow) 87%,transparent));border-radius:4px 30px 4px 30px;border-color:color-mix(in srgb,var(--scene-pink) 22%,transparent);box-shadow:0 30px 80px color-mix(in srgb,var(--scene-shadow) 50%,transparent)}
+.viagem-projeto .viagem-texto:after{content:'';position:absolute;left:30px;right:30px;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--scene-energy),var(--scene-pink),transparent);pointer-events:none}
+.viagem-projeto .viagem-kicker{color:var(--scene-pink)}
+.viagem-projeto h2{font-weight:400;letter-spacing:-.045em}
+.project-plasma{position:absolute;z-index:-1;pointer-events:none;right:-90px;top:-85px;width:230px;height:200px;transform:translateY(calc(var(--plasma-scroll,0)*-35px)) rotate(-18deg);transition:opacity .15s}
+.project-plasma i{position:absolute;inset:12%;border-radius:38% 62% 67% 33% / 44% 33% 67% 56%;background:radial-gradient(ellipse at 35% 35%,var(--scene-electric),var(--scene-energy) 25%,var(--scene-pink) 48%,transparent 72%);filter:blur(13px);opacity:.75;animation:plasma-flow 9s ease-in-out infinite alternate}
+.project-plasma i:nth-child(2){inset:22% -6% 6% 22%;background:radial-gradient(ellipse,var(--scene-violet),var(--scene-pink) 30%,transparent 70%);animation-delay:-4s;mix-blend-mode:screen;filter:blur(9px)}
+.project-plasma i:nth-child(3){inset:34% 22%;border:1px solid var(--scene-electric);background:none;filter:blur(1px);transform:rotate(30deg);animation-duration:6s}
+@keyframes plasma-flow{from{transform:rotate(-15deg) scale(.84,1.12);border-radius:38% 62% 67% 33% / 44% 33% 67% 56%}to{transform:rotate(22deg) scale(1.16,.91);border-radius:65% 35% 34% 66% / 35% 64% 36% 65%}}
+@media(min-width:701px){
+ .jornada-ativa .viagem-projeto:nth-of-type(3n+3) .viagem-posicao{left:8vw;top:49%;width:min(34vw,465px)}
+ .jornada-ativa .viagem-projeto:nth-of-type(3n+4) .viagem-posicao{left:auto;right:15vw;top:54%;width:min(32vw,445px)}
+ .jornada-ativa .viagem-projeto:nth-of-type(3n+5) .viagem-posicao{left:12vw;top:53%;width:min(38vw,510px)}
+ .viagem-projeto:nth-of-type(3n+4) .project-plasma{right:auto;left:-110px;top:-65px;transform:rotate(35deg)}
+ .viagem-projeto:nth-of-type(3n+5) .project-plasma{top:-90px;right:-100px;width:260px}
+}
+@media(max-width:700px){
+ .project-plasma{right:8px;top:-95px;width:175px;height:140px}
+ .viagem-projeto .viagem-texto{border-radius:4px 24px 4px 24px}
+ .jornada-ativa .viagem-projeto .viagem-posicao{width:calc(100vw - 48px);left:24px}
+ .viagem-projeto .viagem-texto:after{left:22px;right:22px}
+}
+@media(prefers-reduced-motion:reduce){.project-plasma i{animation:none}.project-plasma{transform:none}}
+/* Espaço real entre valor e unidade, inclusive durante escala/rotação. */
+.viagem-numero{display:flex;align-items:baseline;gap:12px}
+.viagem-numero small{letter-spacing:0}

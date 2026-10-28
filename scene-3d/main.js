@@ -6,7 +6,7 @@ import {createBackgroundParallax} from './BackgroundParallax.js';
 import {createParticles} from './Particles.js';
 import {createDocumentTexture,createConnections} from './Connections.js';
 import {createGSAPAnimations} from './GSAPAnimations.js';
-import {resolveEntityLayout,projectEntityBounds,findEntityOverlaps} from './SpatialLayout.js';
+import {projectEntityBounds,findEntityOverlaps} from './SpatialLayout.js';
 
 installDesignTokens();
 const names={ok:'No ar',atencao:'Atenção',erro:'Problema',aguardando:'Aguardando',config:'Configurar',pausado:'Pausado'};
@@ -19,10 +19,10 @@ function montar(options={}) {
   const state={ready:false,failed:false,reduced:media.matches,progress:0,focus:-1,chapter:0,activeText:null,motion:{heroYaw:0,heroScale:1,heroLift:0,background:0}};
   let setup,resources,documentTexture,hero,background,particles,connections;
   let nodes=[],projects=[],journeyRoot=null,dead=false,paused=false,mode='palco',loop=false;
+  let heroSide=.19;
   let time=0,frames=0,slow=0,quality=1,firstRender=null,flashTween=null;
   const shaderErrors=[],screenBounds=[];
-  const pointer=new THREE.Vector2(),target=new THREE.Vector2(),ndc=new THREE.Vector2();
-  const raycaster=new THREE.Raycaster();
+  const pointer=new THREE.Vector2(),target=new THREE.Vector2();
   const ui=createGSAPAnimations(state,()=>render(0));
   const compact=()=>innerWidth<=700;
 
@@ -36,18 +36,10 @@ function montar(options={}) {
 
   function rebuild() {
     if(!resources||!documentTexture||!hero)return;
-    connections?.dispose();nodes.forEach(node=>node.entity.dispose());labels.replaceChildren();
-    nodes=projects.map((project,i)=>{
-      const angle=-Math.PI/2+i*Math.PI*2/Math.max(1,projects.length);
-      const entity=new JarvisEntity(resources,{radius:TOKENS.layout.nodeRadius,seed:i+1});
-      const home=new THREE.Vector3(Math.cos(angle)*3.1,Math.sin(angle)*2.45,.12);
-      entity.group.position.copy(home);setup.world.add(entity.group);
-      const label=document.createElement('button');label.type='button';label.className='cena-label';
-      label.textContent=project.nome;label.dataset.status=project.status;
-      label.onclick=()=>options.aoSelecionar?.(project.id);labels.appendChild(label);
-      return {project,entity,group:entity.group,home,target:new THREE.Vector3(),emphasis:0,label};
-    });
-    connections=createConnections(hero,nodes,setup.world,documentTexture);
+    connections?.dispose();labels.replaceChildren();
+    // Os projetos pertencem ao DOM. Não há mini-planetas nem hit targets 3D.
+    nodes=projects.map(project=>({project}));
+    connections=createConnections(hero,setup.world,documentTexture);
     if(journeyRoot)ui.attach(journeyRoot);
     render(0);
   }
@@ -65,30 +57,21 @@ function montar(options={}) {
     const rect=state.activeText?.getBoundingClientRect();
     const centerY=mobile?Math.min(h*.29,(rect?.top||h*.55)*.5):h*.48;
     const scale=mobile?Math.max(.3,Math.min(.95,((rect?.top||h*.55)-40)*.5/2.2*height/h)):1.7;
-    world.scale.setScalar(scale);world.position.set((mobile?0:.15)*width,(.5-centerY/h)*height,0);
+    heroSide=THREE.MathUtils.damp(heroSide,state.motion.heroSide??.19,4,dt);
+    world.scale.setScalar(scale);world.position.set((mobile?0:(state.motion.heroSide??.15))*width,(.5-centerY/h)*height,0);
     world.rotation.set(pointer.y*.025,pointer.x*.035,0);
     hero.group.position.y=state.motion.heroLift;
     hero.update(time,state.motion);resources.update(time,state.progress);
-    resolveEntityLayout(hero,nodes,mobile,state.focus,dt);
-    nodes.forEach((node,i)=>{node.group.position.y+=Math.sin(time*.25+i)*.015;node.entity.update(time,state.motion,node.emphasis);});
     background.update(time,state.motion.background,pointer);
-    particles.update(time,state.progress,pointer,nodes,renderer.getPixelRatio());
+    particles.update(time,state.progress,pointer,[],renderer.getPixelRatio());
     setup.scene.updateMatrixWorld(true);camera.updateMatrixWorld();
 
     // Barreiras HTML são medidas uma vez por frame, não por partícula.
     const reserved=[rect,...document.querySelectorAll('.stats-dock,.dock')].filter(Boolean).map(r=>r.getBoundingClientRect?r.getBoundingClientRect():r);
-    const used=[];screenBounds.length=0;
+    screenBounds.length=0;
     screenBounds.push(projectEntityBounds(hero,camera,w,h));
-    nodes.forEach(node=>{
-      const bounds=projectEntityBounds(node.entity,camera,w,h);screenBounds.push(bounds);
-      const labelRect={left:bounds.cx-75,right:bounds.cx+75,top:bounds.cy+bounds.radius+6,bottom:bounds.cy+bounds.radius+38};
-      const overlaps=r=>r.left<labelRect.right&&r.right>labelRect.left&&r.top<labelRect.bottom&&r.bottom>labelRect.top;
-      const visible=state.progress<.025&&labelRect.left>0&&labelRect.right<w&&labelRect.top>90&&labelRect.bottom<h-110&&!reserved.concat(used).some(overlaps);
-      if(visible)used.push(labelRect);
-      node.label.style.transform=`translate(${bounds.cx}px,${labelRect.top}px) translateX(-50%)`;
-      node.label.style.visibility=visible?'visible':'hidden';node.label.tabIndex=visible?0:-1;
-    });
-    connections.update(time,state.focus,mobile,camera,reserved);
+    background.protectReading(camera,reserved,screenBounds);
+    connections.update(time,state.progress,mobile,camera,reserved);
     setup.render();frames++;
     if(firstRender===null)firstRender=performance.now();
     if(window.__jarvisMeasure?.sampling)window.__jarvisMeasure.frames.push(performance.now());
@@ -115,15 +98,8 @@ function montar(options={}) {
   const onScroll=()=>{ui.scroll();if(state.reduced)render(0);};
   const onPointer=e=>{if(!state.reduced&&e.pointerType!=='touch')target.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);};
   const resetPointer=()=>target.set(0,0);
-  const onClick=e=>{
-    if(!state.ready||state.failed||mode==='fundo'||e.target.closest('button,a,input,textarea,select,.viagem-texto,.stats-dock'))return;
-    ndc.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);
-    raycaster.setFromCamera(ndc,setup.camera);
-    const hit=raycaster.intersectObjects(nodes.map(n=>n.entity.shell))[0];
-    if(hit)options.aoSelecionar?.(nodes.find(n=>n.entity.shell===hit.object).project.id);
-  };
   const onLost=e=>{e.preventDefault();fail('Contexto WebGL perdido');};
-  const listeners=[[window,'resize',resize],[window,'pointermove',onPointer],[window,'blur',resetPointer],[window,'click',onClick],[window,'scroll',onScroll],[document,'visibilitychange',onVisibility],[media,'change',onMotion]];
+  const listeners=[[window,'resize',resize],[window,'pointermove',onPointer],[window,'blur',resetPointer],[window,'scroll',onScroll],[document,'visibilitychange',onVisibility],[media,'change',onMotion]];
   listeners.forEach(([target,event,handler])=>target.addEventListener(event,handler,{passive:event==='scroll'||event==='pointermove'}));
 
   async function initialize() {
@@ -159,16 +135,16 @@ function montar(options={}) {
     depurar(){return {
       ready:state.ready,failed:state.failed,renderer:'Three.js WebGL2',firstRender,frames,ticks:frames,quality,loop,reduced:state.reduced,
       progress:state.progress,chapter:state.chapter,motion:{heroYaw:state.motion.heroYaw,heroScale:state.motion.heroScale,heroLift:state.motion.heroLift,background:state.motion.background},projects:nodes.length,connections:connections?.veins.length||0,
-      packets:connections?.packets.length||0,trafficDrawCalls:connections?1:0,instancedTraffic:!!connections?.instances.isInstancedMesh,
-      entities:[hero,...nodes.map(n=>n.entity)].filter(Boolean).map(e=>({generator:e.group.userData.kind,meshes:e.group.children.length,earthMaterial:e.shell.material===resources?.materials.earth})),
+      projectRepresentation:'DOM plasma',smoothScroll:ui.smooth,packets:connections?.packets.length||0,trafficDrawCalls:connections?1:0,instancedTraffic:!!connections?.instances.isInstancedMesh,
+      entities:[hero].filter(Boolean).map(e=>({generator:e.group.userData.kind,meshes:e.group.children.length,earthMaterial:e.shell.material===resources?.materials.earth})),
       entityBounds:screenBounds.map(b=>({...b})),entityOverlaps:findEntityOverlaps(screenBounds),coreBounds:screenBounds[0]||null,
       resolution:setup?.renderer.getPixelRatio(),shaderErrors,drawCalls:setup?.renderer.info.render.calls,geometries:setup?.renderer.info.memory.geometries,textures:setup?.renderer.info.memory.textures,
       backgrounds:background?.planets.map(p=>({x:p.group.position.x,y:p.group.position.y,z:p.group.position.z,kind:p.group.userData.kind,rings:p.group.children.length-1}))||[],
-      endpoints:nodes.map(n=>({id:n.project.id,x:n.group.position.x,y:n.group.position.y,status:n.project.status}))
+      endpoints:nodes.map(n=>({id:n.project.id,anchor: 'DOM plasma',status:n.project.status}))
     };},
     destruir(){
       dead=true;sync();flashTween?.kill();ui.dispose();listeners.forEach(([target,event,handler])=>target.removeEventListener(event,handler));
-      connections?.dispose();nodes.forEach(n=>n.entity.dispose());hero?.dispose();resources?.dispose();documentTexture?.dispose();
+      connections?.dispose();hero?.dispose();resources?.dispose();documentTexture?.dispose();
       background?.dispose();particles?.dispose();setup?.dispose();el.remove();
     }
   };

@@ -10,25 +10,12 @@
     t = String(t == null ? '' : t);
     return /\p{Extended_Pictographic}/u.test(t) ? t.replace(EMOJI, '').replace(/ {2,}/g, ' ').replace(/^ +/, '') : t;
   }
-  const rad = d => (d - 90) * Math.PI / 180;
-  function arcoSvg(R, a0, a1) {
-    const pt = d => [(32 + R * Math.cos(rad(d))).toFixed(2), (32 + R * Math.sin(rad(d))).toFixed(2)], [x0, y0] = pt(a0), [x1, y1] = pt(a1);
-    return `M${x0} ${y0}A${R} ${R} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`;
-  }
-  /** Logotipo: emblema com anel de marcações, três arcos externos, dois internos e o núcleo que bate. O tamanho vem do font-size do pai. */
+  let logoCount=0;
+  /** Esfera fatiada: paths vetoriais, gradiente da paleta e fundo transparente. */
   function logo(extra) {
-    const ext = [0, 1, 2].map(i => arcoSvg(24, i * 120 + 8, i * 120 + 98)).join('');
-    const inn = [0, 1].map(i => arcoSvg(15.5, i * 180 + 20, i * 180 + 150)).join('');
-    let tk = '';
-    for (let i = 0; i < 24; i++) { const an = i * 15 * Math.PI / 180, r1 = i % 6 === 0 ? 26.6 : 28.2; tk += `M${(32 + 29.8 * Math.sin(an)).toFixed(2)} ${(32 - 29.8 * Math.cos(an)).toFixed(2)}L${(32 + r1 * Math.sin(an)).toFixed(2)} ${(32 - r1 * Math.cos(an)).toFixed(2)}`; }
-    return `<svg class="mk ${extra || ''}" viewBox="0 0 64 64" aria-hidden="true"><defs>
-      <radialGradient id="mkc"><stop offset="0" stop-color="var(--scene-text)"/><stop offset=".5" stop-color="var(--scene-electric)"/><stop offset="1" stop-color="var(--scene-energy)"/></radialGradient>
-      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--scene-electric)"/><stop offset="1" stop-color="var(--scene-energy)"/></linearGradient></defs>
-      <circle cx="32" cy="32" r="30.6" fill="none" stroke="var(--scene-energy)" stroke-opacity=".3" stroke-width=".8"/>
-      <path class="mk-t" d="${tk}" fill="none" stroke="var(--scene-energy)" stroke-width=".9" opacity=".75"/>
-      <path class="mk-r1" d="${ext}" fill="none" stroke="url(#mka)" stroke-width="3.4"/>
-      <path class="mk-r2" d="${inn}" fill="none" stroke="var(--scene-electric)" stroke-width="2.4"/>
-      <g class="mk-core"><circle cx="32" cy="32" r="7.2" fill="url(#mkc)"/><circle cx="32" cy="32" r="2.4" fill="var(--scene-text)"/></g></svg>`;
+    const id='jarvao-gradient-'+(++logoCount);
+    const slices=[[-19,12],[-10,22],[0,26],[10,22],[19,12]].map(([y,r])=>`<ellipse cx="32" cy="${32+y}" rx="${r}" ry="5.1" fill="url(#${id})"/>`).join('');
+    return `<svg class="mk ${extra||''}" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--scene-energy)"/><stop offset=".5" stop-color="var(--scene-pink)"/><stop offset="1" stop-color="var(--scene-violet)"/></linearGradient></defs><g transform="rotate(-24 32 32)">${slices}</g></svg>`;
   }
   /** Nome: JARVÃO, em caixa alta, com degradê quente. */
   function marca() { return '<span class="wm" role="img" aria-label="Jarvão">JARVÃO</span>'; }

@@ -1,7 +1,7 @@
 {
   "results": [
-    "Adição e remoção de projetos atualiza planetas e veias",
-    "Órbitas atualizam posições",
+    "Adição e remoção de projetos preserva os dados da cena",
+    "Projetos desacoplados das órbitas e do fluxo de fundo",
     "Ctrl K abre busca e Escape fecha",
     "Oito seções navegam sem erro de montagem",
     "Conferir tudo atualiza fixture sem acessar produção",

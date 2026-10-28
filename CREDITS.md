@@ -1,10 +1,13 @@
 # Créditos do Jarvão
 
-## Renderer atual: universo 3D procedural
+## Renderer atual: núcleo 3D e colagem editorial de plasma
+
+- Lenis 1.3.11, MIT: `vendor/licenses/lenis-MIT.txt`.
+- Fotografia NASA Blue Marble, fonte e crédito em `assets/earth/README.md`.
 
 - Three.js **0.180.0**, MIT: `vendor/licenses/three-MIT.txt`.
 - Lucide **0.468.0**, ISC/Feather MIT: SVG de arquivos e banco de dados importados como texturas de sprites; `vendor/licenses/lucide-ISC.txt`.
-- Perlin clássico de Stefan Gustavson / Ashima, MIT: `vendor/licenses/webgl-noise-MIT.txt`. Composição, materiais, geometrias e efeitos da cena são código deste projeto.
+- Simplex noise de Stefan Gustavson / Ashima, MIT: `vendor/licenses/webgl-noise-MIT.txt`. Composição, materiais, geometrias e efeitos da cena são código deste projeto.
 - esbuild **0.25.10**, MIT, usado apenas para compilar os módulos.
 - GSAP/ScrollTrigger **3.15.0** mantém a licença própria descrita abaixo. Não é apresentado como open-source OSI.
 - Os avisos integrais de Three.js, Lucide e noise acompanham o bundle e a prévia exportada. Nenhum código de shader de usuário do ShaderToy foi copiado sem licença.
