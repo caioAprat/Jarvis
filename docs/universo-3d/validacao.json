@@ -8,86 +8,234 @@
         "ready": true,
         "failed": false,
         "renderer": "Three.js WebGL2",
-        "firstRender": 525.6000000014901,
-        "frames": 15,
-        "ticks": 15,
+        "firstRender": 342.5,
+        "frames": 20,
+        "ticks": 20,
         "quality": 1,
         "loop": true,
         "reduced": false,
         "progress": 0,
         "chapter": 0,
+        "motion": {
+          "heroYaw": 0,
+          "heroScale": 1,
+          "heroLift": 0,
+          "background": 0
+        },
         "projects": 7,
         "connections": 27,
-        "packets": 12,
+        "packets": 24,
+        "trafficDrawCalls": 1,
+        "instancedTraffic": true,
+        "entities": [
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          }
+        ],
+        "entityBounds": [
+          {
+            "x": 746.7605686116856,
+            "y": 227.50056861168568,
+            "width": 282.2788627766286,
+            "height": 282.2788627766286,
+            "cx": 887.8999999999999,
+            "cy": 368.64,
+            "radius": 141.1394313883143
+          },
+          {
+            "x": 863.5393806565085,
+            "y": 558.4546342405856,
+            "width": 53.41887860606594,
+            "height": 53.41887860606594,
+            "cx": 890.2488199595414,
+            "cy": 585.1640735436185,
+            "radius": 26.70943930303297
+          },
+          {
+            "x": 1078.1782056935058,
+            "y": 475.7927519781743,
+            "width": 53.41887860606587,
+            "height": 53.41887860606587,
+            "cx": 1104.8876449965387,
+            "cy": 502.5021912812072,
+            "radius": 26.709439303032934
+          },
+          {
+            "x": 1131.1896176435262,
+            "y": 292.40366957049457,
+            "width": 53.41887860606587,
+            "height": 53.41887860606587,
+            "cx": 1157.899056946559,
+            "cy": 319.1131088735275,
+            "radius": 26.709439303032934
+          },
+          {
+            "x": 982.6549420724685,
+            "y": 146.35485691251435,
+            "width": 53.41887860606594,
+            "height": 53.41887860606594,
+            "cx": 1009.3643813755015,
+            "cy": 173.06429621554733,
+            "radius": 26.70943930303297
+          },
+          {
+            "x": 744.4238192405485,
+            "y": 147.43205575109457,
+            "width": 53.4188786060659,
+            "height": 53.4188786060659,
+            "cx": 771.1332585435814,
+            "cy": 174.14149505412752,
+            "radius": 26.70943930303295
+          },
+          {
+            "x": 595.889143669491,
+            "y": 294.6448944418014,
+            "width": 53.418878606065924,
+            "height": 53.418878606065924,
+            "cx": 622.5985829725239,
+            "cy": 321.3543337448344,
+            "radius": 26.709439303032962
+          },
+          {
+            "x": 648.9005556195114,
+            "y": 477.1374310714664,
+            "width": 53.4188786060659,
+            "height": 53.4188786060659,
+            "cx": 675.6099949225443,
+            "cy": 503.8468703744993,
+            "radius": 26.70943930303295
+          }
+        ],
+        "entityOverlaps": [],
         "coreBounds": {
-          "x": 730.3001386482842,
-          "y": 211.04013864828437,
-          "width": 315.19972270343123,
-          "height": 315.19972270343123
+          "x": 746.7605686116856,
+          "y": 227.50056861168568,
+          "width": 282.2788627766286,
+          "height": 282.2788627766286,
+          "cx": 887.8999999999999,
+          "cy": 368.64,
+          "radius": 141.1394313883143
         },
         "resolution": 1,
         "shaderErrors": [],
-        "drawCalls": 91,
-        "geometries": 59,
-        "textures": 18,
+        "drawCalls": 69,
+        "geometries": 37,
+        "textures": 16,
         "backgrounds": [
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -11,
+            "y": 5,
+            "z": -18,
+            "kind": "BackgroundPlanet",
+            "rings": 1
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": 13,
+            "y": 4,
+            "z": -24,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -9,
+            "y": -6,
+            "z": -28,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": 8,
+            "y": -6,
+            "z": -17,
+            "kind": "BackgroundPlanet",
+            "rings": 1
+          },
+          {
+            "x": 2,
+            "y": 8,
+            "z": -32,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           }
         ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 2.0818995585505003e-16,
-            "y": -2.744408660008598,
+            "x": 1.8982025386783975e-16,
+            "y": -2.446953835940195,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 2.658227040391301,
-            "y": -1.6825026995820795,
+            "x": 2.4236775956508922,
+            "y": -1.5135451107517084,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 3.3147549014182003,
-            "y": 0.6410224289238152,
+            "x": 3.0222765277636534,
+            "y": 0.557263887768733,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 1.4752047129996977,
-            "y": 2.4770047686607737,
+            "x": 1.3450395912644304,
+            "y": 2.206430738405129,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -1.4752047129996975,
-            "y": 2.447861739858326,
+            "x": -1.34503959126443,
+            "y": 2.194267129651317,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -3.3147549014182003,
-            "y": 0.5803873087974788,
+            "x": -3.0222765277636534,
+            "y": 0.5319562273001966,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -2.6582270403913015,
-            "y": -1.7188822612213341,
+            "x": -2.4236775956508927,
+            "y": -1.528729076612453,
             "status": "pausado"
           }
         ]
@@ -95,6 +243,13 @@
       "samples": [
         {
           "progress": 0,
+          "motion": {
+            "heroYaw": 0,
+            "heroScale": 1,
+            "heroLift": 0,
+            "background": 0
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
@@ -112,6 +267,13 @@
         },
         {
           "progress": 0.09994900000000001,
+          "motion": {
+            "heroYaw": 0.025669,
+            "heroScale": 0.998533,
+            "heroLift": 0.003912,
+            "background": 0.024447
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
@@ -129,15 +291,22 @@
         },
         {
           "progress": 0.20002553333333334,
+          "motion": {
+            "heroYaw": 0.100291,
+            "heroScale": 0.994269,
+            "heroLift": 0.015282,
+            "background": 0.095515
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 184.7734375,
+            "y": 183.0234375,
             "width": 450.765625,
-            "height": 398.453125,
-            "top": 184.7734375,
+            "height": 401.953125,
+            "top": 183.0234375,
             "right": 546.375,
-            "bottom": 583.2265625,
+            "bottom": 584.9765625,
             "left": 95.609375
           },
           "overflow": false,
@@ -146,15 +315,22 @@
         },
         {
           "progress": 0.29997399999999996,
+          "motion": {
+            "heroYaw": 0.216378,
+            "heroScale": 0.987636,
+            "heroLift": 0.032972,
+            "background": 0.206074
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 186.8777313232422,
+            "y": 185.1277313232422,
             "width": 450.765625,
-            "height": 398.453125,
-            "top": 186.8777313232422,
+            "height": 401.953125,
+            "top": 185.1277313232422,
             "right": 546.375,
-            "bottom": 585.3308563232422,
+            "bottom": 587.0808563232422,
             "left": 95.609375
           },
           "overflow": false,
@@ -163,15 +339,22 @@
         },
         {
           "progress": 0.39992300000000003,
+          "motion": {
+            "heroYaw": 0.362645,
+            "heroScale": 0.979277,
+            "heroLift": 0.05526,
+            "background": 0.345376
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 197.32553100585938,
+            "y": 195.57553100585938,
             "width": 450.765625,
-            "height": 398.4531555175781,
-            "top": 197.32553100585938,
+            "height": 401.9531555175781,
+            "top": 195.57553100585938,
             "right": 546.375,
-            "bottom": 595.7786865234375,
+            "bottom": 597.5286865234375,
             "left": 95.609375
           },
           "overflow": false,
@@ -180,15 +363,22 @@
         },
         {
           "progress": 0.5,
+          "motion": {
+            "heroYaw": 0.525,
+            "heroScale": 0.97,
+            "heroLift": 0.08,
+            "background": 0.5
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 207.6534423828125,
+            "y": 205.9034423828125,
             "width": 450.765625,
-            "height": 398.453125,
-            "top": 207.6534423828125,
+            "height": 401.953125,
+            "top": 205.9034423828125,
             "right": 546.375,
-            "bottom": 606.1065673828125,
+            "bottom": 607.8565673828125,
             "left": 95.609375
           },
           "overflow": false,
@@ -197,15 +387,22 @@
         },
         {
           "progress": 0.5999490000000001,
+          "motion": {
+            "heroYaw": 0.687154,
+            "heroScale": 0.960734,
+            "heroLift": 0.104709,
+            "background": 0.654432
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 172.3411407470703,
+            "y": 170.5911407470703,
             "width": 450.765625,
-            "height": 398.453125,
-            "top": 172.3411407470703,
+            "height": 401.953125,
+            "top": 170.5911407470703,
             "right": 546.375,
-            "bottom": 570.7942657470703,
+            "bottom": 572.5442657470703,
             "left": 95.609375
           },
           "overflow": false,
@@ -214,15 +411,22 @@
         },
         {
           "progress": 0.699898,
+          "motion": {
+            "heroYaw": 0.833451,
+            "heroScale": 0.952374,
+            "heroLift": 0.127002,
+            "background": 0.793763
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 182.7889404296875,
+            "y": 181.0389404296875,
             "width": 450.765625,
-            "height": 398.453125,
-            "top": 182.7889404296875,
+            "height": 401.953125,
+            "top": 181.0389404296875,
             "right": 546.375,
-            "bottom": 581.2420654296875,
+            "bottom": 582.9920654296875,
             "left": 95.609375
           },
           "overflow": false,
@@ -231,15 +435,22 @@
         },
         {
           "progress": 0.7999740000000001,
+          "motion": {
+            "heroYaw": 0.949709,
+            "heroScale": 0.945731,
+            "heroLift": 0.144718,
+            "background": 0.904484
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 241.1640625,
+            "y": 239.4140625,
             "width": 450.765625,
-            "height": 285.671875,
-            "top": 241.1640625,
+            "height": 289.171875,
+            "top": 239.4140625,
             "right": 546.375,
-            "bottom": 526.8359375,
+            "bottom": 528.5859375,
             "left": 95.609375
           },
           "overflow": false,
@@ -248,15 +459,22 @@
         },
         {
           "progress": 0.8999229999999999,
+          "motion": {
+            "heroYaw": 1.024265,
+            "heroScale": 0.941471,
+            "heroLift": 0.156079,
+            "background": 0.975491
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
-            "y": 241.1640625,
+            "y": 239.4140625,
             "width": 450.765625,
-            "height": 285.671875,
-            "top": 241.1640625,
+            "height": 289.171875,
+            "top": 239.4140625,
             "right": 546.375,
-            "bottom": 526.8359375,
+            "bottom": 528.5859375,
             "left": 95.609375
           },
           "overflow": false,
@@ -265,15 +483,22 @@
         },
         {
           "progress": 1,
+          "motion": {
+            "heroYaw": 1.05,
+            "heroScale": 0.94,
+            "heroLift": 0.16,
+            "background": 1
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 95.609375,
             "y": 190.75,
             "width": 450.765625,
-            "height": 358.5,
+            "height": 360.5,
             "top": 190.75,
             "right": 546.375,
-            "bottom": 549.25,
+            "bottom": 551.25,
             "left": 95.609375
           },
           "overflow": false,
@@ -291,86 +516,234 @@
         "ready": true,
         "failed": false,
         "renderer": "Three.js WebGL2",
-        "firstRender": 366.1000000014901,
-        "frames": 22,
-        "ticks": 22,
+        "firstRender": 493.79999999701977,
+        "frames": 16,
+        "ticks": 16,
         "quality": 1,
         "loop": true,
         "reduced": false,
         "progress": 0,
         "chapter": 0,
+        "motion": {
+          "heroYaw": 0,
+          "heroScale": 1,
+          "heroLift": 0,
+          "background": 0
+        },
         "projects": 7,
         "connections": 27,
-        "packets": 12,
+        "packets": 24,
+        "trafficDrawCalls": 1,
+        "instancedTraffic": true,
+        "entities": [
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          }
+        ],
+        "entityBounds": [
+          {
+            "x": 108.32291966364097,
+            "y": 139.55729466364096,
+            "width": 173.35416067271805,
+            "height": 173.35416067271805,
+            "cx": 195,
+            "cy": 226.23437499999997,
+            "radius": 86.67708033635903
+          },
+          {
+            "x": 178.67963556446043,
+            "y": 341.1240778533686,
+            "width": 32.64072887107913,
+            "height": 32.64072887107913,
+            "cx": 195,
+            "cy": 357.44444228890814,
+            "radius": 16.320364435539567
+          },
+          {
+            "x": 278.3547988363733,
+            "y": 290.5864352919872,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 294.6751632719128,
+            "cy": 306.90679972752673,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 302.97253116174414,
+            "y": 178.48427162103224,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 319.2928955972837,
+            "cy": 194.80463605657178,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 233.9951779893449,
+            "y": 89.22307376741989,
+            "width": 32.64072887107913,
+            "height": 32.64072887107913,
+            "cx": 250.31554242488448,
+            "cy": 105.54343820295945,
+            "radius": 16.320364435539567
+          },
+          {
+            "x": 123.36409313957594,
+            "y": 89.90443553973424,
+            "width": 32.640728871079155,
+            "height": 32.640728871079155,
+            "cx": 139.68445757511552,
+            "cy": 106.22479997527381,
+            "radius": 16.320364435539577
+          },
+          {
+            "x": 54.38673996717674,
+            "y": 179.90191606677033,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 70.7071044027163,
+            "cy": 196.22228050230987,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 79.00447229254758,
+            "y": 291.43698664553966,
+            "width": 32.640728871079155,
+            "height": 32.640728871079155,
+            "cx": 95.32483672808715,
+            "cy": 307.75735108107926,
+            "radius": 16.320364435539577
+          }
+        ],
+        "entityOverlaps": [],
         "coreBounds": {
-          "x": 98.2141782844626,
-          "y": 125.13605328446263,
-          "width": 193.5716434310748,
-          "height": 193.5716434310748
+          "x": 108.32291966364097,
+          "y": 139.55729466364096,
+          "width": 173.35416067271805,
+          "height": 173.35416067271805,
+          "cx": 195,
+          "cy": 226.23437499999997,
+          "radius": 86.67708033635903
         },
         "resolution": 1,
         "shaderErrors": [],
-        "drawCalls": 91,
-        "geometries": 59,
-        "textures": 18,
+        "drawCalls": 66,
+        "geometries": 37,
+        "textures": 16,
         "backgrounds": [
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -11,
+            "y": 5,
+            "z": -18,
+            "kind": "BackgroundPlanet",
+            "rings": 1
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": 13,
+            "y": 4,
+            "z": -24,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -9,
+            "y": -6,
+            "z": -28,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": 8,
+            "y": -6,
+            "z": -17,
+            "kind": "BackgroundPlanet",
+            "rings": 1
+          },
+          {
+            "x": 2,
+            "y": 8,
+            "z": -32,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           }
         ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 2.0818995585505003e-16,
-            "y": -2.7408372290692617,
+            "x": 1.442633929395582e-16,
+            "y": -2.447817772051921,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 2.658227040391301,
-            "y": -1.6812219566199826,
+            "x": 1.841994972694678,
+            "y": -1.5138831741626113,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 3.3147549014182003,
-            "y": 0.6388349747357697,
+            "x": 2.2969301611003767,
+            "y": 0.5577625109995784,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 1.4752047129996977,
-            "y": 2.473360252615113,
+            "x": 1.022230089360967,
+            "y": 2.2073076163788024,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -1.4752047129996975,
-            "y": 2.4461109131998833,
+            "x": -1.0222300893609668,
+            "y": 2.194716064802753,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -3.3147549014182003,
-            "y": 0.5821398734816758,
+            "x": -2.2969301611003767,
+            "y": 0.5315644707215356,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -2.6582270403913015,
-            "y": -1.7152376050827822,
+            "x": -1.8419949726946785,
+            "y": -1.5296013457294682,
             "status": "pausado"
           }
         ]
@@ -378,13 +751,20 @@
       "samples": [
         {
           "progress": 0,
+          "motion": {
+            "heroYaw": 0,
+            "heroScale": 1,
+            "heroLift": 0,
+            "background": 0
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 443.84375,
+            "y": 452.46875,
             "width": 350,
-            "height": 234.15625,
-            "top": 443.84375,
+            "height": 225.53125,
+            "top": 452.46875,
             "right": 370,
             "bottom": 678,
             "left": 20
@@ -395,13 +775,20 @@
         },
         {
           "progress": 0.100025,
+          "motion": {
+            "heroYaw": 0.025708,
+            "heroScale": 0.998531,
+            "heroLift": 0.003917,
+            "background": 0.024484
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 455.53125,
+            "y": 456.15625,
             "width": 350,
-            "height": 212.46875,
-            "top": 455.53125,
+            "height": 211.84375,
+            "top": 456.15625,
             "right": 370,
             "bottom": 668,
             "left": 20
@@ -412,13 +799,20 @@
         },
         {
           "progress": 0.2000498888888889,
+          "motion": {
+            "heroYaw": 0.100314,
+            "heroScale": 0.994268,
+            "heroLift": 0.015286,
+            "background": 0.095538
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 383.3125,
+            "y": 374.3125,
             "width": 350,
-            "height": 294.6875,
-            "top": 383.3125,
+            "height": 303.6875,
+            "top": 374.3125,
             "right": 370,
             "bottom": 678,
             "left": 20
@@ -429,13 +823,20 @@
         },
         {
           "progress": 0.29995,
+          "motion": {
+            "heroYaw": 0.216346,
+            "heroScale": 0.987637,
+            "heroLift": 0.032967,
+            "background": 0.206044
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 385.4393005371094,
+            "y": 376.4393005371094,
             "width": 350,
-            "height": 294.6875305175781,
-            "top": 385.4393005371094,
+            "height": 303.6875305175781,
+            "top": 376.4393005371094,
             "right": 370,
             "bottom": 680.1268310546875,
             "left": 20
@@ -446,13 +847,20 @@
         },
         {
           "progress": 0.399975,
+          "motion": {
+            "heroYaw": 0.362727,
+            "heroScale": 0.979273,
+            "heroLift": 0.055273,
+            "background": 0.345454
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 395.8158874511719,
+            "y": 386.8158874511719,
             "width": 350,
-            "height": 294.6875305175781,
-            "top": 395.8158874511719,
+            "height": 303.6875305175781,
+            "top": 386.8158874511719,
             "right": 370,
             "bottom": 690.50341796875,
             "left": 20
@@ -463,13 +871,20 @@
         },
         {
           "progress": 0.5,
+          "motion": {
+            "heroYaw": 0.525,
+            "heroScale": 0.97,
+            "heroLift": 0.08,
+            "background": 0.5
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 406.1925048828125,
+            "y": 397.1925048828125,
             "width": 350,
-            "height": 294.6875,
-            "top": 406.1925048828125,
+            "height": 303.6875,
+            "top": 397.1925048828125,
             "right": 370,
             "bottom": 700.8800048828125,
             "left": 20
@@ -480,13 +895,20 @@
         },
         {
           "progress": 0.600025,
+          "motion": {
+            "heroYaw": 0.687273,
+            "heroScale": 0.960727,
+            "heroLift": 0.104727,
+            "background": 0.654546
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 370.8091125488281,
+            "y": 361.8091125488281,
             "width": 350,
-            "height": 294.6874694824219,
-            "top": 370.8091125488281,
+            "height": 303.6874694824219,
+            "top": 361.8091125488281,
             "right": 370,
             "bottom": 665.49658203125,
             "left": 20
@@ -497,13 +919,20 @@
         },
         {
           "progress": 0.70005,
+          "motion": {
+            "heroYaw": 0.833654,
+            "heroScale": 0.952363,
+            "heroLift": 0.127033,
+            "background": 0.793956
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 381.1856994628906,
+            "y": 372.1856994628906,
             "width": 350,
-            "height": 294.6874694824219,
-            "top": 381.1856994628906,
+            "height": 303.6874694824219,
+            "top": 372.1856994628906,
             "right": 370,
             "bottom": 675.8731689453125,
             "left": 20
@@ -514,13 +943,20 @@
         },
         {
           "progress": 0.79995,
+          "motion": {
+            "heroYaw": 0.949685,
+            "heroScale": 0.945732,
+            "heroLift": 0.144714,
+            "background": 0.904462
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 472.5,
+            "y": 463.5,
             "width": 350,
-            "height": 205.5,
-            "top": 472.5,
+            "height": 214.5,
+            "top": 463.5,
             "right": 370,
             "bottom": 678,
             "left": 20
@@ -531,13 +967,20 @@
         },
         {
           "progress": 0.899975,
+          "motion": {
+            "heroYaw": 1.024292,
+            "heroScale": 0.941469,
+            "heroLift": 0.156083,
+            "background": 0.975516
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 472.5,
+            "y": 463.5,
             "width": 350,
-            "height": 205.5,
-            "top": 472.5,
+            "height": 214.5,
+            "top": 463.5,
             "right": 370,
             "bottom": 678,
             "left": 20
@@ -548,15 +991,22 @@
         },
         {
           "progress": 1,
+          "motion": {
+            "heroYaw": 1.05,
+            "heroScale": 0.94,
+            "heroLift": 0.16,
+            "background": 1
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 423.34375,
+            "y": 420.15625,
             "width": 350,
-            "height": 244.65625,
-            "top": 423.34375,
+            "height": 245.84375,
+            "top": 420.15625,
             "right": 370,
-            "bottom": 668,
+            "bottom": 666,
             "left": 20
           },
           "overflow": false,
@@ -574,86 +1024,234 @@
         "ready": true,
         "failed": false,
         "renderer": "Three.js WebGL2",
-        "firstRender": 417,
-        "frames": 22,
-        "ticks": 22,
+        "firstRender": 582.2999999970198,
+        "frames": 18,
+        "ticks": 18,
         "quality": 1,
         "loop": true,
         "reduced": false,
         "progress": 0,
         "chapter": 0,
+        "motion": {
+          "heroYaw": 0,
+          "heroScale": 1,
+          "heroLift": 0,
+          "background": 0
+        },
         "projects": 7,
         "connections": 27,
-        "packets": 12,
+        "packets": 24,
+        "trafficDrawCalls": 1,
+        "instancedTraffic": true,
+        "entities": [
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          },
+          {
+            "generator": "JarvisEntity",
+            "meshes": 2,
+            "earthMaterial": true
+          }
+        ],
+        "entityBounds": [
+          {
+            "x": 108.32291966364097,
+            "y": 150.05729466364102,
+            "width": 173.35416067271805,
+            "height": 173.35416067271805,
+            "cx": 195,
+            "cy": 236.73437500000003,
+            "radius": 86.67708033635903
+          },
+          {
+            "x": 178.67963556446043,
+            "y": 351.65559376989154,
+            "width": 32.64072887107913,
+            "height": 32.64072887107913,
+            "cx": 195,
+            "cy": 367.9759582054311,
+            "radius": 16.320364435539567
+          },
+          {
+            "x": 278.3547988363733,
+            "y": 301.1392851335484,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 294.6751632719128,
+            "cy": 317.45964956908796,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 302.97253116174414,
+            "y": 189.07139496705622,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 319.2928955972837,
+            "cy": 205.39175940259577,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 233.9951779893449,
+            "y": 99.82589929538852,
+            "width": 32.64072887107913,
+            "height": 32.64072887107913,
+            "cx": 250.31554242488448,
+            "cy": 116.14626373092808,
+            "radius": 16.320364435539567
+          },
+          {
+            "x": 123.36409313957594,
+            "y": 100.48995541346366,
+            "width": 32.640728871079155,
+            "height": 32.640728871079155,
+            "cx": 139.68445757511552,
+            "cy": 116.81031984900324,
+            "radius": 16.320364435539577
+          },
+          {
+            "x": 54.38673996717674,
+            "y": 190.45303318877515,
+            "width": 32.64072887107911,
+            "height": 32.64072887107911,
+            "cx": 70.7071044027163,
+            "cy": 206.7733976243147,
+            "radius": 16.320364435539556
+          },
+          {
+            "x": 79.00447229254758,
+            "y": 301.96823364961375,
+            "width": 32.640728871079155,
+            "height": 32.640728871079155,
+            "cx": 95.32483672808715,
+            "cy": 318.28859808515335,
+            "radius": 16.320364435539577
+          }
+        ],
+        "entityOverlaps": [],
         "coreBounds": {
-          "x": 98.2141782844626,
-          "y": 135.6360532844626,
-          "width": 193.5716434310748,
-          "height": 193.5716434310748
+          "x": 108.32291966364097,
+          "y": 150.05729466364102,
+          "width": 173.35416067271805,
+          "height": 173.35416067271805,
+          "cx": 195,
+          "cy": 236.73437500000003,
+          "radius": 86.67708033635903
         },
         "resolution": 1,
         "shaderErrors": [],
-        "drawCalls": 91,
-        "geometries": 59,
-        "textures": 18,
+        "drawCalls": 66,
+        "geometries": 37,
+        "textures": 16,
         "backgrounds": [
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -11,
+            "y": 5,
+            "z": -18,
+            "kind": "BackgroundPlanet",
+            "rings": 1
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": 13,
+            "y": 4,
+            "z": -24,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           },
           {
-            "x": 0,
-            "y": 0,
-            "visible": true
+            "x": -9,
+            "y": -6,
+            "z": -28,
+            "kind": "BackgroundPlanet",
+            "rings": 0
+          },
+          {
+            "x": 8,
+            "y": -6,
+            "z": -17,
+            "kind": "BackgroundPlanet",
+            "rings": 1
+          },
+          {
+            "x": 2,
+            "y": 8,
+            "z": -32,
+            "kind": "BackgroundPlanet",
+            "rings": 0
           }
         ],
         "endpoints": [
           {
             "id": "gabinete",
-            "x": 2.0818995585505003e-16,
-            "y": -2.7405160698452193,
+            "x": 1.442633929395582e-16,
+            "y": -2.447163434148037,
             "status": "ok"
           },
           {
             "id": "planilha",
-            "x": 2.658227040391301,
-            "y": -1.681123121646494,
+            "x": 1.841994972694678,
+            "y": -1.5136230867558262,
             "status": "ok"
           },
           {
             "id": "assistente",
-            "x": 3.3147549014182003,
-            "y": 0.6386206170398799,
+            "x": 2.2969301611003767,
+            "y": 0.5573892247469208,
             "status": "ok"
           },
           {
             "id": "painel",
-            "x": 1.4752047129996977,
-            "y": 2.4730297817268845,
+            "x": 1.022230089360967,
+            "y": 2.2066441541258976,
             "status": "ok"
           },
           {
             "id": "pedalada",
-            "x": -1.4752047129996975,
-            "y": 2.445968162529909,
+            "x": -1.0222300893609668,
+            "y": 2.194372410685209,
             "status": "ok"
           },
           {
             "id": "atrasos",
-            "x": -3.3147549014182003,
-            "y": 0.5823160873376014,
+            "x": -2.2969301611003767,
+            "y": 0.5318565787501799,
             "status": "aguardando"
           },
           {
             "id": "cacador",
-            "x": -2.6582270403913015,
-            "y": -1.7149044369074427,
+            "x": -1.8419949726946785,
+            "y": -1.5289420383290457,
             "status": "pausado"
           }
         ]
@@ -661,13 +1259,20 @@
       "samples": [
         {
           "progress": 0,
+          "motion": {
+            "heroYaw": 0,
+            "heroScale": 1,
+            "heroLift": 0,
+            "background": 0
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 464.84375,
+            "y": 473.46875,
             "width": 350,
-            "height": 234.15625,
-            "top": 464.84375,
+            "height": 225.53125,
+            "top": 473.46875,
             "right": 370,
             "bottom": 699,
             "left": 20
@@ -678,13 +1283,20 @@
         },
         {
           "progress": 0.100025,
+          "motion": {
+            "heroYaw": 0.025708,
+            "heroScale": 0.998531,
+            "heroLift": 0.003917,
+            "background": 0.024484
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 476.53125,
+            "y": 477.15625,
             "width": 350,
-            "height": 212.46875,
-            "top": 476.53125,
+            "height": 211.84375,
+            "top": 477.15625,
             "right": 370,
             "bottom": 689,
             "left": 20
@@ -694,14 +1306,21 @@
           "shaderErrors": []
         },
         {
-          "progress": 0.2000498888888889,
+          "progress": 0.20005,
+          "motion": {
+            "heroYaw": 0.100315,
+            "heroScale": 0.994268,
+            "heroLift": 0.015286,
+            "background": 0.095538
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 404.3125,
+            "y": 395.3125,
             "width": 350,
-            "height": 294.6875,
-            "top": 404.3125,
+            "height": 303.6875,
+            "top": 395.3125,
             "right": 370,
             "bottom": 699,
             "left": 20
@@ -712,13 +1331,20 @@
         },
         {
           "progress": 0.29995,
+          "motion": {
+            "heroYaw": 0.216346,
+            "heroScale": 0.987637,
+            "heroLift": 0.032967,
+            "background": 0.206044
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 406.4393005371094,
+            "y": 397.4393005371094,
             "width": 350,
-            "height": 294.6875305175781,
-            "top": 406.4393005371094,
+            "height": 303.6875305175781,
+            "top": 397.4393005371094,
             "right": 370,
             "bottom": 701.1268310546875,
             "left": 20
@@ -729,13 +1355,20 @@
         },
         {
           "progress": 0.399975,
+          "motion": {
+            "heroYaw": 0.362727,
+            "heroScale": 0.979273,
+            "heroLift": 0.055273,
+            "background": 0.345454
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 416.8158874511719,
+            "y": 407.8158874511719,
             "width": 350,
-            "height": 294.6875305175781,
-            "top": 416.8158874511719,
+            "height": 303.6875305175781,
+            "top": 407.8158874511719,
             "right": 370,
             "bottom": 711.50341796875,
             "left": 20
@@ -746,13 +1379,20 @@
         },
         {
           "progress": 0.5,
+          "motion": {
+            "heroYaw": 0.525,
+            "heroScale": 0.97,
+            "heroLift": 0.08,
+            "background": 0.5
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 427.1925048828125,
+            "y": 418.1925048828125,
             "width": 350,
-            "height": 294.6875,
-            "top": 427.1925048828125,
+            "height": 303.6875,
+            "top": 418.1925048828125,
             "right": 370,
             "bottom": 721.8800048828125,
             "left": 20
@@ -763,13 +1403,20 @@
         },
         {
           "progress": 0.600025,
+          "motion": {
+            "heroYaw": 0.687273,
+            "heroScale": 0.960727,
+            "heroLift": 0.104727,
+            "background": 0.654546
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 391.8091125488281,
+            "y": 382.8091125488281,
             "width": 350,
-            "height": 294.6874694824219,
-            "top": 391.8091125488281,
+            "height": 303.6874694824219,
+            "top": 382.8091125488281,
             "right": 370,
             "bottom": 686.49658203125,
             "left": 20
@@ -780,13 +1427,20 @@
         },
         {
           "progress": 0.70005,
+          "motion": {
+            "heroYaw": 0.833654,
+            "heroScale": 0.952363,
+            "heroLift": 0.127033,
+            "background": 0.793956
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 402.1856994628906,
+            "y": 393.1856994628906,
             "width": 350,
-            "height": 294.6874694824219,
-            "top": 402.1856994628906,
+            "height": 303.6874694824219,
+            "top": 393.1856994628906,
             "right": 370,
             "bottom": 696.8731689453125,
             "left": 20
@@ -797,13 +1451,20 @@
         },
         {
           "progress": 0.79995,
+          "motion": {
+            "heroYaw": 0.949685,
+            "heroScale": 0.945732,
+            "heroLift": 0.144714,
+            "background": 0.904462
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 493.5,
+            "y": 484.5,
             "width": 350,
-            "height": 205.5,
-            "top": 493.5,
+            "height": 214.5,
+            "top": 484.5,
             "right": 370,
             "bottom": 699,
             "left": 20
@@ -814,13 +1475,20 @@
         },
         {
           "progress": 0.899975,
+          "motion": {
+            "heroYaw": 1.024292,
+            "heroScale": 0.941469,
+            "heroLift": 0.156083,
+            "background": 0.975516
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 493.5,
+            "y": 484.5,
             "width": 350,
-            "height": 205.5,
-            "top": 493.5,
+            "height": 214.5,
+            "top": 484.5,
             "right": 370,
             "bottom": 699,
             "left": 20
@@ -831,15 +1499,22 @@
         },
         {
           "progress": 1,
+          "motion": {
+            "heroYaw": 1.05,
+            "heroScale": 0.94,
+            "heroLift": 0.16,
+            "background": 1
+          },
+          "entityOverlaps": [],
           "active": 1,
           "rect": {
             "x": 20,
-            "y": 445.09375,
+            "y": 441.90625,
             "width": 350,
-            "height": 243.90625,
-            "top": 445.09375,
+            "height": 245.09375,
+            "top": 441.90625,
             "right": 370,
-            "bottom": 689,
+            "bottom": 687,
             "left": 20
           },
           "overflow": false,

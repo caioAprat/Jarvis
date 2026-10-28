@@ -1,77 +1,177 @@
 import * as THREE from 'three';
-import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
-import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
-import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
-import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
-import {createCore,createPlanets,createUniverse,disposeObject,colors,names} from './world.js';
-import {createFileTextures,createVeins} from './flow.js';
-import {createInterface} from './interface.js';
+import {TOKENS,installDesignTokens} from './DesignTokens.js';
+import {createSceneSetup} from './SceneSetup.js';
+import {JarvisEntity,createEntityResources} from './JarvisEntity.js';
+import {createBackgroundParallax} from './BackgroundParallax.js';
+import {createParticles} from './Particles.js';
+import {createDocumentTexture,createConnections} from './Connections.js';
+import {createGSAPAnimations} from './GSAPAnimations.js';
+import {resolveEntityLayout,projectEntityBounds,findEntityOverlaps} from './SpatialLayout.js';
 
-function montar(options={}){
- const el=document.createElement('div');el.className='cena-2d cena-3d';
- el.innerHTML='<div class="scene-fallback" aria-hidden="true"><i></i><i></i><i></i></div><div class="cena-boot" role="status">Conectando seu universo…</div><div class="cena-rotulos"></div>';
- const boot=el.querySelector('.cena-boot'),labels=el.lastElementChild,media=matchMedia('(prefers-reduced-motion: reduce)');
- const state={ready:false,failed:false,reduced:media.matches,progress:0,focus:-1,chapter:0,activeText:null};
- let renderer,composer,bloom,scene,camera,world,core,universe,flow,textures=[],planets=[],projects=[],journeyRoot=null,dead=false,paused=false,mode='palco',loop=false,time=0,frames=0,slow=0,quality=1,firstRender=null,shaderErrors=[];
- const pointer=new THREE.Vector2(),target=new THREE.Vector2(),raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2();
- const ui=createInterface(state,()=>render(0));
- const compact=()=>innerWidth<=700;
- function fail(error){state.failed=true;el.dataset.failure=String(error);el.dataset.fallback='true';document.body.classList.add('scene-ready');boot.hidden=false;boot.textContent='Visual 3D indisponível · seus controles continuam disponíveis';if(renderer)renderer.domElement.hidden=true;ui.attach(journeyRoot);sync();el.dispatchEvent(new CustomEvent('cena-fallback',{detail:String(error)}));}
- function rebuild(){
-  if(!world||!textures.length)return;flow?.dispose();planets.forEach(p=>{world.remove(p.group);disposeObject(p.group);});
-  planets=createPlanets(projects,world);flow=createVeins(planets,world,textures);labels.replaceChildren();
-  planets.forEach(p=>{const button=document.createElement('button');button.className='cena-label';button.type='button';button.dataset.status=p.project.status;button.textContent=p.project.nome;button.onclick=()=>options.aoSelecionar?.(p.project.id);labels.appendChild(button);p.label=button;});
-  if(journeyRoot)ui.attach(journeyRoot);render(0);
- }
- function resize(){if(!renderer)return;const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();
-  const ratio=Math.min(devicePixelRatio||1,1.5,Math.sqrt((quality<1?650000:1100000)/(w*h)));renderer.setPixelRatio(ratio);renderer.setSize(w,h);composer.setPixelRatio(ratio);composer.setSize(w,h);bloom.setSize(w*ratio*.5,h*ratio*.5);ui.refresh();render(0);
- }
- function screenPoint(v){const p=v.clone().project(camera);return {x:(p.x*.5+.5)*innerWidth,y:(-.5*p.y+.5)*innerHeight};}
- function render(dt){
-  if(!state.ready||state.failed||dead||!world)return;
-  const w=innerWidth,h=innerHeight,mobile=compact(),height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
-  pointer.lerp(target,1-Math.exp(-dt*5));
-  const rect=state.activeText?.getBoundingClientRect();let centerY=mobile?Math.min(h*.29,(rect?.top||h*.55)*.5):h*.48;
-  const scale=mobile?Math.max(.3,Math.min(.95,((rect?.top||h*.55)-40)*.5/2.2*height/h)):1.7;
-  world.scale.setScalar(scale);world.position.set((mobile?0:.15)*width,(.5-centerY/h)*height,0);
-  world.rotation.set(pointer.y*.035,pointer.x*.055,0);
-  core.update(time);planets.forEach((p,i)=>p.update(time,state.focus===i,dt,mobile));
-  universe.update(time,state.progress,pointer,planets,renderer.getPixelRatio());flow?.update(time,state.focus,state.progress,mobile);
-  scene.updateMatrixWorld(true);camera.updateMatrixWorld();
-  const reserved=[rect,...document.querySelectorAll('.stats-dock,.dock')].filter(Boolean).map(r=>r.getBoundingClientRect?r.getBoundingClientRect():r),used=[];
-  planets.forEach(p=>{
-   const pt=screenPoint(p.group.getWorldPosition(new THREE.Vector3())),r={left:pt.x-78,right:pt.x+78,top:pt.y+22,bottom:pt.y+65};
-   const overlap=a=>a.left<r.right&&a.right>r.left&&a.top<r.bottom&&a.bottom>r.top;
-   const visible=state.progress<.025&&r.left>0&&r.right<w&&r.top>95&&r.bottom<h-110&&!reserved.concat(used).some(overlap);
-   if(visible)used.push(r);p.label.style.transform=`translate(${pt.x}px,${pt.y+22}px) translateX(-50%)`;p.label.style.visibility=visible?'visible':'hidden';p.label.tabIndex=visible?0:-1;
-  });
-  // Sprites preservam a legibilidade das superfícies HTML, inclusive em transições.
-  const visiblePackets=[];
-  flow?.packets.slice().sort((a,b)=>Number(b.vein.index===state.focus)-Number(a.vein.index===state.focus)).forEach(p=>{if(!p.sprite.visible)return;const pt=screenPoint(p.sprite.getWorldPosition(new THREE.Vector3()));if(reserved.some(r=>pt.x>r.left-16&&pt.x<r.right+16&&pt.y>r.top-20&&pt.y<r.bottom+20)||visiblePackets.some(q=>Math.abs(q.x-pt.x)<30&&Math.abs(q.y-pt.y)<38))p.sprite.visible=false;else visiblePackets.push(pt);});
-  renderer.info.reset();composer.render();frames++;if(firstRender===null)firstRender=performance.now();
-  if(window.__jarvisMeasure?.sampling)window.__jarvisMeasure.frames.push(performance.now());
- }
- function tick(_,delta){if(paused||document.hidden||mode==='fundo'||state.failed)return;const dt=Math.min(delta/1000,.06);time+=dt;
-  slow=delta>35?slow+Math.min(delta,100):Math.max(0,slow-30);if(slow>4000&&quality===1){quality=.65;el.dataset.quality='adaptativa';resize();}render(dt);
- }
- function sync(){const active=state.ready&&!dead&&!state.failed&&!paused&&!document.hidden&&mode!=='fundo',animated=active&&!state.reduced;if(animated&&!loop){gsap.ticker.add(tick);loop=true;}if(!animated&&loop){gsap.ticker.remove(tick);loop=false;}if(active)render(0);}
- const onMotion=()=>{state.reduced=media.matches;target.set(0,0);pointer.set(0,0);ui.attach(journeyRoot);sync();},onVisibility=()=>sync(),onScroll=()=>{ui.scroll();if(state.reduced)render(0);};
- const onPointer=e=>{if(state.reduced||e.pointerType==='touch')return;target.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);},resetPointer=()=>target.set(0,0);
- const onClick=e=>{if(mode==='fundo'||!state.ready||state.failed||e.target.closest('button,a,input,textarea,select,.viagem-texto,.stats-dock'))return;ndc.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);raycaster.setFromCamera(ndc,camera);const hit=raycaster.intersectObjects(planets.map(p=>p.globe))[0];if(hit){const p=planets.find(p=>p.globe===hit.object);options.aoSelecionar?.(p.project.id);}};
- const lost=e=>{e.preventDefault();fail('Contexto WebGL perdido');};
- window.addEventListener('resize',resize);window.addEventListener('pointermove',onPointer,{passive:true});window.addEventListener('blur',resetPointer);window.addEventListener('click',onClick);window.addEventListener('scroll',onScroll,{passive:true});document.addEventListener('visibilitychange',onVisibility);media.addEventListener('change',onMotion);
- try{
-  renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:'high-performance'});renderer.info.autoReset=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
-  renderer.domElement.setAttribute('aria-hidden','true');el.prepend(renderer.domElement);renderer.domElement.addEventListener('webglcontextlost',lost);
-  renderer.debug.onShaderError=(gl,program)=>{shaderErrors.push(gl.getProgramInfoLog(program)||'Shader inválido');fail(shaderErrors[0]);};
-  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);camera.position.z=18;
-  world=new THREE.Group();scene.add(world);core=createCore();world.add(core.group);universe=createUniverse(scene,world,compact());
-  composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.72,.5,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());resize();
-  createFileTextures().then(result=>{if(dead){result.forEach(t=>t.dispose());return;}textures=result;state.ready=true;el.dataset.ready='true';boot.hidden=true;document.body.classList.add('scene-ready');rebuild();sync();}).catch(fail);
- }catch(error){fail(error);}
- return {el,atualizar(ps){if(JSON.stringify(ps)===JSON.stringify(projects))return;projects=ps.map(p=>({...p}));rebuild();},selecionar(){},modo(value){mode=value;el.hidden=value==='fundo';sync();},rolagem(){},pausar(value){paused=value;sync();},varredura(){if(!state.reduced&&bloom)gsap.fromTo(bloom,{strength:1},{strength:.72,duration:1});},jornada(root){journeyRoot=root;if(state.ready||state.failed)ui.attach(root);},
-  depurar(){const c=world&&camera?screenPoint(world.getWorldPosition(new THREE.Vector3())):null;const edge=c?screenPoint(world.localToWorld(new THREE.Vector3(1.8,0,0))):null;const radius=c?Math.abs(edge.x-c.x):0;return {ready:state.ready,failed:state.failed,renderer:'Three.js WebGL2',firstRender,frames,ticks:frames,quality,loop,reduced:state.reduced,progress:state.progress,chapter:state.chapter,projects:planets.length,connections:flow?.veins.length||0,packets:flow?.packets.length||0,coreBounds:c?{x:c.x-radius,y:c.y-radius,width:radius*2,height:radius*2}:null,resolution:renderer?.getPixelRatio(),shaderErrors,drawCalls:renderer?.info.render.calls,geometries:renderer?.info.memory.geometries,textures:renderer?.info.memory.textures,backgrounds:universe?.layers.map(p=>({x:p.position.x,y:p.position.y,visible:p.visible}))||[],endpoints:planets.map(p=>({id:p.project.id,x:p.group.position.x,y:p.group.position.y,status:p.project.status}))};},
-  destruir(){dead=true;sync();ui.dispose();window.removeEventListener('resize',resize);window.removeEventListener('pointermove',onPointer);window.removeEventListener('blur',resetPointer);window.removeEventListener('click',onClick);window.removeEventListener('scroll',onScroll);document.removeEventListener('visibilitychange',onVisibility);media.removeEventListener('change',onMotion);if(scene)disposeObject(scene);textures.forEach(t=>t.dispose());universe?.dot.dispose();composer?.passes.forEach(p=>p.dispose?.());composer?.dispose();renderer?.dispose();el.remove();}
- };
+installDesignTokens();
+const names={ok:'No ar',atencao:'Atenção',erro:'Problema',aguardando:'Aguardando',config:'Configurar',pausado:'Pausado'};
+
+function montar(options={}) {
+  const el=document.createElement('div');el.className='cena-2d cena-3d';
+  el.innerHTML='<div class="scene-fallback" aria-hidden="true"><i></i><i></i></div><div class="cena-boot" role="status">Conectando seu universo…</div><div class="cena-rotulos"></div>';
+  const boot=el.querySelector('.cena-boot'),labels=el.lastElementChild;
+  const media=matchMedia('(prefers-reduced-motion: reduce)');
+  const state={ready:false,failed:false,reduced:media.matches,progress:0,focus:-1,chapter:0,activeText:null,motion:{heroYaw:0,heroScale:1,heroLift:0,background:0}};
+  let setup,resources,documentTexture,hero,background,particles,connections;
+  let nodes=[],projects=[],journeyRoot=null,dead=false,paused=false,mode='palco',loop=false;
+  let time=0,frames=0,slow=0,quality=1,firstRender=null,flashTween=null;
+  const shaderErrors=[],screenBounds=[];
+  const pointer=new THREE.Vector2(),target=new THREE.Vector2(),ndc=new THREE.Vector2();
+  const raycaster=new THREE.Raycaster();
+  const ui=createGSAPAnimations(state,()=>render(0));
+  const compact=()=>innerWidth<=700;
+
+  function fail(error) {
+    state.failed=true;el.dataset.failure=String(error);el.dataset.fallback='true';
+    document.body.classList.add('scene-ready');boot.hidden=false;
+    boot.textContent='Visual 3D indisponível · seus controles continuam disponíveis';
+    if(setup)setup.renderer.domElement.hidden=true;
+    ui.attach(journeyRoot);sync();
+  }
+
+  function rebuild() {
+    if(!resources||!documentTexture||!hero)return;
+    connections?.dispose();nodes.forEach(node=>node.entity.dispose());labels.replaceChildren();
+    nodes=projects.map((project,i)=>{
+      const angle=-Math.PI/2+i*Math.PI*2/Math.max(1,projects.length);
+      const entity=new JarvisEntity(resources,{radius:TOKENS.layout.nodeRadius,seed:i+1});
+      const home=new THREE.Vector3(Math.cos(angle)*3.1,Math.sin(angle)*2.45,.12);
+      entity.group.position.copy(home);setup.world.add(entity.group);
+      const label=document.createElement('button');label.type='button';label.className='cena-label';
+      label.textContent=project.nome;label.dataset.status=project.status;
+      label.onclick=()=>options.aoSelecionar?.(project.id);labels.appendChild(label);
+      return {project,entity,group:entity.group,home,target:new THREE.Vector3(),emphasis:0,label};
+    });
+    connections=createConnections(hero,nodes,setup.world,documentTexture);
+    if(journeyRoot)ui.attach(journeyRoot);
+    render(0);
+  }
+
+  function resize() {
+    if(!setup)return;
+    setup.resize(quality);ui.refresh();render(0);
+  }
+
+  function render(dt) {
+    if(!state.ready||state.failed||dead)return;
+    const {camera,world,renderer}=setup,w=innerWidth,h=innerHeight,mobile=compact();
+    const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
+    pointer.lerp(target,1-Math.exp(-dt*5));
+    const rect=state.activeText?.getBoundingClientRect();
+    const centerY=mobile?Math.min(h*.29,(rect?.top||h*.55)*.5):h*.48;
+    const scale=mobile?Math.max(.3,Math.min(.95,((rect?.top||h*.55)-40)*.5/2.2*height/h)):1.7;
+    world.scale.setScalar(scale);world.position.set((mobile?0:.15)*width,(.5-centerY/h)*height,0);
+    world.rotation.set(pointer.y*.025,pointer.x*.035,0);
+    hero.group.position.y=state.motion.heroLift;
+    hero.update(time,state.motion);resources.update(time,state.progress);
+    resolveEntityLayout(hero,nodes,mobile,state.focus,dt);
+    nodes.forEach((node,i)=>{node.group.position.y+=Math.sin(time*.25+i)*.015;node.entity.update(time,state.motion,node.emphasis);});
+    background.update(time,state.motion.background,pointer);
+    particles.update(time,state.progress,pointer,nodes,renderer.getPixelRatio());
+    setup.scene.updateMatrixWorld(true);camera.updateMatrixWorld();
+
+    // Barreiras HTML são medidas uma vez por frame, não por partícula.
+    const reserved=[rect,...document.querySelectorAll('.stats-dock,.dock')].filter(Boolean).map(r=>r.getBoundingClientRect?r.getBoundingClientRect():r);
+    const used=[];screenBounds.length=0;
+    screenBounds.push(projectEntityBounds(hero,camera,w,h));
+    nodes.forEach(node=>{
+      const bounds=projectEntityBounds(node.entity,camera,w,h);screenBounds.push(bounds);
+      const labelRect={left:bounds.cx-75,right:bounds.cx+75,top:bounds.cy+bounds.radius+6,bottom:bounds.cy+bounds.radius+38};
+      const overlaps=r=>r.left<labelRect.right&&r.right>labelRect.left&&r.top<labelRect.bottom&&r.bottom>labelRect.top;
+      const visible=state.progress<.025&&labelRect.left>0&&labelRect.right<w&&labelRect.top>90&&labelRect.bottom<h-110&&!reserved.concat(used).some(overlaps);
+      if(visible)used.push(labelRect);
+      node.label.style.transform=`translate(${bounds.cx}px,${labelRect.top}px) translateX(-50%)`;
+      node.label.style.visibility=visible?'visible':'hidden';node.label.tabIndex=visible?0:-1;
+    });
+    connections.update(time,state.focus,mobile,camera,reserved);
+    setup.render();frames++;
+    if(firstRender===null)firstRender=performance.now();
+    if(window.__jarvisMeasure?.sampling)window.__jarvisMeasure.frames.push(performance.now());
+  }
+
+  function tick(_,delta) {
+    if(paused||document.hidden||mode==='fundo'||state.failed)return;
+    const dt=Math.min(delta/1000,.06);time+=dt;
+    slow=delta>35?slow+Math.min(delta,100):Math.max(0,slow-30);
+    if(slow>4000&&quality===1){quality=.65;el.dataset.quality='adaptativa';resize();}
+    render(dt);
+  }
+
+  function sync() {
+    const active=state.ready&&!dead&&!state.failed&&!paused&&!document.hidden&&mode!=='fundo';
+    const animated=active&&!state.reduced;
+    if(animated&&!loop){gsap.ticker.add(tick);loop=true;}
+    if(!animated&&loop){gsap.ticker.remove(tick);loop=false;}
+    if(active)render(0);
+  }
+
+  const onMotion=()=>{state.reduced=media.matches;target.set(0,0);pointer.set(0,0);ui.attach(journeyRoot);sync();};
+  const onVisibility=()=>sync();
+  const onScroll=()=>{ui.scroll();if(state.reduced)render(0);};
+  const onPointer=e=>{if(!state.reduced&&e.pointerType!=='touch')target.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);};
+  const resetPointer=()=>target.set(0,0);
+  const onClick=e=>{
+    if(!state.ready||state.failed||mode==='fundo'||e.target.closest('button,a,input,textarea,select,.viagem-texto,.stats-dock'))return;
+    ndc.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);
+    raycaster.setFromCamera(ndc,setup.camera);
+    const hit=raycaster.intersectObjects(nodes.map(n=>n.entity.shell))[0];
+    if(hit)options.aoSelecionar?.(nodes.find(n=>n.entity.shell===hit.object).project.id);
+  };
+  const onLost=e=>{e.preventDefault();fail('Contexto WebGL perdido');};
+  const listeners=[[window,'resize',resize],[window,'pointermove',onPointer],[window,'blur',resetPointer],[window,'click',onClick],[window,'scroll',onScroll],[document,'visibilitychange',onVisibility],[media,'change',onMotion]];
+  listeners.forEach(([target,event,handler])=>target.addEventListener(event,handler,{passive:event==='scroll'||event==='pointermove'}));
+
+  async function initialize() {
+    try {
+      setup=createSceneSetup();
+      setup.renderer.domElement.setAttribute('aria-hidden','true');el.prepend(setup.renderer.domElement);
+      setup.renderer.domElement.addEventListener('webglcontextlost',onLost);
+      setup.renderer.debug.onShaderError=(gl,program)=>{shaderErrors.push(gl.getProgramInfoLog(program)||'Shader inválido');fail(shaderErrors[0]);};
+      background=createBackgroundParallax(setup.scene);
+      particles=createParticles(setup.scene,setup.world,compact());resize();
+      const loaded=await Promise.allSettled([createEntityResources(),createDocumentTexture()]);
+      if(dead||loaded.some(r=>r.status==='rejected')){
+        loaded.forEach(r=>{if(r.status==='fulfilled')r.value.dispose();});
+        if(!dead)fail(loaded.find(r=>r.status==='rejected').reason);
+        return;
+      }
+      resources=loaded[0].value;documentTexture=loaded[1].value;
+      hero=new JarvisEntity(resources,{hero:true});setup.world.add(hero.group);
+      state.ready=true;el.dataset.ready='true';boot.hidden=true;document.body.classList.add('scene-ready');
+      rebuild();sync();
+    }catch(error){fail(error);}
+  }
+  initialize();
+
+  return {
+    el,
+    atualizar(ps){if(JSON.stringify(ps)!==JSON.stringify(projects)){projects=ps.map(p=>({...p}));rebuild();}},
+    selecionar(){},rolagem(){},
+    modo(value){mode=value;el.hidden=value==='fundo';sync();},
+    pausar(value){paused=value;sync();},
+    varredura(){if(!state.reduced&&setup){flashTween?.kill();flashTween=gsap.fromTo(setup.bloom,{strength:.85},{strength:TOKENS.bloom.strength,duration:1});}},
+    jornada(root){journeyRoot=root;if(state.ready||state.failed)ui.attach(root);},
+    depurar(){return {
+      ready:state.ready,failed:state.failed,renderer:'Three.js WebGL2',firstRender,frames,ticks:frames,quality,loop,reduced:state.reduced,
+      progress:state.progress,chapter:state.chapter,motion:{heroYaw:state.motion.heroYaw,heroScale:state.motion.heroScale,heroLift:state.motion.heroLift,background:state.motion.background},projects:nodes.length,connections:connections?.veins.length||0,
+      packets:connections?.packets.length||0,trafficDrawCalls:connections?1:0,instancedTraffic:!!connections?.instances.isInstancedMesh,
+      entities:[hero,...nodes.map(n=>n.entity)].filter(Boolean).map(e=>({generator:e.group.userData.kind,meshes:e.group.children.length,earthMaterial:e.shell.material===resources?.materials.earth})),
+      entityBounds:screenBounds.map(b=>({...b})),entityOverlaps:findEntityOverlaps(screenBounds),coreBounds:screenBounds[0]||null,
+      resolution:setup?.renderer.getPixelRatio(),shaderErrors,drawCalls:setup?.renderer.info.render.calls,geometries:setup?.renderer.info.memory.geometries,textures:setup?.renderer.info.memory.textures,
+      backgrounds:background?.planets.map(p=>({x:p.group.position.x,y:p.group.position.y,z:p.group.position.z,kind:p.group.userData.kind,rings:p.group.children.length-1}))||[],
+      endpoints:nodes.map(n=>({id:n.project.id,x:n.group.position.x,y:n.group.position.y,status:n.project.status}))
+    };},
+    destruir(){
+      dead=true;sync();flashTween?.kill();ui.dispose();listeners.forEach(([target,event,handler])=>target.removeEventListener(event,handler));
+      connections?.dispose();nodes.forEach(n=>n.entity.dispose());hero?.dispose();resources?.dispose();documentTexture?.dispose();
+      background?.dispose();particles?.dispose();setup?.dispose();el.remove();
+    }
+  };
 }
-window.CenaJarvis={montar,cores:colors,nomes:names};
+
+window.CenaJarvis={montar,cores:TOKENS.status,nomes:names};

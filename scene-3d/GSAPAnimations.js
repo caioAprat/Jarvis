@@ -1,5 +1,5 @@
 // DOM acessível e ScrollTrigger compartilham o estado da cena, sem criar outro RAF.
-export function createInterface(state,draw){
+export function createGSAPAnimations(state,draw){
  let root=null,master=null,headerTween=null,intro=null,sections=[];
  function detach(){master?.scrollTrigger?.kill();master?.kill();headerTween?.scrollTrigger?.kill();headerTween?.kill();intro?.kill();master=headerTween=intro=null;state.activeText=null;}
  function attach(next){
@@ -23,7 +23,11 @@ export function createInterface(state,draw){
    if(state.reduced)draw();
   };
   master=gsap.timeline({onUpdate:update,scrollTrigger:{id:'jarvis-jornada',trigger:root,start:'top top',end:'bottom bottom',scrub:.3,onEnterBack:update,onLeave:update}});
-  const clock={time:0};master.to(clock,{time:sections.length-1,duration:sections.length-1,ease:'none'});
+  const clock={time:0};
+  Object.assign(state.motion,{heroYaw:0,heroScale:1,heroLift:0,background:0});
+  master.to(clock,{time:sections.length-1,duration:sections.length-1,ease:'none'},0);
+  // O mesmo relógio move o Jarvis e as camadas profundas, não só os projetos.
+  master.to(state.motion,{heroYaw:1.05,heroScale:.94,heroLift:.16,background:1,duration:sections.length-1,ease:'sine.inOut'},0);
   const header=document.querySelector('.barra')||document.querySelector('body>header');
   if(header){gsap.set(header,{opacity:1,y:0});headerTween=gsap.to(header,{y:-50,opacity:0,ease:'none',scrollTrigger:{id:'jarvis-header',trigger:root,start:'top top',end:'top -140',scrub:true,onUpdate:t=>{header.inert=t.progress>.98;header.style.pointerEvents=t.progress>.98?'none':'';}}});}
   const dock=document.querySelector('.stats-dock');if(dock)intro=gsap.fromTo(dock,{opacity:0,y:18},{opacity:1,y:0,duration:state.reduced?0:.9,delay:.25,ease:'power2.out'});

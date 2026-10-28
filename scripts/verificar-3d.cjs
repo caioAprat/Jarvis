@@ -9,7 +9,10 @@ const output='docs/universo-3d';fs.mkdirSync(output,{recursive:true});
   const page=await browser.newPage({viewport:{width,height},serviceWorkers:'block'}),errors=[],assets=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>assets.push(r.url()));
   await page.goto(base+'/'+file+'?demo');await page.waitForFunction(()=>MV.depurar().ready&&!MV.depurar().failed);await page.waitForTimeout(700);
-  const start=await page.evaluate(()=>MV.depurar());assert.deepEqual(start.shaderErrors,[]);assert.equal(start.projects,7);assert.equal(start.connections,27);assert.equal(start.packets,12);
+  const start=await page.evaluate(()=>MV.depurar());assert.deepEqual(start.shaderErrors,[]);assert.equal(start.projects,7);assert.equal(start.connections,27);assert.equal(start.packets,24);
+  assert.equal(start.instancedTraffic,true);assert.equal(start.trafficDrawCalls,1);
+  assert.ok(start.entities.every(e=>e.generator==='JarvisEntity'&&e.meshes===2&&e.earthMaterial));
+  assert.equal(start.backgrounds.length,5);assert.ok(start.backgrounds.every(b=>b.z<=-17&&b.kind==='BackgroundPlanet'));assert.equal(start.backgrounds.filter(b=>b.rings).length,2);
   assert.ok(!assets.some(a=>/pixi|assets\/scene/.test(a)),'Cena não deve carregar sprites/atlas antigos');
   await page.mouse.move(width-20,70);await page.waitForTimeout(300);
   assert.notDeepEqual((await page.evaluate(()=>MV.depurar().backgrounds)),start.backgrounds);
@@ -19,9 +22,9 @@ const output='docs/universo-3d';fs.mkdirSync(output,{recursive:true});
    const result=await page.evaluate(()=>{
     const active=[...document.querySelectorAll('.viagem-texto')].filter(e=>!e.inert&&getComputedStyle(e).visibility!=='hidden');
     const rect=active[0]?.getBoundingClientRect(),d=MV.depurar(),header=document.querySelector('.barra')||document.querySelector('body>header');
-    return {progress:d.progress,active:active.length,rect:rect?.toJSON(),overflow:document.documentElement.scrollWidth>innerWidth,headerOpacity:Number(getComputedStyle(header).opacity),shaderErrors:d.shaderErrors};
+    return {progress:d.progress,motion:d.motion,entityOverlaps:d.entityOverlaps,active:active.length,rect:rect?.toJSON(),overflow:document.documentElement.scrollWidth>innerWidth,headerOpacity:Number(getComputedStyle(header).opacity),shaderErrors:d.shaderErrors};
    });
-   assert.equal(result.active,1);assert.ok(!result.overflow);assert.ok(result.rect.top>=0&&result.rect.bottom<=height);assert.deepEqual(result.shaderErrors,[]);if(progress>=.1)assert.ok(result.headerOpacity<.02);samples.push(result);
+   assert.equal(result.active,1);assert.ok(!result.overflow);assert.ok(result.rect.top>=0&&result.rect.bottom<=height);assert.deepEqual(result.shaderErrors,[]);assert.deepEqual(result.entityOverlaps,[]);if(progress>=.1){assert.ok(result.headerOpacity<.02);assert.ok(result.motion.heroYaw>0);}samples.push(result);
    if(progress===0||progress===.2)await page.screenshot({path:`${output}/${file.replace('.html','')}-${width}-${progress}.png`});
   }
   if(file==='pc.html'){

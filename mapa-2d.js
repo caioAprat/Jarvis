@@ -1,9 +1,6 @@
 'use strict';
-// Identidade preservada; cenário de sprites controlado por um único relógio.
+// Identidade preservada; cores herdadas de DesignTokens e cena modular Three.js.
 (function () {
-  const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
-  const COR = { ok: 0x7bf0b4, atencao: 0xffc247, erro: 0xff4d5e, pausado: 0x7a6e60, config: 0x9a8c7a, aguardando: 0xc4a06a };
-  const AMBAR = 0xff8a3d, LARANJA = 0xff5a1f, QUENTE = 0xffe0b8, BRANCO_QUENTE = 0xfff1dc;
 
 
   // ================================================================== identidade
@@ -25,13 +22,13 @@
     let tk = '';
     for (let i = 0; i < 24; i++) { const an = i * 15 * Math.PI / 180, r1 = i % 6 === 0 ? 26.6 : 28.2; tk += `M${(32 + 29.8 * Math.sin(an)).toFixed(2)} ${(32 - 29.8 * Math.cos(an)).toFixed(2)}L${(32 + r1 * Math.sin(an)).toFixed(2)} ${(32 - r1 * Math.cos(an)).toFixed(2)}`; }
     return `<svg class="mk ${extra || ''}" viewBox="0 0 64 64" aria-hidden="true"><defs>
-      <radialGradient id="mkc"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a26"/></radialGradient>
-      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe6c8"/><stop offset="1" stop-color="#ff6a1a"/></linearGradient></defs>
-      <circle cx="32" cy="32" r="30.6" fill="none" stroke="#ffb36a" stroke-opacity=".3" stroke-width=".8"/>
-      <path class="mk-t" d="${tk}" fill="none" stroke="#ffb36a" stroke-width=".9" opacity=".75"/>
+      <radialGradient id="mkc"><stop offset="0" stop-color="var(--scene-text)"/><stop offset=".5" stop-color="var(--scene-electric)"/><stop offset="1" stop-color="var(--scene-energy)"/></radialGradient>
+      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--scene-electric)"/><stop offset="1" stop-color="var(--scene-energy)"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="30.6" fill="none" stroke="var(--scene-energy)" stroke-opacity=".3" stroke-width=".8"/>
+      <path class="mk-t" d="${tk}" fill="none" stroke="var(--scene-energy)" stroke-width=".9" opacity=".75"/>
       <path class="mk-r1" d="${ext}" fill="none" stroke="url(#mka)" stroke-width="3.4"/>
-      <path class="mk-r2" d="${inn}" fill="none" stroke="#ffcf9a" stroke-width="2.4"/>
-      <g class="mk-core"><circle cx="32" cy="32" r="7.2" fill="url(#mkc)"/><circle cx="32" cy="32" r="2.4" fill="#fff"/></g></svg>`;
+      <path class="mk-r2" d="${inn}" fill="none" stroke="var(--scene-electric)" stroke-width="2.4"/>
+      <g class="mk-core"><circle cx="32" cy="32" r="7.2" fill="url(#mkc)"/><circle cx="32" cy="32" r="2.4" fill="var(--scene-text)"/></g></svg>`;
   }
   /** Nome: JARVÃO, em caixa alta, com degradê quente. */
   function marca() { return '<span class="wm" role="img" aria-label="Jarvão">JARVÃO</span>'; }
@@ -55,8 +52,8 @@
   @keyframes mk-giro{to{transform:rotate(360deg)}}
   @keyframes mk-bate{0%,100%{transform:scale(1)}12%{transform:scale(1.16)}24%{transform:scale(1)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
   .wm{display:inline-block;font:400 1em/1.05 "Michroma","Saira",sans-serif;letter-spacing:.17em;margin-right:-.17em;text-transform:uppercase;color:transparent;
-    background:linear-gradient(180deg,#fffaf0 0%,#ffdcb0 48%,#ff9a4a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.035em rgba(255,200,140,.55);
-    filter:drop-shadow(0 0 .5em rgba(255,128,48,.55)) drop-shadow(0 0 1.4em rgba(255,100,30,.28))}
+    background:linear-gradient(180deg,var(--scene-text) 0%,var(--scene-electric) 48%,var(--scene-energy) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.035em color-mix(in srgb, var(--scene-electric) 55%, transparent);
+    filter:drop-shadow(0 0 .5em color-mix(in srgb, var(--scene-energy) 55%, transparent)) drop-shadow(0 0 1.4em color-mix(in srgb, var(--scene-energy) 28%, transparent))}
   .pi{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.15em}
   @media(prefers-reduced-motion:reduce){.mk-r1,.mk-r2,.mk-t,.mk-core{animation:none}}`;
 
