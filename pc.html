@@ -651,6 +651,9 @@ document.addEventListener('click', e => {const button=e.target.closest('[data-jo
 window.addEventListener('scroll', () => { const b = document.querySelector('.barra'); if (b) b.classList.toggle('rolou', window.scrollY > 24); }, { passive: true });
 
 function irPara(aba, mudarHash) {
+  // Cancela a inércia antes de trocar o DOM e medir a nova jornada.
+  if (MV) MV.jornada(null);
+  window.scrollTo(0, 0);
   S.animar = true; S.aba = abaValida(aba); S.voltar = null; S.cancelar = null; S.apagarToken = null;
   if (mudarHash && location.hash.slice(1) !== S.aba) history.pushState(null, '', '#' + S.aba);
   render(); window.scrollTo(0, 0);

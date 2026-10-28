@@ -7,5 +7,6 @@ testes/pc-exemplo.json
 /frames-brutos/
 /scripts/migracao-2d/tmp/
 /preview/Jarvao-2D.html
+/preview/index.html
 *.tmp
 *.log

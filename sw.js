@@ -1,7 +1,7 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v6-motion2d';
+const VERSAO = 'jarvis-v7-orbitas2d';
 const CASCA = ['./', 'index.html', 'pc.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
   'mapa-2d.js', 'cena-2d.js', 'cena-2d.css', 'jornada.js', 'demo.js',
   'vendor/pixi.min.js', 'vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js', 'vendor/lenis.min.js', 'vendor/lenis.css',

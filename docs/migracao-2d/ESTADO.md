@@ -1,6 +1,6 @@
 # Estado da migração — passagem para Claude Code
 
-Branch atual: `visual/jarvis-2d`. Produção e `main` intactas. O primeiro envio foi autorizado e concluído; a reformulação de motion abaixo ainda é local.
+Branch atual: `visual/jarvis-2d`. Produção e `main` intactas. Motion `08ec99b` enviado; envio da nova interação autorizado pelo usuário.
 Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 | Critério | Estado | Evidência / limite |
@@ -10,11 +10,13 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 | C — fios reais | ✅ pronto | `rebuild/drawConnections` usa projetos e posições correntes; teste adiciona/remove itens. |
 | D — fundo com parallax | ✅ pronto | `start/draw`: 12 planetas, 3 profundidades; cinco visíveis no celular por qualidade. |
 | E — câmera e relógio | ✅ pronto | Uma master/ticker; callback corrigido para atualizar durante toda a suavização do scrub, conforme documentação GSAP. |
-| F — textos sem cartões | ✅ pronto | `capturas/layout.json`: 33 pontos, zero texto fora da viewport, sobreposição textual ou interseção com núcleo; sem etapas vazias. |
+| F — legibilidade | ✅ pronto | `capturas/layout.json`: 33 pontos, zero texto fora da viewport, sobreposição textual ou interseção com núcleo; cartões solicitados na reformulação posterior. |
 | G — robustez | ⚠️ parcial | Fallback, PNG, pausa e reduced-motion inicial passam; teste de alternância em tempo real não retomou loop. |
 | H — funções existentes | ✅ pronto | `verificar-ui.cjs`: busca, oito seções, conferência e API simulada; servidor com 140 verificações. |
 
 ## Concluído nesta sessão
+- ✅ Partículas ligadas ao núcleo, scroll e cursor; planetas contínuos; arquivos vetoriais nas veias; isolamento da inércia ao voltar por Geral. Registro e evidências em `interacao/README.md`.
+- ✅ Gerador entrega `preview/index.html` pronto para a pasta de demonstração no Netlify.
 - ✅ Reformulação posterior: leitura em capítulos, uma suavização de scroll, câmera estável, cartões âmbar e satélites circulares ligados ao núcleo. Detalhes em `motion/README.md`.
 - ✅ Motion validado nos dois sentidos em desktop/celular; 33 pontos de layout novamente aprovados, 11 cenários de UI, 140 verificações do servidor e offline passaram. Prévia portátil gerada e validada via HTTP.
 - ✅ Checkpoint e diagnóstico curto; sem regenerar assets ou instalar bibliotecas.

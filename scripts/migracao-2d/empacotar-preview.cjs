@@ -14,4 +14,5 @@ html=html.replace(/<script src="([^"]+)"><\/script>/g,(_,file)=>{
  return '<script>'+source.replace(/<\/script/gi,'<\\/script')+'</script>';
 });
 fs.mkdirSync(path.join(root,'preview'),{recursive:true});fs.writeFileSync(path.join(root,'preview/Jarvao-2D.html'),html);
+fs.writeFileSync(path.join(root,'preview/index.html'),html);
 console.log('Preview portátil:',Buffer.byteLength(html),'bytes');
