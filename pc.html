@@ -10,8 +10,6 @@
 <link rel="icon" type="image/svg+xml" href="icons/jarvis.svg">
 <link rel="manifest" href="manifest-pc.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
   /* mesmos tokens do app do celular e do Meu dinheiro */
   :root {
@@ -178,17 +176,15 @@
   }
   @media (prefers-reduced-motion: reduce) { .skel { animation: none; } .btn { transition: none; } }
 </style>
-<link rel="stylesheet" href="vendor/lenis.css">
 <link rel="stylesheet" href="cena-2d.css">
+<link rel="stylesheet" href="cena-3d.css">
 </head>
 <body>
 <div id="raiz"><div class="acesso"><div class="skel"></div></div></div>
 <div id="toast" aria-live="polite"></div>
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
-<script src="vendor/lenis.min.js"></script>
-<script src="vendor/pixi.min.js"></script>
-<script src="cena-2d.js"></script>
+<script src="cena-3d.js"></script>
 <script src="mapa-2d.js"></script>
 <script src="jornada.js"></script>
 <script src="demo.js"></script>
@@ -355,12 +351,12 @@ function telaGeral() {
   S.sit = sit;
   const ativos = ps.filter(p => p.status !== 'pausado'), noAr = ativos.filter(p => p.status === 'ok').length;
   const aberto = S.sel && ps.find(p => p.id === S.sel);
-  S.hudHtml = `<div class="hud">
+  S.hudHtml = `<aside class="hud stats-dock" aria-label="Situação dos sistemas">
       <div><small>Situação</small><b style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</b></div>
       <div><small>Projetos no ar</small><b>${noAr}/${ativos.length}</b></div>
       <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
       <div><small>Avisos novos</small><b>${novos}</b></div>
-    </div>`;
+    </aside>`;
   return JornadaJarvis.html(ps, {titulo:sit[1],pedidos:pedAbertos,avisos:novos,tarefas:T});
 }
 
@@ -611,9 +607,9 @@ function render() {
   let selA = null, selB = null; try { selA = ativo.selectionStart; selB = ativo.selectionEnd; } catch (e) { /* sem cursor */ }
   const titulo = (ABAS.find(a => a[0] === S.aba) || ABAS[0])[1];
   raiz.innerHTML = `<main><div class="barra"><div class="marca">${MapaVivo.logo()}<span class="marca-txt">${MapaVivo.marca()}<span class="marca-sub"><span class="orbe ${geral}" aria-hidden="true"></span>Núcleo de controle</span></span></div>
-      ${S.hudHtml || ''}
       <div class="barra-dir"><button type="button" class="buscar" data-acao="paleta" aria-label="Buscar e navegar (Ctrl K)">${ico('buscar')}<span>Buscar</span><kbd>Ctrl K</kbd></button>
       <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : ico('refresh') + ' Conferir tudo'}</button></div></div>
+    ${S.hudHtml || ''}
     <header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>
     ${conteudo}
     <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></main>

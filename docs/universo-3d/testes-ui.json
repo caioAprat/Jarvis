@@ -1,0 +1,14 @@
+{
+  "results": [
+    "Adição e remoção de projetos atualiza planetas e veias",
+    "Órbitas atualizam posições",
+    "Ctrl K abre busca e Escape fecha",
+    "Oito seções navegam sem erro de montagem",
+    "Conferir tudo atualiza fixture sem acessar produção",
+    "Pausa interrompe renderização",
+    "Perda de contexto usa reserva CSS e mantém texto",
+    "Movimento reduzido sem loop contínuo",
+    "Integração original GET/POST validada contra simulador Apps Script"
+  ],
+  "errors": []
+}

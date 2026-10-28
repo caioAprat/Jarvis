@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('/workspace/.jarvis-audit-tools/node_modules/playwright');
 const base=process.env.JARVIS_TEST_URL||'http://127.0.0.1:8001';
-const out=path.resolve(__dirname,'../../docs/migracao-2d/capturas');
+const out=process.env.JARVIS_LAYOUT_OUT?path.resolve(process.env.JARVIS_LAYOUT_OUT):path.resolve(__dirname,'../../docs/migracao-2d/capturas');
 const targets=[{name:'desktop-1920',file:'pc.html',width:1920,height:1080},{name:'desktop-1366',file:'pc.html',width:1366,height:768},{name:'mobile-390',file:'index.html',width:390,height:844}];
 (async()=>{
  fs.mkdirSync(out,{recursive:true});

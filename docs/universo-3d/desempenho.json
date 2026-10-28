@@ -1,0 +1,201 @@
+{
+  "method": "6 s de aquecimento + 6 s de amostra, um navegador por vez. FPS mede chamadas de render; não comprova apresentação física nem GPU do usuário.",
+  "runs": [
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "fps": 13.29499941835036,
+      "p95FrameMs": 98.60000000149012,
+      "maxFrameMs": 107.5,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "scene": {
+        "ready": true,
+        "failed": false,
+        "renderer": "Three.js WebGL2",
+        "firstRender": 390.90000000596046,
+        "frames": 152,
+        "ticks": 152,
+        "quality": 0.65,
+        "loop": true,
+        "reduced": false,
+        "progress": 0,
+        "chapter": 0,
+        "projects": 7,
+        "connections": 27,
+        "packets": 12,
+        "coreBounds": {
+          "x": 730.3001386482842,
+          "y": 211.04013864828437,
+          "width": 315.19972270343123,
+          "height": 315.19972270343123
+        },
+        "resolution": 0.7871377093927544,
+        "shaderErrors": [],
+        "drawCalls": 90,
+        "geometries": 59,
+        "textures": 18,
+        "backgrounds": [
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          }
+        ],
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 2.0818995585505003e-16,
+            "y": -2.7271393329800433,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 2.658227040391301,
+            "y": -1.7245464862136293,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 3.3147549014182003,
+            "y": 0.5783203921663518,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 1.4752047129996977,
+            "y": 2.451292445206951,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -1.4752047129996975,
+            "y": 2.482778921313133,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -3.3147549014182003,
+            "y": 0.6438312995601991,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -2.6582270403913015,
+            "y": -1.6852415736709918,
+            "status": "pausado"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fps": 23.726563796250208,
+      "p95FrameMs": 51.899999998509884,
+      "maxFrameMs": 57.69999999552965,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "scene": {
+        "ready": true,
+        "failed": false,
+        "renderer": "Three.js WebGL2",
+        "firstRender": 328,
+        "frames": 288,
+        "ticks": 288,
+        "quality": 0.65,
+        "loop": true,
+        "reduced": false,
+        "progress": 0,
+        "chapter": 0,
+        "projects": 7,
+        "connections": 27,
+        "packets": 12,
+        "coreBounds": {
+          "x": 98.2141782844626,
+          "y": 125.13605328446263,
+          "width": 193.5716434310748,
+          "height": 193.5716434310748
+        },
+        "resolution": 1,
+        "shaderErrors": [],
+        "drawCalls": 92,
+        "geometries": 59,
+        "textures": 18,
+        "backgrounds": [
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          }
+        ],
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 2.0818995585505003e-16,
+            "y": -2.7602082845573004,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 2.658227040391301,
+            "y": -1.748283461930739,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 3.3147549014182003,
+            "y": 0.5857390583150281,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 1.4752047129996977,
+            "y": 2.483046065777252,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -1.4752047129996975,
+            "y": 2.5096733639920483,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -3.3147549014182003,
+            "y": 0.6411399377788106,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -2.6582270403913015,
+            "y": -1.7150443143027263,
+            "status": "pausado"
+          }
+        ]
+      }
+    }
+  ]
+}

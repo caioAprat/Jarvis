@@ -1,4 +1,16 @@
-# Créditos dos assets da migração 2D
+# Créditos do Jarvão
+
+## Renderer atual: universo 3D procedural
+
+- Three.js **0.180.0**, MIT: `vendor/licenses/three-MIT.txt`.
+- Lucide **0.468.0**, ISC/Feather MIT: SVG de arquivos e banco de dados importados como texturas de sprites; `vendor/licenses/lucide-ISC.txt`.
+- Perlin clássico de Stefan Gustavson / Ashima, MIT: `vendor/licenses/webgl-noise-MIT.txt`. Composição, materiais, geometrias e efeitos da cena são código deste projeto.
+- esbuild **0.25.10**, MIT, usado apenas para compilar os módulos.
+- GSAP/ScrollTrigger **3.15.0** mantém a licença própria descrita abaixo. Não é apresentado como open-source OSI.
+- Os avisos integrais de Three.js, Lucide e noise acompanham o bundle e a prévia exportada. Nenhum código de shader de usuário do ShaderToy foi copiado sem licença.
+- A cena atual não carrega atlas ou backgrounds PNG/WebP. As fontes atuais são de sistema; Google Fonts não é requisitado.
+
+## Histórico: assets da migração 2D
 
 Nenhuma imagem de banco de assets ou pacote artístico de terceiros foi usada.
 

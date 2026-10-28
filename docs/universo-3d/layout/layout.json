@@ -1,0 +1,1166 @@
+{
+  "method": "Text nodes visíveis (opacidade acumulada > .05), Range.getClientRects, interseções >1px. Núcleo: região central conservadora de raio 90 unidades da cena. Conteúdo oculto entre etapas é excluído; valida-se texto apresentado ao usuário.",
+  "runs": [
+    {
+      "target": {
+        "name": "desktop-1920",
+        "file": "pc.html",
+        "width": 1920,
+        "height": 1080
+      },
+      "samples": [
+        {
+          "percent": 0,
+          "progress": 0,
+          "visibleTextCount": 13,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7283394778959386,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 10,
+          "progress": 0.100036,
+          "visibleTextCount": 7,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.04401584,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.08803168,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.13204752,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7283394778959386,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 20,
+          "progress": 0.19998184444444445,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.08799201155555555,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.1759840231111111,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.2639760346666667,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 30,
+          "progress": 0.300018,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.13200792,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.26401584,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.39602376,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 40,
+          "progress": 0.399964,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.17598416,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.35196832,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.5279524800000001,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 50,
+          "progress": 0.5,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.22,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.66,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 60,
+          "progress": 0.600036,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.26401584,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.52803168,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.79204752,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 70,
+          "progress": 0.699982,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.30799208,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.61598416,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.92397624,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 80,
+          "progress": 0.800018,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.35200792000000003,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.7040158400000001,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.05602376,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 90,
+          "progress": 0.8999640000000001,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.39598416000000003,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.7919683200000001,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.18795248,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 100,
+          "progress": 1,
+          "visibleTextCount": 9,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 1026.37519497415,
+            "y": 296.77519497414994,
+            "width": 443.2496100517001,
+            "height": 443.2496100517001
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.88,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.32,
+              "visible": true
+            }
+          ],
+          "dpr": 0.5598790102985104,
+          "masterCount": 1,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "warnings": [
+        "[.WebGL-0x2c9400abcc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x2c9400abcc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      ]
+    },
+    {
+      "target": {
+        "name": "desktop-1366",
+        "file": "pc.html",
+        "width": 1366,
+        "height": 768
+      },
+      "samples": [
+        {
+          "percent": 0,
+          "progress": 0,
+          "visibleTextCount": 13,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 10,
+          "progress": 0.09994894444444444,
+          "visibleTextCount": 7,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.04397753555555555,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.0879550711111111,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.13193260666666667,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 20,
+          "progress": 0.20002599999999998,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.08801144,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.17602288,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.26403432,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 30,
+          "progress": 0.29997399999999996,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.13198855999999998,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.26397711999999995,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.39596568,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 40,
+          "progress": 0.39992300000000003,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.17596612,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.35193224,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.52789836,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 50,
+          "progress": 0.5,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.22,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.66,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 60,
+          "progress": 0.5999490000000001,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.26397756000000006,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.5279551200000001,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.7919326800000002,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 70,
+          "progress": 0.699898,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.30795512,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.61591024,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.9238653600000001,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 80,
+          "progress": 0.7999740000000001,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.35198856000000006,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.7039771200000001,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.0559656800000001,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 90,
+          "progress": 0.8999229999999999,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.39596612,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.79193224,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.18789836,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 100,
+          "progress": 1,
+          "visibleTextCount": 8,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 730.3001386482842,
+            "y": 211.04013864828437,
+            "width": 315.19972270343123,
+            "height": 315.19972270343123
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.88,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.32,
+              "visible": true
+            }
+          ],
+          "dpr": 0.7871377093927544,
+          "masterCount": 1,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "target": {
+        "name": "mobile-390",
+        "file": "index.html",
+        "width": 390,
+        "height": 844
+      },
+      "samples": [
+        {
+          "percent": 0,
+          "progress": 0,
+          "visibleTextCount": 13,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 135.6360532844626,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 10,
+          "progress": 0.10002494444444444,
+          "visibleTextCount": 7,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 141.47980328446258,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.044010975555555554,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.08802195111111111,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.13203292666666666,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 20,
+          "progress": 0.20005,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 105.37042828446263,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.088022,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.176044,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.264066,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 30,
+          "progress": 0.29995,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 106.43382855301732,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.131978,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.263956,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.395934,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 40,
+          "progress": 0.399975,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 111.62212201004851,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.175989,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.351978,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.5279670000000001,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 50,
+          "progress": 0.5,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 116.8104307258688,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.22,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.66,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 60,
+          "progress": 0.600025,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 99.11873455887667,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.264011,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.528022,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.7920330000000001,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 70,
+          "progress": 0.70005,
+          "visibleTextCount": 10,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 104.30702801590792,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.30802199999999996,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.6160439999999999,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.9240659999999999,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 80,
+          "progress": 0.79995,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 147.9741782844626,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.351978,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.703956,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.0559340000000002,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 90,
+          "progress": 0.899975,
+          "visibleTextCount": 6,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 147.9741782844626,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.395989,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.791978,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.187967,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        },
+        {
+          "percent": 100,
+          "progress": 1,
+          "visibleTextCount": 8,
+          "outside": [],
+          "overlaps": [],
+          "overCore": [],
+          "core": {
+            "x": 98.2141782844626,
+            "y": 125.7610532844626,
+            "width": 193.5716434310748,
+            "height": 193.5716434310748
+          },
+          "backgrounds": [
+            {
+              "x": 0,
+              "y": -0.44,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -0.88,
+              "visible": true
+            },
+            {
+              "x": 0,
+              "y": -1.32,
+              "visible": true
+            }
+          ],
+          "dpr": 1,
+          "masterCount": 1,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

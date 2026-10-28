@@ -1,5 +1,7 @@
 # Estado da migração — passagem para Claude Code
 
+> Histórico: a instrução posterior do usuário solicitou retorno ao 3D procedural. Consulte `scene-3d/README.md` e `docs/universo-3d/README.md` para o estado atual.
+
 Branch atual: `visual/jarvis-2d`. Produção e `main` intactas. Motion `08ec99b` enviado; envio da nova interação autorizado pelo usuário.
 Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 

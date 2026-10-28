@@ -1,0 +1,854 @@
+{
+  "reports": [
+    {
+      "width": 1366,
+      "height": 768,
+      "file": "pc.html",
+      "start": {
+        "ready": true,
+        "failed": false,
+        "renderer": "Three.js WebGL2",
+        "firstRender": 525.6000000014901,
+        "frames": 15,
+        "ticks": 15,
+        "quality": 1,
+        "loop": true,
+        "reduced": false,
+        "progress": 0,
+        "chapter": 0,
+        "projects": 7,
+        "connections": 27,
+        "packets": 12,
+        "coreBounds": {
+          "x": 730.3001386482842,
+          "y": 211.04013864828437,
+          "width": 315.19972270343123,
+          "height": 315.19972270343123
+        },
+        "resolution": 1,
+        "shaderErrors": [],
+        "drawCalls": 91,
+        "geometries": 59,
+        "textures": 18,
+        "backgrounds": [
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          }
+        ],
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 2.0818995585505003e-16,
+            "y": -2.744408660008598,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 2.658227040391301,
+            "y": -1.6825026995820795,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 3.3147549014182003,
+            "y": 0.6410224289238152,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 1.4752047129996977,
+            "y": 2.4770047686607737,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -1.4752047129996975,
+            "y": 2.447861739858326,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -3.3147549014182003,
+            "y": 0.5803873087974788,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -2.6582270403913015,
+            "y": -1.7188822612213341,
+            "status": "pausado"
+          }
+        ]
+      },
+      "samples": [
+        {
+          "progress": 0,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 220.75,
+            "width": 519.078125,
+            "height": 326.5,
+            "top": 220.75,
+            "right": 614.6875,
+            "bottom": 547.25,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 1,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.09994900000000001,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 223.28125,
+            "width": 450.765625,
+            "height": 311.4375,
+            "top": 223.28125,
+            "right": 546.375,
+            "bottom": 534.71875,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.20002553333333334,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 184.7734375,
+            "width": 450.765625,
+            "height": 398.453125,
+            "top": 184.7734375,
+            "right": 546.375,
+            "bottom": 583.2265625,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.29997399999999996,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 186.8777313232422,
+            "width": 450.765625,
+            "height": 398.453125,
+            "top": 186.8777313232422,
+            "right": 546.375,
+            "bottom": 585.3308563232422,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.39992300000000003,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 197.32553100585938,
+            "width": 450.765625,
+            "height": 398.4531555175781,
+            "top": 197.32553100585938,
+            "right": 546.375,
+            "bottom": 595.7786865234375,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.5,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 207.6534423828125,
+            "width": 450.765625,
+            "height": 398.453125,
+            "top": 207.6534423828125,
+            "right": 546.375,
+            "bottom": 606.1065673828125,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.5999490000000001,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 172.3411407470703,
+            "width": 450.765625,
+            "height": 398.453125,
+            "top": 172.3411407470703,
+            "right": 546.375,
+            "bottom": 570.7942657470703,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.699898,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 182.7889404296875,
+            "width": 450.765625,
+            "height": 398.453125,
+            "top": 182.7889404296875,
+            "right": 546.375,
+            "bottom": 581.2420654296875,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.7999740000000001,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 241.1640625,
+            "width": 450.765625,
+            "height": 285.671875,
+            "top": 241.1640625,
+            "right": 546.375,
+            "bottom": 526.8359375,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.8999229999999999,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 241.1640625,
+            "width": 450.765625,
+            "height": 285.671875,
+            "top": 241.1640625,
+            "right": 546.375,
+            "bottom": 526.8359375,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 1,
+          "active": 1,
+          "rect": {
+            "x": 95.609375,
+            "y": 190.75,
+            "width": 450.765625,
+            "height": 358.5,
+            "top": 190.75,
+            "right": 546.375,
+            "bottom": 549.25,
+            "left": 95.609375
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "file": "pc.html",
+      "start": {
+        "ready": true,
+        "failed": false,
+        "renderer": "Three.js WebGL2",
+        "firstRender": 366.1000000014901,
+        "frames": 22,
+        "ticks": 22,
+        "quality": 1,
+        "loop": true,
+        "reduced": false,
+        "progress": 0,
+        "chapter": 0,
+        "projects": 7,
+        "connections": 27,
+        "packets": 12,
+        "coreBounds": {
+          "x": 98.2141782844626,
+          "y": 125.13605328446263,
+          "width": 193.5716434310748,
+          "height": 193.5716434310748
+        },
+        "resolution": 1,
+        "shaderErrors": [],
+        "drawCalls": 91,
+        "geometries": 59,
+        "textures": 18,
+        "backgrounds": [
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          }
+        ],
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 2.0818995585505003e-16,
+            "y": -2.7408372290692617,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 2.658227040391301,
+            "y": -1.6812219566199826,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 3.3147549014182003,
+            "y": 0.6388349747357697,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 1.4752047129996977,
+            "y": 2.473360252615113,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -1.4752047129996975,
+            "y": 2.4461109131998833,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -3.3147549014182003,
+            "y": 0.5821398734816758,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -2.6582270403913015,
+            "y": -1.7152376050827822,
+            "status": "pausado"
+          }
+        ]
+      },
+      "samples": [
+        {
+          "progress": 0,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 443.84375,
+            "width": 350,
+            "height": 234.15625,
+            "top": 443.84375,
+            "right": 370,
+            "bottom": 678,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 1,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.100025,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 455.53125,
+            "width": 350,
+            "height": 212.46875,
+            "top": 455.53125,
+            "right": 370,
+            "bottom": 668,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.2000498888888889,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 383.3125,
+            "width": 350,
+            "height": 294.6875,
+            "top": 383.3125,
+            "right": 370,
+            "bottom": 678,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.29995,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 385.4393005371094,
+            "width": 350,
+            "height": 294.6875305175781,
+            "top": 385.4393005371094,
+            "right": 370,
+            "bottom": 680.1268310546875,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.399975,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 395.8158874511719,
+            "width": 350,
+            "height": 294.6875305175781,
+            "top": 395.8158874511719,
+            "right": 370,
+            "bottom": 690.50341796875,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.5,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 406.1925048828125,
+            "width": 350,
+            "height": 294.6875,
+            "top": 406.1925048828125,
+            "right": 370,
+            "bottom": 700.8800048828125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.600025,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 370.8091125488281,
+            "width": 350,
+            "height": 294.6874694824219,
+            "top": 370.8091125488281,
+            "right": 370,
+            "bottom": 665.49658203125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.70005,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 381.1856994628906,
+            "width": 350,
+            "height": 294.6874694824219,
+            "top": 381.1856994628906,
+            "right": 370,
+            "bottom": 675.8731689453125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.79995,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 472.5,
+            "width": 350,
+            "height": 205.5,
+            "top": 472.5,
+            "right": 370,
+            "bottom": 678,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.899975,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 472.5,
+            "width": 350,
+            "height": 205.5,
+            "top": 472.5,
+            "right": 370,
+            "bottom": 678,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 1,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 423.34375,
+            "width": 350,
+            "height": 244.65625,
+            "top": 423.34375,
+            "right": 370,
+            "bottom": 668,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "file": "index.html",
+      "start": {
+        "ready": true,
+        "failed": false,
+        "renderer": "Three.js WebGL2",
+        "firstRender": 417,
+        "frames": 22,
+        "ticks": 22,
+        "quality": 1,
+        "loop": true,
+        "reduced": false,
+        "progress": 0,
+        "chapter": 0,
+        "projects": 7,
+        "connections": 27,
+        "packets": 12,
+        "coreBounds": {
+          "x": 98.2141782844626,
+          "y": 135.6360532844626,
+          "width": 193.5716434310748,
+          "height": 193.5716434310748
+        },
+        "resolution": 1,
+        "shaderErrors": [],
+        "drawCalls": 91,
+        "geometries": 59,
+        "textures": 18,
+        "backgrounds": [
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          },
+          {
+            "x": 0,
+            "y": 0,
+            "visible": true
+          }
+        ],
+        "endpoints": [
+          {
+            "id": "gabinete",
+            "x": 2.0818995585505003e-16,
+            "y": -2.7405160698452193,
+            "status": "ok"
+          },
+          {
+            "id": "planilha",
+            "x": 2.658227040391301,
+            "y": -1.681123121646494,
+            "status": "ok"
+          },
+          {
+            "id": "assistente",
+            "x": 3.3147549014182003,
+            "y": 0.6386206170398799,
+            "status": "ok"
+          },
+          {
+            "id": "painel",
+            "x": 1.4752047129996977,
+            "y": 2.4730297817268845,
+            "status": "ok"
+          },
+          {
+            "id": "pedalada",
+            "x": -1.4752047129996975,
+            "y": 2.445968162529909,
+            "status": "ok"
+          },
+          {
+            "id": "atrasos",
+            "x": -3.3147549014182003,
+            "y": 0.5823160873376014,
+            "status": "aguardando"
+          },
+          {
+            "id": "cacador",
+            "x": -2.6582270403913015,
+            "y": -1.7149044369074427,
+            "status": "pausado"
+          }
+        ]
+      },
+      "samples": [
+        {
+          "progress": 0,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 464.84375,
+            "width": 350,
+            "height": 234.15625,
+            "top": 464.84375,
+            "right": 370,
+            "bottom": 699,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 1,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.100025,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 476.53125,
+            "width": 350,
+            "height": 212.46875,
+            "top": 476.53125,
+            "right": 370,
+            "bottom": 689,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.2000498888888889,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 404.3125,
+            "width": 350,
+            "height": 294.6875,
+            "top": 404.3125,
+            "right": 370,
+            "bottom": 699,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.29995,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 406.4393005371094,
+            "width": 350,
+            "height": 294.6875305175781,
+            "top": 406.4393005371094,
+            "right": 370,
+            "bottom": 701.1268310546875,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.399975,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 416.8158874511719,
+            "width": 350,
+            "height": 294.6875305175781,
+            "top": 416.8158874511719,
+            "right": 370,
+            "bottom": 711.50341796875,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.5,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 427.1925048828125,
+            "width": 350,
+            "height": 294.6875,
+            "top": 427.1925048828125,
+            "right": 370,
+            "bottom": 721.8800048828125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.600025,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 391.8091125488281,
+            "width": 350,
+            "height": 294.6874694824219,
+            "top": 391.8091125488281,
+            "right": 370,
+            "bottom": 686.49658203125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.70005,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 402.1856994628906,
+            "width": 350,
+            "height": 294.6874694824219,
+            "top": 402.1856994628906,
+            "right": 370,
+            "bottom": 696.8731689453125,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.79995,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 493.5,
+            "width": 350,
+            "height": 205.5,
+            "top": 493.5,
+            "right": 370,
+            "bottom": 699,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 0.899975,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 493.5,
+            "width": 350,
+            "height": 205.5,
+            "top": 493.5,
+            "right": 370,
+            "bottom": 699,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        },
+        {
+          "progress": 1,
+          "active": 1,
+          "rect": {
+            "x": 20,
+            "y": 445.09375,
+            "width": 350,
+            "height": 243.90625,
+            "top": 445.09375,
+            "right": 370,
+            "bottom": 689,
+            "left": 20
+          },
+          "overflow": false,
+          "headerOpacity": 0,
+          "shaderErrors": []
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "webglUnavailable": "pass"
+}

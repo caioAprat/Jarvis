@@ -1,0 +1,12 @@
+{
+  "name": "jarvao-visual",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/build-3d.cjs",
+    "preview:export": "node scripts/migracao-2d/empacotar-preview.cjs",
+    "test": "node testes/testes.js"
+  },
+  "dependencies": { "three": "0.180.0" },
+  "devDependencies": { "esbuild": "0.25.10", "lucide-static": "0.468.0" }
+}
