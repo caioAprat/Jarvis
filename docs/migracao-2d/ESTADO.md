@@ -1,6 +1,6 @@
 # Estado da migração — passagem para Claude Code
 
-Branch: `visual/jarvis-refatoracao`. Produção e `main` intactas; nenhum push autorizado.
+Branch atual: `visual/jarvis-2d`. Produção e `main` intactas. O primeiro envio foi autorizado e concluído; a reformulação de motion abaixo ainda é local.
 Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 
 | Critério | Estado | Evidência / limite |
@@ -15,6 +15,8 @@ Checkpoint inicial: `79a3350`, tag `checkpoint-pre-fechamento`.
 | H — funções existentes | ✅ pronto | `verificar-ui.cjs`: busca, oito seções, conferência e API simulada; servidor com 140 verificações. |
 
 ## Concluído nesta sessão
+- ✅ Reformulação posterior: leitura em capítulos, uma suavização de scroll, câmera estável, cartões âmbar e satélites circulares ligados ao núcleo. Detalhes em `motion/README.md`.
+- ✅ Motion validado nos dois sentidos em desktop/celular; 33 pontos de layout novamente aprovados, 11 cenários de UI, 140 verificações do servidor e offline passaram. Prévia portátil gerada e validada via HTTP.
 - ✅ Checkpoint e diagnóstico curto; sem regenerar assets ou instalar bibliotecas.
 - ✅ Medição inicial: textos dentro da viewport e sem colisão entre textos; encontrou núcleo sobre texto (20/40/50%), vazio em 60% e fechamento mobile oculto.
 - ✅ Primeira correção F validada: coluna por órbita, cena elevada no mobile, conteúdo contínuo e tolerância de 2px no fechamento.

@@ -18,3 +18,33 @@ html{scroll-behavior:auto}.jornada{position:relative;z-index:1;margin-top:-140px
 .jornada-ativa .viagem-posicao[data-side=right]{left:auto;right:8vw}
 .viagem-posicao{width:100%}.jornada-ativa .viagem-posicao{position:fixed;left:8vw;top:50%;transform:translateY(-50%);width:min(33vw,510px);z-index:2;pointer-events:none}.jornada-ativa .viagem-abertura .viagem-posicao{width:min(38vw,560px)}.jornada-ativa .viagem-texto,.jornada-ativa .viagem-abertura .viagem-texto{position:relative;left:auto;top:auto;bottom:auto;translate:none;margin:0;width:100%;z-index:auto}.jornada-fora .viagem-posicao{visibility:hidden}
 @media(max-width:700px){.jornada-ativa .viagem-posicao,.jornada-ativa .viagem-abertura .viagem-posicao{left:24px;top:auto;bottom:115px;transform:none;width:calc(100vw - 48px)}.jornada-mobile .jornada-ativa .viagem-posicao{bottom:75px}.jornada-mobile .jornada-ativa .viagem-texto{bottom:auto}}
+/* Capítulos editoriais: superfície âmbar, conexão aberta voltada ao núcleo. */
+.viagem-etapa{height:112svh}
+.jornada-ativa .viagem-posicao{width:min(34vw,490px)}
+.viagem-projeto .viagem-texto{box-sizing:border-box;padding:28px 30px 26px;border:1px solid #c6965738;border-right-color:#edbd735e;border-radius:3px 22px 22px 3px;background:linear-gradient(115deg,#181712f2,#15130fe0 70%,#19150fb8);box-shadow:-12px 0 50px #00000025,inset 2px 0 #cb9e65;backdrop-filter:blur(12px)}
+.viagem-projeto .viagem-texto:before{left:auto;right:-4px;top:26px;margin:0;width:7px;height:7px;border-radius:50%;background:#ffd49d;box-shadow:0 0 12px #f7b66d88}
+.viagem-projeto .viagem-kicker{font-size:9px;letter-spacing:.14em;margin-bottom:20px;color:#bda485}
+.viagem-projeto h2{font-size:clamp(28px,3.15vw,48px);line-height:1.12;margin-bottom:18px}
+.viagem-projeto .viagem-intro{font-size:15px;line-height:1.55;margin-bottom:18px}
+.viagem-projeto .viagem-numero{font-size:56px;margin-top:20px}
+.viagem-projeto .viagem-numero small{font-size:24px}
+.viagem-projeto .viagem-nota{font-size:8px;letter-spacing:.07em}
+.viagem-projeto .viagem-cta{margin-top:6px;width:100%;justify-content:space-between;box-sizing:border-box}
+.viagem-status{display:flex;align-items:center;font-size:9px;letter-spacing:.13em}
+.viagem-status[data-status=atencao],.cena-label[data-status=atencao] small{color:#e3b668}
+.viagem-regua{color:#c3a179}
+.cena-label{font-size:9px;color:#d4b692;letter-spacing:.06em;max-width:150px}
+.cena-label small{font-size:8px;opacity:.8}
+@media(max-width:700px){
+ .viagem-etapa{height:105svh;min-height:760px}
+ .jornada-ativa .viagem-posicao{width:calc(100vw - 48px)}
+ .viagem-projeto .viagem-texto{padding:20px 22px;border-radius:3px 18px 18px 3px;background:linear-gradient(110deg,#171610f5,#13120fef);backdrop-filter:none}
+ .viagem-projeto .viagem-texto:before{display:block;left:24px;right:auto;top:-4px}
+ .viagem-projeto h2{font-size:29px;margin-bottom:12px}
+ .viagem-projeto .viagem-kicker{font-size:8px;margin-bottom:14px}
+ .viagem-projeto .viagem-intro{font-size:13px;margin-bottom:12px}
+ .viagem-projeto .viagem-numero{font-size:42px;margin-top:12px}
+ .viagem-projeto .viagem-nota{font-size:7px}
+ .viagem-projeto .viagem-cta{margin-top:0}
+ .cena-label{font-size:7px;max-width:90px}
+}
