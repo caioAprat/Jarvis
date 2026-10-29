@@ -225,7 +225,7 @@
     const mDir = new THREE.Vector3(0, 0, 1), mDirAlvo = new THREE.Vector3(0, 0, 1);
     const giro = { v: 1 };                                             // velocidade extra dos anéis quando o cursor está no núcleo
     const inclina = { x: 0, y: 0 }, scr = { v: 0 };              // scr: progresso da rolagem (0 = topo, 1 = longe)
-    // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/index.html.
+    // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/app.html.
     let cine = null; const congela = { v: 0 };
 
     // ------------------------------------------------------------ núcleo
@@ -650,7 +650,7 @@
     }
     function destruir() { desligar(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
 
-    // --- extras da landing (não usados por pc.html nem index.html) ---------------
+    // --- extras da landing (não usados por pc.html nem app.html) ---------------
     /** Conduz a câmera pela rolagem. `{ dist, alt, fov, orbita }` em multiplicadores; `null` volta ao normal. */
     function cinema(c) {
       if (!c) { cine = null; if (camera.fov !== 40) { camera.fov = 40; camera.updateProjectionMatrix(); } }

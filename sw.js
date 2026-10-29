@@ -1,8 +1,8 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v4';
-const CASCA = ['./', 'index.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
+const VERSAO = 'jarvis-v5';
+const CASCA = ['./', 'index.html', 'app.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys()
@@ -12,8 +12,10 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(VERSAO).then(x => x.put(url.pathname.endsWith('pc.html') ? 'pc.html' : 'index.html', c)); return r; })
-      .catch(() => caches.match(url.pathname.endsWith('pc.html') ? 'pc.html' : 'index.html')));
+    // index.html = landing; app.html = app do iPhone; pc.html = Central do PC
+    const pagina = url.pathname.endsWith('pc.html') ? 'pc.html' : url.pathname.endsWith('app.html') ? 'app.html' : 'index.html';
+    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(VERSAO).then(x => x.put(pagina, c)); return r; })
+      .catch(() => caches.match(pagina)));
     return;
   }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(g => g || fetch(e.request)));
@@ -39,20 +41,20 @@ self.addEventListener('push', e => {
       const avisos = (await r.json()).avisos || [];
       if (avisos.length) {
         const a = avisos[0];
-        n = { titulo: a.titulo, corpo: (a.texto || '') + (avisos.length > 1 ? `\n+${avisos.length - 1} aviso(s) no Jarvão` : ''), url: a.url || './', tag: 'aviso-' + a.id };
+        n = { titulo: a.titulo, corpo: (a.texto || '') + (avisos.length > 1 ? `\n+${avisos.length - 1} aviso(s) no Jarvão` : ''), url: a.url || './app.html', tag: 'aviso-' + a.id };
         await gravarCache('ultimo', String(a.id));
         await gravarCache('ultimoAviso', JSON.stringify(n));
       }
     } catch (err) { /* sem conexão ou demorou: usa o último aviso conhecido */ }
     if (!n) { try { n = JSON.parse(await lerCache('ultimoAviso')); } catch (err) { n = null; } }
-    if (!n) n = { titulo: 'Jarvão', corpo: 'Novo aviso. Toque para ver.', url: './', tag: 'jarvis' };
+    if (!n) n = { titulo: 'Jarvão', corpo: 'Novo aviso. Toque para ver.', url: './app.html', tag: 'jarvis' };
     await self.registration.showNotification(n.titulo, { body: String(n.corpo || '').slice(0, 300), tag: n.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: n.url } });
   })());
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './';
+  const url = (e.notification.data && e.notification.data.url) || './app.html';
   e.waitUntil((async () => {
     const abertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const destino = new URL(url, self.location.href).href;
