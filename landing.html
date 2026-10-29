@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080706">
+<title>Jarvão — núcleo de controle</title>
+<link rel="icon" type="image/svg+xml" href="icons/jarvis.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  /* mesmos tokens de pc.html e index.html — nenhuma cor nova */
+  :root {
+    --bg: #080706; --card: #120e0b; --card2: #1b1510; --linha: rgba(255,170,100,.1);
+    --tx: #f6eadb; --mu: #b09c86; --di: #9a8670;
+    --ok: #7bf0b4; --ok2: rgba(123,240,180,.13); --er: #ff4d5e; --er2: rgba(255,77,94,.14);
+    --av: #ffc247; --av2: rgba(255,194,71,.13); --pri: #ff9a4d; --pri2: rgba(255,138,61,.16);
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace; --disp: "Saira", "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  html { scrollbar-width: none; }
+  body { color: var(--tx); font: 15px/1.5 "Saira", "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  h1, .marca, .numero { font-family: var(--disp); }
+  .titulo, .pill, .sub { font-family: var(--mono); }
+  h1 { text-wrap: balance; } p { text-wrap: pretty; }
+  :focus-visible { outline: 2px solid var(--pri); outline-offset: 2px; border-radius: 6px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* camada 1 — brilhos do fundo (a mais lenta) */
+  .brilho { position: fixed; inset: -20vh 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse 80% 60% at 60% 0%, rgba(255,120,40,.09), transparent 70%), radial-gradient(ellipse 50% 40% at 0% 100%, rgba(255,90,30,.06), transparent 70%);
+    transform: translateY(calc(var(--p, 0) * 6vh)); will-change: transform; }
+
+  /* a cena 3D (mapa-vivo, fixa em tela cheia) fica em z-index 0; os rótulos somem ao entrar na órbita */
+  .mv-fundo { transition: none; }
+  .mv-fundo .mv-hud { opacity: calc(1 - var(--lp, 0) * 2.4); transition: none; }
+  .mv-fundo[data-lp-alto] .mv-hud { pointer-events: none; }
+  .mv-fundo .mv-nucleo { display: none; }     /* o nome já está na barra do hero; não repetir sobre o núcleo */
+
+  /* rastro do ponteiro */
+  #rastro { position: fixed; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: screen; }
+
+  /* ---------------------------------------------------------------- hero */
+  .hero { position: relative; height: 400vh; z-index: 1; }
+  .hero-fix { position: sticky; top: 0; height: 100vh; min-height: 540px; overflow: hidden; pointer-events: none; }
+  .hero-fix > * { pointer-events: auto; }
+
+  /* camada 4 — logo e nome (saem antes) */
+  .barra { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; gap: 10px 24px; padding: 14px 32px;
+    transform: translateY(calc(var(--p, 0) * -42vh)); opacity: calc(1 - var(--p, 0) * 3.1); will-change: transform, opacity; }
+  .marca { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 780; }
+  .marca .mk { font-size: 66px; filter: drop-shadow(0 0 14px rgba(255,120,40,.5)); }
+  .marca-txt { display: flex; flex-direction: column; gap: 3px; }
+  .marca-sub { display: flex; align-items: center; gap: 9px; font: 500 11.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--di); }
+  .orbe { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); flex: none; }
+  .orbe.atencao { background: var(--av); box-shadow: 0 0 8px var(--av); } .orbe.erro { background: var(--er); box-shadow: 0 0 8px var(--er); }
+  .rolar-dica { font: 500 10.5px var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--di); display: flex; align-items: center; gap: 8px; }
+  .rolar-dica i { display: block; width: 1px; height: 26px; background: linear-gradient(to bottom, rgba(255,170,100,.1), var(--pri)); }
+
+  /* camada 3 — véu; camada 5 — métricas e caixa de vidro (as mais rápidas) */
+  .fundo-hero { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 32px 34px;
+    background: linear-gradient(to bottom, rgba(8,7,6,0), rgba(8,7,6,.5) 120px, rgba(8,7,6,.88) 300px);
+    transform: translateY(calc((1 - var(--p, 0)) * 46vh)); opacity: var(--pb, 0); will-change: transform, opacity; }
+  .dentro-hero { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  .hud { display: flex; align-items: center; transform: translateY(calc((1 - var(--pb, 0)) * 24vh)); will-change: transform; }
+  .hud > div { padding: 0 18px; border-left: 1px solid var(--linha); white-space: nowrap; } .hud > div:first-child { border-left: 0; padding-left: 0; }
+  .hud small { display: block; font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #ecd5b4; text-shadow: 0 0 6px #000, 0 1px 2px #000; }
+  .hud b { display: block; margin-top: 1px; font: 700 21px/1.15 var(--disp); text-shadow: 0 0 8px #000, 0 2px 3px #000; }
+
+  /* caixa de vidro: contorno de 1px, sem fundo preenchido */
+  .vidro { position: relative; border: 1px solid var(--linha); border-radius: 14px; overflow: hidden; height: 240px;
+    -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
+    box-shadow: 0 0 0 1px rgba(255,170,100,.2), 0 18px 50px rgba(0,0,0,.6), 0 0 40px rgba(255,110,30,.07);
+    transform: translateY(calc((1 - var(--pb, 0)) * 30vh)); will-change: transform; touch-action: pan-y; }
+  .vidro canvas { display: block; width: 100%; height: 100%; }
+  .vidro .titulo { position: absolute; left: 16px; top: 14px; margin: 0; color: var(--mu); font-size: 11.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .14em; pointer-events: none; text-shadow: 0 0 6px #000, 0 1px 2px #000; }
+
+  .lista-proj { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+  .pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; background: var(--card2); color: var(--mu); font-size: 11px; font-weight: 700; }
+  .pill .pi { width: 13px; height: 13px; }
+  .pill[data-st=ok] { color: var(--ok); background: var(--ok2); }
+  .pill[data-st=atencao] { color: var(--av); background: var(--av2); }
+  .pill[data-st=erro] { color: var(--er); background: var(--er2); }
+
+  @media (max-width: 1240px) { .barra { padding: 14px 18px; } }
+  @media (max-width: 700px) {
+    .hero { height: 360vh; }
+    .barra { padding: 12px 16px; flex-wrap: wrap; }
+    .marca { font-size: 16px; } .marca .mk { font-size: 46px; } .marca-sub { letter-spacing: .2em; font-size: 10.5px; }
+    .rolar-dica { display: none; }
+    .fundo-hero { padding: 54px 16px 26px; }
+    .dentro-hero { gap: 16px; }
+    .hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 10px; }
+    .hud > div { padding: 0 10px 0 0; border-left: 0; } .hud b { font-size: 19px; }
+    .vidro { height: 200px; }
+    /* 7 rótulos não cabem em 390 px: os nomes aparecem nas pills do véu */
+    .mv-fundo .mv-hud { opacity: 0; pointer-events: none; }
+  }
+
+  /* estado estático: sem movimento nenhum, tudo legível */
+  .estatico .brilho, .estatico .barra, .estatico .fundo-hero, .estatico .hud, .estatico .vidro { transform: none !important; opacity: 1 !important; }
+  .estatico .hero { height: auto; }
+  .estatico .hero-fix { position: relative; height: auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+  .estatico .barra, .estatico .fundo-hero { position: relative; }
+  .estatico .mv-fundo .mv-hud { opacity: 0; }   /* sem rolagem os rótulos cairiam sobre as métricas; os nomes ficam nas pills */
+  .estatico .rolar-dica { display: none; }
+  @media (prefers-reduced-motion: reduce) { .mk-r1, .mk-r2, .mk-t, .mk-core { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="brilho" aria-hidden="true"></div>
+<canvas id="rastro" aria-hidden="true"></canvas>
+
+<section class="hero">
+  <div class="hero-fix">
+    <header class="barra">
+      <div class="marca" id="marca"></div>
+      <div class="rolar-dica" aria-hidden="true">Rolar<i></i></div>
+    </header>
+    <div class="fundo-hero">
+      <div class="dentro-hero">
+        <div class="vidro" id="vidro"><span class="titulo">Peças do núcleo</span></div>
+        <div class="hud" id="hud"></div>
+        <div class="lista-proj" id="lista"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" integrity="sha384-GkidzTYmQg24v13sa3xhBBbvOLbVLO1QxfyKLdOWweQqNqS/iWwUst2T1fER2Xrg" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" integrity="sha384-2EpLreWSFuZsk4hcSplXLhlHd/wzvDNF907bTGIXSXM0SlhJNzy4YK0DhBFvkFEs" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
+<script src="mapa-vivo.js?v=24"></script>
+<script src="landing-cinema.js?v=1"></script>
+<script src="landing-vidro.js?v=1"></script>
+<script src="landing-rastro.js?v=1"></script>
+<script>
+'use strict';
+// ===================================================================================
+// VALORES DE EXEMPLO DA LANDING — não é leitura real do Jarvis (a landing não tem chave
+// nem acesso aos dados). Para trocar, mexa só neste bloco.
+// ===================================================================================
+const EXEMPLO = {
+  geral: 'ok',                                  // situação geral: ok | atencao | erro
+  metricas: [
+    ['Situação', 'No ar'],
+    ['Projetos no ar', '7/7'],
+    ['Pedidos abertos', '0'],
+    ['Avisos novos', '0'],
+  ],
+  projetos: [
+    { id: 'gabinete',   nome: 'Gabinete Chamados',     status: 'ok', cliente: true },
+    { id: 'planilha',   nome: 'Planilha J Hissnauer',  status: 'ok', cliente: true },
+    { id: 'assistente', nome: 'Assistente financeiro', status: 'ok' },
+    { id: 'painel',     nome: 'Painel Meu dinheiro',   status: 'ok' },
+    { id: 'pedalada',   nome: 'Pedalada do Delei',     status: 'ok' },
+    { id: 'atrasos',    nome: 'Bot de atrasos',        status: 'ok' },
+    { id: 'cacador',    nome: 'Caçador de clientes',   status: 'ok' },
+  ],
+};
+
+const reduzido = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+if (reduzido) document.body.classList.add('estatico');
+
+// ---------------------------------------------------------------- identidade e textos
+document.getElementById('marca').innerHTML =
+  MapaVivo.logo() + '<span class="marca-txt">' + MapaVivo.marca() +
+  '<span class="marca-sub"><span class="orbe ' + EXEMPLO.geral + '" aria-hidden="true"></span>Núcleo de controle</span></span>';
+
+document.getElementById('hud').innerHTML = EXEMPLO.metricas
+  .map(m => '<div><small>' + m[0] + '</small><b>' + m[1] + '</b></div>').join('');
+
+document.getElementById('lista').innerHTML = EXEMPLO.projetos
+  .map(p => '<span class="pill" data-st="' + p.status + '">' + MapaVivo.icone(p.id) + p.nome + '</span>').join('');
+
+// ---------------------------------------------------------------- cena, efeitos
+const mapa = MapaVivo.montar({ fundo: true, leve: innerWidth < 700 });   // celular: versão leve, como no app do iPhone
+if (mapa) {
+  document.body.appendChild(mapa.el);
+  mapa.atualizar(EXEMPLO.projetos, { estado: EXEMPLO.geral, titulo: '' });
+}
+if (window.LandingVidro) LandingVidro.montar(document.getElementById('vidro'), { reduzido, projetos: EXEMPLO.projetos });
+if (window.LandingRastro && !reduzido) LandingRastro.montar(document.getElementById('rastro'));
+const cinema = window.LandingCinema ? LandingCinema.montar({ mapa, reduzido, hero: document.querySelector('.hero'), fixo: document.querySelector('.hero-fix') }) : null;
+window.__landing = { mapa, cinema, reduzido };   // só para conferir no console / nos testes de tela
+</script>
+</body>
+</html>

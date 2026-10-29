@@ -9,6 +9,7 @@
  *   document.body.appendChild(mapa.el);
  *   mapa.atualizar(projetos, { estado: 'ok', titulo: 'Tudo certo' });
  *   mapa.varredura();  mapa.modo('palco' | 'fundo');  mapa.rolagem(0..1);
+ *   landing (extras, desligados por padrão): mapa.cinema({dist,alt,fov,orbita}) | mapa.cinema(null);  mapa.congelar(0..1);  mapa.passe(shader)
  */
 (function () {
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
@@ -224,6 +225,8 @@
     const mDir = new THREE.Vector3(0, 0, 1), mDirAlvo = new THREE.Vector3(0, 0, 1);
     const giro = { v: 1 };                                             // velocidade extra dos anéis quando o cursor está no núcleo
     const inclina = { x: 0, y: 0 }, scr = { v: 0 };              // scr: progresso da rolagem (0 = topo, 1 = longe)
+    // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/index.html.
+    let cine = null; const congela = { v: 0 };
 
     // ------------------------------------------------------------ núcleo
     const tilt = new THREE.Group(); scene.add(tilt);
@@ -458,7 +461,7 @@
           else limite30 = true;
         }
       }
-      const vel = reduzido ? 0 : 1; t += d * vel;
+      const vel = (reduzido ? 0 : 1) * (1 - congela.v); t += d * vel;
       const s = giro.v, vis = Math.max(0, 1 - scr.v * 1.7);          // vis: os projetos e as ligações somem conforme a página desce
       fluxos.forEach(m => { m.uniforms.uTime.value = t; });
       plasmaMat.uniforms.uTime.value = t; cascaUni.uTime.value = t; estrelasUni.uTime.value = t;
@@ -484,7 +487,12 @@
       interior.userData.raios.material.opacity = .12 + .1 * Math.sin(t * 2.2) + ptr.presenca.v * .1;
       semente.rotation.y += d * 1.4 * vel; semente.scale.setScalar(1 + Math.sin(t * 3) * .1 + ptr.hoverNucleo.v * .25); semGlow.material.opacity = .8 + Math.sin(t * 2.4) * .15;
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
-      camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1)); camera.lookAt(0, 0, 0);
+      if (cine) {                                                      // landing: a rolagem conduz a câmera (distância, altura, FOV, giro)
+        const dz = Math.max(.6, (cam.z - chute.v * 1.6) * cine.dist), a = cine.orbita;
+        camera.position.set(Math.sin(a) * dz + off.x * .4, dz * cine.alt + off.y * .4, Math.cos(a) * dz);
+        if (camera.fov !== cine.fov) { camera.fov = cine.fov; camera.updateProjectionMatrix(); }
+      } else camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1));
+      camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
 
       nos.forEach((n, i) => {
@@ -641,8 +649,25 @@
       el.style.pointerEvents = p > .5 || el.dataset.modo === 'fundo' ? 'none' : '';
     }
     function destruir() { desligar(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
+
+    // --- extras da landing (não usados por pc.html nem index.html) ---------------
+    /** Conduz a câmera pela rolagem. `{ dist, alt, fov, orbita }` em multiplicadores; `null` volta ao normal. */
+    function cinema(c) {
+      if (!c) { cine = null; if (camera.fov !== 40) { camera.fov = 40; camera.updateProjectionMatrix(); } }
+      else cine = { dist: c.dist == null ? 1 : c.dist, alt: c.alt == null ? .34 : c.alt, fov: c.fov == null ? 40 : c.fov, orbita: c.orbita || 0 };
+      if (reduzido) estatico();
+    }
+    /** 0 a 1: as peças param no ar (sem parar o desenho). */
+    function congelar(v) { congela.v = Math.max(0, Math.min(1, v || 0)); if (reduzido) estatico(); }
+    /** Acrescenta um ShaderPass depois do brilho. Devolve o passe, ou null se não há pós-processamento. */
+    function passe(shader) {
+      if (!comp || !THREE.ShaderPass) return null;
+      const p = new THREE.ShaderPass(shader);
+      if (bloom) bloom.renderToScreen = false;
+      p.renderToScreen = true; comp.addPass(p); return p;
+    }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

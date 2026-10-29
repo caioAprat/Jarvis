@@ -2,3 +2,4 @@
 apps-script/Segredos.local.js
 node_modules/
 testes/pc-exemplo.json
+.playwright-mcp/
