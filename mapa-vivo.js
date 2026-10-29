@@ -210,7 +210,7 @@
     const camera = new THREE.PerspectiveCamera(40, 1, .1, 400);
     const cam = { x: 0, y: 8, z: 26 }, off = { x: 0, y: 0 }, chute = { v: 0 };
     // cinema (landing): quem manda na câmera é a rolagem de fora; congela.v = 1 para tudo no ar
-    const cine = { cam: { x: 0, y: 4, z: 62, lx: 0, ly: 0, lz: 0, fov: 40, cursor: 1 }, congela: { v: 0 }, rotulos: { v: 1 } };
+    const cine = { cam: { x: 0, y: 4, z: 62, lx: 0, ly: 0, lz: 0, fov: 40, cursor: 1 }, congela: { v: 0 }, rotulos: { v: 1 }, giro: { v: 0 } };
     const pix = { value: renderer.getPixelRatio() };
     const T_GLOW = textura('glow'), T_ANEL = textura('anel');
     const aditivo = { transparent: true, blending: THREE.AdditiveBlending, depthWrite: false };
@@ -407,7 +407,8 @@
         b.addEventListener('mouseenter', subir); b.addEventListener('mouseleave', descer); b.addEventListener('focus', subir); b.addEventListener('blur', descer);
         pos.appendChild(b); hud.appendChild(pos); n.pos = pos; n.btn = b;
         nos.push(n);
-        if (!reduzido) gsap.from(n.esc, { v: 0, duration: 1, delay: .5 + i * .13, ease: 'back.out(1.5)' });
+        n.cineVis = { v: o.cinema ? 0 : 1 };
+        if (!reduzido && !o.cinema) gsap.from(n.esc, { v: 0, duration: 1, delay: .5 + i * .13, ease: 'back.out(1.5)' });
       });
     }
     function atualizarRotulo(n, p) {
@@ -424,8 +425,10 @@
     function disparar(n, dir, cor, vel, tam) {
       const p = pulsos.find(x => !x.on); if (!p || !n) return;
       p.on = true; p.no = n; p.dir = dir; p.u = 0; p.v = vel || (.5 + Math.random() * .25); p.tam = tam || 1; p.cor.set(cor);
+      return p;
     }
     function chegouNucleo(n) {
+      if (o.aoChegar) o.aoChegar(n.id, 0);
       if (reduzido) return;
       gsap.fromTo(plasma.scale, { x: 1.14, y: 1.14, z: 1.14 }, { x: 1, y: 1, z: 1, duration: .6, ease: 'power3.out', overwrite: true });
       gsap.fromTo(glowMat, { opacity: .8 }, { opacity: .4, duration: .8, ease: 'power2.out', overwrite: 'auto' });
@@ -433,7 +436,7 @@
       if (MAXR) faisca(tmp.set(0, 0, 0).applyMatrix4(nucleo.matrixWorld), 5, 3.2);
       if (Math.random() < .6) disparar(n, 1, 0xffe3bd, .6, .85);
     }
-    function chegouNo(n) { if (!reduzido) gsap.fromTo(n.esc, { v: 1.45 }, { v: 1, duration: .6, ease: 'power3.out', overwrite: true }); }
+    function chegouNo(n) { if (o.aoChegar) o.aoChegar(n.id, 1); if (!reduzido) gsap.fromTo(n.esc, { v: 1.45 }, { v: 1, duration: .6, ease: 'power3.out', overwrite: true }); }
     function varredura() {
       if (reduzido) return;
       gsap.fromTo(onda.scale, { x: 2, y: 2 }, { x: 22, y: 22, duration: 2, ease: 'power2.out', overwrite: true });
@@ -485,7 +488,7 @@
       uPush.value = ptr.presenca.v * (FUNDO ? 1 : .6);
       plasmaMat.uniforms.uBulge.value = ptr.presenca.v * (.45 + ptr.hoverNucleo.v * .75);
       tilt.rotation.y = inclina.y; tilt.rotation.x = inclina.x;
-      nucleo.scale.setScalar(ESC * (1 + ptr.hoverNucleo.v * .07) * (1 - scr.v * .3)); nucleo.rotation.y = scr.v * 4.4;
+      nucleo.scale.setScalar(ESC * (1 + ptr.hoverNucleo.v * .07) * (1 - scr.v * .3)); nucleo.rotation.y = o.cinema ? cine.giro.v : scr.v * 4.4;
       malha.rotation.y += d * .1 * vel * s; malha.rotation.x = Math.sin(t * .15) * .2;
       casca.rotation.y -= d * .05 * vel; casca.rotation.z += d * .03 * vel;
       aneis.forEach(a => { a.rotation.y += d * a.userData.vel * vel * s; });
@@ -503,10 +506,11 @@
       camera.updateMatrixWorld();
 
       nos.forEach((n, i) => {
+        const vn = o.cinema ? n.cineVis.v : vis;
         n.ang += d * n.vel * vel;
         posOrbita(n, n.ang, n.P0);
         n.grupo.position.copy(n.P0);
-        const esc = n.esc.v * (1 + hov(n) * .35) * (n.id === selecionado ? 1.25 : 1); n.grupo.scale.setScalar(Math.max(.001, esc * vis)); n.grupo.visible = n.link.visible = n.vizinho.visible = n.trilho.visible = vis > .01;
+        const esc = n.esc.v * (1 + hov(n) * .35) * (n.id === selecionado ? 1.25 : 1); n.grupo.scale.setScalar(Math.max(.001, esc * vn)); n.grupo.visible = n.link.visible = n.vizinho.visible = n.trilho.visible = vn > .01;
         n.malha.rotation.y += d * .8 * vel; n.malha.rotation.x += d * .5 * vel; n.miolo.rotation.y -= d * vel;
         n.P2.copy(n.P0).normalize().multiplyScalar(1.3 * ESC);
         tmp.copy(n.P0).add(n.P2).multiplyScalar(.5);
@@ -518,7 +522,7 @@
         for (let k = 0; k <= 16; k++) { const u = k / 16; tmp.copy(n.P0).lerp(viz.P0, u); const c = Math.sin(u * Math.PI) * .22; tmp.lerp(tmp2.set(0, 0, 0), c); n.vizPos[k * 3] = tmp.x; n.vizPos[k * 3 + 1] = tmp.y; n.vizPos[k * 3 + 2] = tmp.z; }
         n.vizinho.geometry.attributes.position.needsUpdate = true;
         const sel = n.id === selecionado;
-        n.link.material.opacity = (.62 + hov(n) * .38 + (sel ? .3 : 0)) * vis; n.vizinho.material.opacity = .24 * vis; n.trilho.material.opacity = .07 * vis;
+        n.link.material.opacity = (.62 + hov(n) * .38 + (sel ? .3 : 0)) * vn; n.vizinho.material.opacity = .24 * (o.cinema ? Math.min(vn, nos[(i + 1) % nos.length].cineVis.v) : vn); n.trilho.material.opacity = .07 * vn;
         n.link.material.color.copy(n.status === 'erro' ? VERMELHO : n.corLink);
         n.malha.material.color.copy(n.cor); n.miolo.material.color.copy(n.cor); n.halo.material.color.copy(n.cor);
         // fluxo contínuo na ligação: entra (âmbar) e sai (branco quente); mais rápido com mais atividade
@@ -528,17 +532,18 @@
           bezier(n, f.dir > 0 ? f.u : 1 - f.u, tmp);
           sPos[idx * 3] = tmp.x; sPos[idx * 3 + 1] = tmp.y; sPos[idx * 3 + 2] = tmp.z;
           const e = Math.sin(f.u * Math.PI), c = f.dir > 0 ? [1, .55, .22] : [1, .88, .7];
-          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5) * vis;
+          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5) * vn;
         }
-        if (!reduzido && vis > .3 && Math.random() < n.taxa * d / 60) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9);
+        if (!reduzido && !o.cinema && vn > .3 && Math.random() < n.taxa * d / 60) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9);
         tmp.copy(n.P0).project(camera);
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
-        const topoL = FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
+        const topoL = o.cinema ? 70 : FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
         const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
         n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
         const naTela = !o.cinema || (x > -40 && x < w + 40 && y > -40 && y < h + 40);
-        n.pos.style.opacity = visivel && naTela ? String((.55 + .45 * dentro) * vis * (o.cinema ? cine.rotulos.v : 1)) : '0';
+        if (o.cinema) n.pos.style.visibility = vn > .02 && cine.rotulos.v > .02 ? '' : 'hidden';
+        n.pos.style.opacity = visivel && naTela ? String((.55 + .45 * dentro) * vn * (o.cinema ? cine.rotulos.v : 1)) : '0';
         n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
         n.halo.material.opacity = .65 + Math.sin(t * 2 + i) * .15 + hov(n) * .3;
       });
@@ -554,13 +559,13 @@
           const f = 1 - c / CAUDA;
           pPos[k * 3] = tmp.x; pPos[k * 3 + 1] = tmp.y; pPos[k * 3 + 2] = tmp.z;
           pCor[k * 3] = p.cor.r * f; pCor[k * 3 + 1] = p.cor.g * f; pCor[k * 3 + 2] = p.cor.b * f;
-          pTam[k] = (c === 0 ? 5.2 : 3.6 * f) * p.tam * vis;
+          pTam[k] = (c === 0 ? 5.2 : 3.6 * f) * p.tam * (o.cinema ? p.no.cineVis.v : vis);
         }
       });
       pg.attributes.position.needsUpdate = pg.attributes.color.needsUpdate = pg.attributes.size.needsUpdate = true;
       // rastro do cursor: faíscas que ficam para trás e se dissolvem
       if (MAXR) {
-        if (ptr.dentro && ptr.vel > .004) { const n = Math.min(4, 1 + Math.round(ptr.vel * 60)); faisca(tmp.copy(mundoCam).addScaledVector(camera.getWorldDirection(tmp2), (Math.random() - .5) * 3), n, 1.6 * (1 + ptr.vel * 20)); }
+        if (ptr.dentro && ptr.vel > .004 && !o.cinema) { const n = Math.min(4, 1 + Math.round(ptr.vel * 60)); faisca(tmp.copy(mundoCam).addScaledVector(camera.getWorldDirection(tmp2), (Math.random() - .5) * 3), n, 1.6 * (1 + ptr.vel * 20)); }
         ptr.vel *= .86;
         for (let j = 0; j < MAXR; j++) {
           if (rVida[j] <= 0) { rTam[j] = 0; continue; }
@@ -597,7 +602,7 @@
     const ix = gsap.quickTo(inclina, 'x', { duration: 1.1, ease: 'power3.out' }), iy = gsap.quickTo(inclina, 'y', { duration: 1.1, ease: 'power3.out' });
     const alvoNo = e => {
       ray.setFromCamera({ x: ptr.mx, y: ptr.my }, camera);
-      const hit = ray.intersectObjects(nos.map(n => n.alvo), false)[0]; return hit ? hit.object.userData.no : null;
+      const hit = ray.intersectObjects(nos.filter(n => !o.cinema || n.cineVis.v > .5).map(n => n.alvo), false)[0]; return hit ? hit.object.userData.no : null;
     };
     const noEl = e => e.target instanceof Node && (e.target === el || el.contains(e.target));
     function mover(e) {
@@ -616,7 +621,7 @@
       if (perto !== (ptr.hoverNucleo.alvo || false)) { ptr.hoverNucleo.alvo = perto; gsap.to(ptr.hoverNucleo, { v: perto ? 1 : 0, duration: .6, ease: 'power3.out', overwrite: true }); gsap.to(giro, { v: perto ? 3.2 : 1, duration: .9, ease: 'power2.out', overwrite: true }); if (bloom) gsap.to(bloom, { strength: perto ? .75 : .5, duration: .6, overwrite: 'auto' }); }
       if (noEl(e)) {
         const n = alvoNo(e);
-        if (n !== hoverNo) { if (hoverNo) gsap.to(hoverNo.hov, { v: 0, duration: .4, overwrite: true }); hoverNo = n; if (n) gsap.to(n.hov, { v: 1, duration: .25, overwrite: true }); el.style.cursor = n ? 'pointer' : ''; }
+        if (n !== hoverNo) { if (hoverNo) gsap.to(hoverNo.hov, { v: 0, duration: .4, overwrite: true }); hoverNo = n; if (n) gsap.to(n.hov, { v: 1, duration: .25, overwrite: true }); el.style.cursor = n ? 'pointer' : ''; if (o.aoPassar) o.aoPassar(n ? n.id : ''); }
       } else if (hoverNo) { gsap.to(hoverNo.hov, { v: 0, duration: .4, overwrite: true }); hoverNo = null; el.style.cursor = ''; }
     }
     function clicar(e) {
@@ -660,7 +665,8 @@
     redimensionar();
     const api = { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, pausar: p => { pausado = !!p; revisar(); } };
     if (o.cinema) api.cinema = { cena: scene, camera, cam: cine.cam, congela: cine.congela, rotulos: cine.rotulos, adicionarPasso, nos: () => nos,
-      esc: ESC, raio: R_BASE, baixo, reduzido, nivel: () => nivel, quadroEstatico: estatico };
+      esc: ESC, raio: R_BASE, baixo, reduzido, nivel: () => nivel, quadroEstatico: estatico,
+      giro: cine.giro, nucleo, disparar, bezier, camPadrao: () => ({ y: cam.y, z: cam.z }) };
     return api;
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
