@@ -596,7 +596,7 @@ function render() {
   if (!CFG || S.erro === 'auth') {
     raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvão · Central do PC'}</div>
       <p class="det" style="margin-bottom:12px">Cole o <b>link da central do PC</b> que veio no Telegram (só desta vez neste computador).</p>
-      <form onsubmit="return false"><label class="sr" for="cola">Link da central do PC</label><input class="inp" id="cola" type="url" autocomplete="off" spellcheck="false" placeholder="https://caioaprat.github.io/Jarvis/pc.html#k=...">
+      <form id="formColar" onsubmit="return false"><label class="sr" for="cola">Link da central do PC</label><input class="inp" id="cola" type="url" autocomplete="off" spellcheck="false" placeholder="https://caioaprat.github.io/Jarvis/pc.html#k=...">
       <button type="submit" class="btn forte" style="margin-top:12px" data-acao="colar">Entrar</button></form></div>`;
     return;
   }
@@ -708,6 +708,7 @@ document.addEventListener('submit', ev => {
   ev.preventDefault();
   const f = ev.target;
   if (f.id === 'formPedido') return enviarPedido();
+  if (f.id === 'formColar') return colarLink();
   if (f.dataset.formVoltar) return confirmarVoltar();
   const tok = f.querySelector('[data-token]'); if (tok) return salvarToken(tok.dataset.token);
   const b = f.querySelector('[data-acao]'); if (b) b.click();
@@ -761,13 +762,15 @@ document.addEventListener('click', async ev => {
     case 'pausar': { const v = ($('pausaAte') || {}).value; if (!v) { avisar('Escolha a data.', true); return; } const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: v })); if (r && r.ok) carregar(); break; }
     case 'retomar': { const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: '' })); if (r && r.ok) carregar(); break; }
     case 'sair': try { localStorage.removeItem(LS); localStorage.removeItem(LR); } catch (e) {} if (window.Cadeado) Cadeado.travar(); CFG = null; S.P = null; render(); break;
-    case 'colar': {
-      const c = cfgDeTexto(($('cola') || {}).value || '');
-      if (!c) { avisar('Esse não parece o link da central do PC.', true); return; }
-      CFG = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) {} S.erro = ''; carregar(); break;
-    }
+    case 'colar': colarLink(); break;
   }
 });
+/** Cole-o-link: chamada direto pelo envio do formulário (o clique no botão "Entrar", type=submit, é ignorado de propósito pelo listener de click acima, pra não disparar a ação duas vezes). */
+function colarLink() {
+  const c = cfgDeTexto(($('cola') || {}).value || '');
+  if (!c) { avisar('Esse não parece o link da central do PC.', true); return; }
+  CFG = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) {} S.erro = ''; carregar();
+}
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});   // com manifesto + service worker o Chrome oferece "Instalar"
 window.addEventListener('popstate', () => irPara(location.hash.slice(1)));
 const digitando = () => /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || S.voltar || S.cancelar || S.apagarToken || S.ocupado;
