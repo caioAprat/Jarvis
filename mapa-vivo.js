@@ -197,7 +197,7 @@
     if (!document.getElementById('mv-css')) { const s = document.createElement('style'); s.id = 'mv-css'; s.textContent = CSS; document.head.appendChild(s); }
     if (FUNDO) renderer.setClearColor(0x080706, 1);
 
-    const el = document.createElement('div'); el.className = 'mv' + (o.leve ? ' mv-compacto' : '') + (FUNDO ? ' mv-fundo' : ''); el.dataset.modo = 'palco';
+    const el = document.createElement('div'); el.className = 'mv' + (o.leve ? ' mv-compacto' : '') + (FUNDO ? ' mv-fundo' : '') + (o.cinema ? ' mv-cinema' : ''); el.dataset.modo = 'palco';
     el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Mapa vivo dos projetos');
     const hud = document.createElement('div'); hud.className = 'mv-hud';
     const nucleoRot = document.createElement('div'); nucleoRot.className = 'mv-nucleo'; nucleoRot.innerHTML = marca() + '<span class="mv-leg"></span>';
@@ -209,6 +209,8 @@
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, 1, .1, 400);
     const cam = { x: 0, y: 8, z: 26 }, off = { x: 0, y: 0 }, chute = { v: 0 };
+    // cinema (landing): quem manda na câmera é a rolagem de fora; congela.v = 1 para tudo no ar
+    const cine = { cam: { x: 0, y: 4, z: 62, lx: 0, ly: 0, lz: 0, fov: 40, cursor: 1 }, congela: { v: 0 }, rotulos: { v: 1 } };
     const pix = { value: renderer.getPixelRatio() };
     const T_GLOW = textura('glow'), T_ANEL = textura('anel');
     const aditivo = { transparent: true, blending: THREE.AdditiveBlending, depthWrite: false };
@@ -216,6 +218,15 @@
     if (usaBloom) {
       comp = new THREE.EffectComposer(renderer); comp.addPass(new THREE.RenderPass(scene, camera));
       bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), .5, .55, .32); bloom.renderToScreen = true; comp.addPass(bloom);
+    } else if (o.cinema && THREE.EffectComposer && THREE.RenderPass) {
+      comp = new THREE.EffectComposer(renderer); comp.addPass(new THREE.RenderPass(scene, camera));
+    }
+    function adicionarPasso(pass) {
+      if (!comp) return false;
+      const i = bloom ? comp.passes.indexOf(bloom) : -1;
+      if (i >= 0) comp.passes.splice(i, 0, pass); else comp.addPass(pass);
+      if (w) pass.setSize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+      return true;
     }
 
     // ------------------------------------------------------------ cursor (o núcleo reage)
@@ -452,13 +463,13 @@
         if (d > .03) lentos++; else lentos = Math.max(0, lentos - 1);
         if (lentos > 36) {
           lentos = 0; nivel++;
-          if (nivel === 1 && comp) comp = null;
+          if (nivel === 1 && comp) { if (o.cinema) { if (bloom) bloom.enabled = false; } else comp = null; }
           else if (nivel <= 2) { renderer.setPixelRatio(1); pix.value = 1; renderer.setSize(w, h, false); }
           else if (nivel === 3) fluxoObjs.forEach(f => f.geometry.setDrawRange(0, Math.floor(f.geometry.attributes.position.count * .4)));
           else limite30 = true;
         }
       }
-      const vel = reduzido ? 0 : 1; t += d * vel;
+      const vel = (reduzido ? 0 : 1) * (o.cinema ? 1 - cine.congela.v : 1); t += d * vel;
       const s = giro.v, vis = Math.max(0, 1 - scr.v * 1.7);          // vis: os projetos e as ligações somem conforme a página desce
       fluxos.forEach(m => { m.uniforms.uTime.value = t; });
       plasmaMat.uniforms.uTime.value = t; cascaUni.uTime.value = t; estrelasUni.uTime.value = t;
@@ -484,7 +495,11 @@
       interior.userData.raios.material.opacity = .12 + .1 * Math.sin(t * 2.2) + ptr.presenca.v * .1;
       semente.rotation.y += d * 1.4 * vel; semente.scale.setScalar(1 + Math.sin(t * 3) * .1 + ptr.hoverNucleo.v * .25); semGlow.material.opacity = .8 + Math.sin(t * 2.4) * .15;
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
-      camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1)); camera.lookAt(0, 0, 0);
+      if (o.cinema) {
+        const c = cine.cam;
+        camera.position.set(c.x + off.x * c.cursor * .35, c.y + off.y * c.cursor * .35, c.z); camera.lookAt(c.lx, c.ly, c.lz);
+        if (Math.abs(camera.fov - c.fov) > .01) { camera.fov = c.fov; camera.updateProjectionMatrix(); }
+      } else { camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1)); camera.lookAt(0, 0, 0); }
       camera.updateMatrixWorld();
 
       nos.forEach((n, i) => {
@@ -522,7 +537,8 @@
         const topoL = FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
         const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
         n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
-        n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * vis) : '0';
+        const naTela = !o.cinema || (x > -40 && x < w + 40 && y > -40 && y < h + 40);
+        n.pos.style.opacity = visivel && naTela ? String((.55 + .45 * dentro) * vis * (o.cinema ? cine.rotulos.v : 1)) : '0';
         n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
         n.halo.material.opacity = .65 + Math.sin(t * 2 + i) * .15 + hov(n) * .3;
       });
@@ -530,7 +546,7 @@
       // pulsos viajando
       let k = 0;
       pulsos.forEach(p => {
-        if (p.on) { p.u += p.v * d; if (p.u >= 1) { p.on = false; if (p.dir === 0) chegouNucleo(p.no); else chegouNo(p.no); } }
+        if (p.on) { p.u += p.v * d * (o.cinema ? vel : 1); if (p.u >= 1) { p.on = false; if (p.dir === 0) chegouNucleo(p.no); else chegouNo(p.no); } }
         for (let c = 0; c < CAUDA; c++, k++) {
           if (!p.on) { pTam[k] = 0; continue; }
           const base = p.dir === 0 ? p.u : 1 - p.u, atras = c * .035 * (p.dir === 0 ? 1 : -1);
@@ -611,7 +627,7 @@
     }
     if (FUNDO) { window.addEventListener('pointermove', mover, { passive: true }); window.addEventListener('pointerdown', clicar); document.documentElement.addEventListener('pointerleave', () => { ptr.dentro = false; gsap.to(ptr.presenca, { v: 0, duration: .7, overwrite: true }); }); }
     else if (!baixo) { el.addEventListener('pointermove', mover, { passive: true }); el.addEventListener('pointerleave', () => { ptr.dentro = false; gsap.to(ptr.presenca, { v: 0, duration: .7, overwrite: true }); ox(0); oy(0); ix(0); iy(0); }); el.addEventListener('pointerdown', clicar); }
-    if (!reduzido) gsap.from(cam, { z: cam.z + 14, y: cam.y + 6, duration: 2.6, ease: 'power3.out', immediateRender: false, delay: .05 });
+    if (!reduzido && !o.cinema) gsap.from(cam, { z: cam.z + 14, y: cam.y + 6, duration: 2.6, ease: 'power3.out', immediateRender: false, delay: .05 });
 
     // ------------------------------------------------------------ interface pública
     function atualizar(projetos, info) {
@@ -642,7 +658,10 @@
     }
     function destruir() { desligar(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, pausar: p => { pausado = !!p; revisar(); } };
+    const api = { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, pausar: p => { pausado = !!p; revisar(); } };
+    if (o.cinema) api.cinema = { cena: scene, camera, cam: cine.cam, congela: cine.congela, rotulos: cine.rotulos, adicionarPasso, nos: () => nos,
+      esc: ESC, raio: R_BASE, baixo, reduzido, nivel: () => nivel, quadroEstatico: estatico };
+    return api;
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();
