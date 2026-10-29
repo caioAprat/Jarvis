@@ -143,6 +143,7 @@ function getPc_(p, nivel) {
     case 'publicacoes': return Object.assign({ ok: true }, publicacoes_());
     case 'assistente-config': return assistente_({ acao: 'config' });
     case 'assistente-log': return assistente_({ acao: 'log', n: 60 });
+    case 'assistente-dados': return assistente_({ acao: 'dados' });   // só leitura (financeiro real na tela inicial)
     case 'pedidos': return { ok: true, pedidos: listarPedidos_() };
   }
   return null;

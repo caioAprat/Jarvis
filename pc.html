@@ -193,6 +193,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
 <script src="mapa-vivo.js?v=23"></script>
+<script src="cadeado.js?v=1"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -591,6 +592,7 @@ document.addEventListener('keydown', ev => {
 
 function render() {
   const raiz = $('raiz');
+  if (CFG && window.Cadeado && !Cadeado.destravado()) { Cadeado.pedir(raiz, () => { render(); carregar(); }); return; }
   if (!CFG || S.erro === 'auth') {
     raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvão · Central do PC'}</div>
       <p class="det" style="margin-bottom:12px">Cole o <b>link da central do PC</b> que veio no Telegram (só desta vez neste computador).</p>
@@ -758,7 +760,7 @@ document.addEventListener('click', async ev => {
     case 'diario': await ocupado('diario', () => enviar({ tipo: 'diario-agora' }, 'Rotina da madrugada concluída')); carregar(); break;
     case 'pausar': { const v = ($('pausaAte') || {}).value; if (!v) { avisar('Escolha a data.', true); return; } const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: v })); if (r && r.ok) carregar(); break; }
     case 'retomar': { const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: '' })); if (r && r.ok) carregar(); break; }
-    case 'sair': try { localStorage.removeItem(LS); localStorage.removeItem(LR); } catch (e) {} CFG = null; S.P = null; render(); break;
+    case 'sair': try { localStorage.removeItem(LS); localStorage.removeItem(LR); } catch (e) {} if (window.Cadeado) Cadeado.travar(); CFG = null; S.P = null; render(); break;
     case 'colar': {
       const c = cfgDeTexto(($('cola') || {}).value || '');
       if (!c) { avisar('Esse não parece o link da central do PC.', true); return; }

@@ -10,6 +10,7 @@
  *   mapa.atualizar(projetos, { estado: 'ok', titulo: 'Tudo certo' });
  *   mapa.varredura();  mapa.modo('palco' | 'fundo');  mapa.rolagem(0..1);
  *   landing (extras, desligados por padrão): mapa.cinema({dist,alt,fov,orbita}) | mapa.cinema(null);  mapa.congelar(0..1);  mapa.passe(shader)
+ *   mapa.explodir(0..1);  mapa.fluxoIntensidade(1..3);  mapa.partesExplodidas() -> {casca,interior,malha,nucleo}
  */
 (function () {
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
@@ -227,6 +228,7 @@
     const inclina = { x: 0, y: 0 }, scr = { v: 0 };              // scr: progresso da rolagem (0 = topo, 1 = longe)
     // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/app.html.
     let cine = null; const congela = { v: 0 };
+    let explosao = 0, fluxoMult = 1;     // landing: vista explodida do núcleo e intensidade das veias de dados
 
     // ------------------------------------------------------------ núcleo
     const tilt = new THREE.Group(); scene.add(tilt);
@@ -485,6 +487,13 @@
       sat.forEach(x => { x.a += d * x.v * vel * s; const cx = Math.cos(x.tx), sx = Math.sin(x.tx), px = Math.cos(x.a) * x.r, pz = Math.sin(x.a) * x.r; x.s.position.set(px, -pz * sx, pz * cx); x.s.material.opacity = .6 + .4 * Math.sin(t * 3 + x.a * 5); });
       poliA.rotation.x += d * .5 * vel * s; poliA.rotation.y += d * .35 * vel * s; poliB.rotation.y -= d * .8 * vel * s; poliB.rotation.z += d * .4 * vel * s; poliC.rotation.x -= d * .22 * vel; poliC.rotation.z += d * .3 * vel * s;
       interior.userData.raios.material.opacity = .12 + .1 * Math.sin(t * 2.2) + ptr.presenca.v * .1;
+      if (explosao > 0) {                                           // landing: vista explodida (anatomia do núcleo)
+        const eo = ESC * explosao * (cine ? cine.dist : 1);         // acompanha o zoom da câmera: sempre visível, nunca sai do quadro
+        interior.position.set(.5 * eo, .3 * eo, .1 * eo);
+        casca.position.set(-.42 * eo, -.22 * eo, -.14 * eo);
+        malha.position.set(.08 * eo, -.52 * eo, .32 * eo);
+        casca.material.opacity = .2 + explosao * .3;
+      } else if (interior.position.x || casca.position.x || malha.position.x) { interior.position.set(0, 0, 0); casca.position.set(0, 0, 0); malha.position.set(0, 0, 0); casca.material.opacity = .2; }
       semente.rotation.y += d * 1.4 * vel; semente.scale.setScalar(1 + Math.sin(t * 3) * .1 + ptr.hoverNucleo.v * .25); semGlow.material.opacity = .8 + Math.sin(t * 2.4) * .15;
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
       if (cine) {                                                      // landing: a rolagem conduz a câmera (distância, altura, FOV, giro)
@@ -515,15 +524,15 @@
         n.link.material.color.copy(n.status === 'erro' ? VERMELHO : n.corLink);
         n.malha.material.color.copy(n.cor); n.miolo.material.color.copy(n.cor); n.halo.material.color.copy(n.cor);
         // fluxo contínuo na ligação: entra (âmbar) e sai (branco quente); mais rápido com mais atividade
-        const ritmo = (.6 + Math.min(2.2, n.taxa / 8)) * (1 + hov(n) * 1.2);
+        const ritmo = (.6 + Math.min(2.2, n.taxa / 8)) * (1 + hov(n) * 1.2) * fluxoMult;
         for (let k = 0; k < NS; k++) {
           const f = n.fase[k], idx = i * NS + k; f.u += f.v * ritmo * d * vel; if (f.u > 1) f.u -= 1;
           bezier(n, f.dir > 0 ? f.u : 1 - f.u, tmp);
           sPos[idx * 3] = tmp.x; sPos[idx * 3 + 1] = tmp.y; sPos[idx * 3 + 2] = tmp.z;
           const e = Math.sin(f.u * Math.PI), c = f.dir > 0 ? [1, .55, .22] : [1, .88, .7];
-          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5) * vis;
+          sCor[idx * 3] = c[0] * e; sCor[idx * 3 + 1] = c[1] * e; sCor[idx * 3 + 2] = c[2] * e; sTam[idx] = (1.5 + hov(n) * 1.5) * (o.leve ? 1 : 1.5) * vis * (.65 + fluxoMult * .35);
         }
-        if (!reduzido && vis > .3 && Math.random() < n.taxa * d / 60) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9);
+        if (!reduzido && vis > .3 && Math.random() < n.taxa * d / 60 * fluxoMult) disparar(n, 0, n.status === 'erro' ? 0xff6a7a : 0xffb15c, .5 + Math.random() * .3, .9 * (.7 + fluxoMult * .3));
         tmp.copy(n.P0).project(camera);
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
@@ -659,6 +668,15 @@
     }
     /** 0 a 1: as peças param no ar (sem parar o desenho). */
     function congelar(v) { congela.v = Math.max(0, Math.min(1, v || 0)); if (reduzido) estatico(); }
+    /** 0 a 1: vista explodida do núcleo (interior, casca e malha se afastam do centro). */
+    function explodir(v) { explosao = Math.max(0, Math.min(1, v || 0)); if (reduzido) estatico(); }
+    /** Multiplica o ritmo/tamanho dos pacotes de dados nas veias (1 = normal; pc.html/app.html nunca chamam isto). */
+    function fluxoIntensidade(mult) { fluxoMult = Math.max(.3, Math.min(3, mult == null ? 1 : mult)); }
+    /** Posição na tela (0..1, 0..1) de cada parte do núcleo — para a landing desenhar linhas-guia sobre a vista explodida. */
+    function partesExplodidas() {
+      const posTela = (obj) => { obj.getWorldPosition(tmp); tmp.project(camera); return { x: tmp.x * .5 + .5, y: 1 - (tmp.y * .5 + .5), atras: tmp.z > 1 }; };
+      return { casca: posTela(casca), interior: posTela(interior), malha: posTela(malha), nucleo: posTela(nucleo) };
+    }
     /** Acrescenta um ShaderPass depois do brilho. Devolve o passe, ou null se não há pós-processamento. */
     function passe(shader) {
       if (!comp || !THREE.ShaderPass) return null;
@@ -667,7 +685,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, depurar: () => ({ nos, camera, scene, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();
