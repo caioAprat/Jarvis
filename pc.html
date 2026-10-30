@@ -117,6 +117,10 @@
   .hud > div { padding: 0 18px; border-left: 1px solid var(--linha); white-space: nowrap; } .hud > div:first-child { border-left: 0; }
   .hud small { display: block; font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #ecd5b4; text-shadow: 0 0 6px #000, 0 1px 2px #000; }
   .hud b { display: block; margin-top: 1px; font: 700 21px/1.15 var(--disp); text-shadow: 0 0 8px #000, 0 2px 3px #000; }
+  /* métricas compactas na barra (substituem o HUD grande; os números grandes viraram momentos da narrativa) */
+  .hud-c { display: flex; align-items: center; justify-content: center; flex: 1 1 0; min-width: 0; font: 500 11.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mu); transition: opacity .4s; }
+  .hud-c span { padding: 0 12px; border-left: 1px solid var(--linha); white-space: nowrap; } .hud-c span:first-child { border-left: 0; }
+  .hud-c b { color: var(--tx); font-weight: 600; }
   .palco { position: relative; height: max(380px, calc(100vh - 330px)); pointer-events: none; }
   .painel-sel { pointer-events: auto; position: fixed; z-index: 25; top: 92px; right: 24px; max-height: calc(100vh - 220px); width: min(360px, calc(100% - 28px)); overflow: auto; border-radius: 12px; background: rgba(12,9,7,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,160,80,.4), 0 16px 40px rgba(0,0,0,.6); padding: 4px; animation: entra .28s cubic-bezier(.2,0,0,1); }
   .painel-sel .card { background: transparent; border: 0; } .painel-sel .projcard .cab { padding-right: 38px; }
@@ -128,7 +132,7 @@
   .barra .marca { transform-origin: left center; transition: transform .35s cubic-bezier(.2,0,0,1); }
   .barra.rolou { background: rgba(8,7,6,.7); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); box-shadow: 0 1px 0 var(--linha); padding-block: 8px; }
   .barra.rolou .marca { transform: scale(.7); }
-  @media (max-width: 1240px) { .barra { flex-wrap: wrap; } .barra .hud { order: 3; flex-basis: 100%; justify-content: space-between; } .hud > div { padding: 0 12px; } }
+  @media (max-width: 1240px) { .barra { flex-wrap: wrap; } .barra .hud { order: 3; flex-basis: 100%; justify-content: space-between; } .hud > div { padding: 0 12px; } .barra .hud-c { order: 3; flex-basis: 100%; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; } .hud-c span:first-child { padding-left: 0; } }
   .marca { display: flex; align-items: center; gap: 18px; padding: 0; font-size: 29px; }
   .marca .mk { font-size: 66px; filter: drop-shadow(0 0 14px rgba(255,120,40,.5)); }
   .marca-txt { display: flex; flex-direction: column; gap: 10px; }
@@ -169,8 +173,10 @@
   .pal .vazio { padding: 18px; }
 
   .acesso { max-width: 520px; margin: 12vh auto; }
+  @media (max-width: 900px) { .buscar.ir-b { width: auto; padding: 0 10px; } .buscar.ir-b span { display: inline; } }
   @media (max-width: 900px) {
     .g2, .g3 { grid-template-columns: 1fr; } main { padding: 16px 18px 140px; }
+    .veu { margin: 0 -18px; padding: 70px 18px 0; }   /* no celular o respiro é 18px: a margem de -32px alargava a página (rolagem lateral) */
     .barra { margin: 0 -18px 16px; padding: 10px 18px; } .barra .hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 10px; } .hud > div { padding: 0 10px 0 0; border-left: 0; } .hud b { font-size: 19px; }
     .buscar kbd, .buscar span { display: none; } .buscar { width: 40px; justify-content: center; padding: 0; } .dock { overflow-x: auto; scrollbar-width: none; } .painel-sel { top: auto; max-height: 62%; width: auto; left: 10px; right: 10px; bottom: 10px; }
     .cfg { grid-template-columns: 1fr auto; } .cfg .inp { grid-column: 1 / -1; order: 2; }
@@ -180,6 +186,7 @@
 </style>
 </head>
 <body>
+<div id="narrativa"></div>
 <div id="raiz"><div class="acesso"><div class="skel"></div></div></div>
 <div id="toast" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -192,8 +199,23 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
-<script src="mapa-vivo.js?v=23"></script>
-<script src="cadeado.js?v=1"></script>
+<script src="mapa-vivo.js?v=26"></script>
+<script src="cadeado.js?v=2"></script>
+<script src="landing-dados.js?v=2"></script>
+<script src="landing-escrita.js?v=2"></script>
+<script src="landing-acesso.js?v=1"></script>
+<script src="landing-telas.js?v=1"></script>
+<script src="landing-cinema.js?v=4"></script>
+<script src="landing-particulas.js?v=4"></script>
+<script src="landing-ponteiro.js?v=2"></script>
+<script src="prototipo.js?v=5"></script>
+<script src="fios.js?v=1"></script>
+<script src="telas-vivas.js?v=2"></script>
+<script src="chamadas.js?v=4"></script>
+<script src="planeta.js?v=2"></script>
+<script src="fundo.js?v=2"></script>
+<script src="nav-cenas.js?v=1"></script>
+<script src="landing-roteiro.js?v=17"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
@@ -355,11 +377,10 @@ function telaGeral() {
   S.sit = sit;
   const ativos = ps.filter(p => p.status !== 'pausado'), noAr = ativos.filter(p => p.status === 'ok').length;
   const aberto = S.sel && ps.find(p => p.id === S.sel);
-  S.hudHtml = `<div class="hud">
-      <div><small>Situação</small><b style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</b></div>
-      <div><small>Projetos no ar</small><b>${noAr}/${ativos.length}</b></div>
-      <div><small>Pedidos abertos</small><b>${pedAbertos}</b></div>
-      <div><small>Avisos novos</small><b>${novos}</b></div>
+  const atualizado = S.quando ? 'atualizado ' + ha(new Date(S.quando).toISOString()) : '';
+  S.hudHtml = `<div class="hud-c" role="group" aria-label="Resumo" title="${esc(atualizado)}">
+      <span style="color:var(--${sit[0] === 'ok' ? 'ok' : sit[0] === 'erro' ? 'er' : 'av'})">${esc(sit[1])}</span>
+      <span><b>${noAr}/${ativos.length}</b> no ar</span><span><b>${pedAbertos}</b> pedidos</span><span><b>${novos}</b> avisos</span>
     </div>`;
   return `<div class="palco">
       ${aberto ? `<aside class="painel-sel" aria-label="Detalhes de ${esc(aberto.nome)}"><button type="button" class="btn sec mini fechar" data-acao="fechar-sel" aria-label="Fechar detalhes">${ico('x')}</button>${cardProjeto(aberto)}</aside>` : ''}</div>
@@ -586,12 +607,13 @@ function abrirPaleta() {
   desenhar(); q.focus();
 }
 document.addEventListener('keydown', ev => {
-  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'k') { ev.preventDefault(); PAL ? fecharPaleta() : abrirPaleta(); }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'k') { ev.preventDefault(); if (NARR && NARR.acessoPendente()) { NARR.irAoAcesso(); return; } PAL ? fecharPaleta() : abrirPaleta(); }
   else if (ev.key === 'Escape' && PAL) { ev.preventDefault(); fecharPaleta(); }
 });
 
 function render() {
   const raiz = $('raiz');
+  if (NARR && NARR.ativa() && acessoAtual() !== 'livre') { raiz.innerHTML = ''; NARR.atualizar(); return; }   // link/PIN acontecem dentro da narrativa
   if (CFG && window.Cadeado && !Cadeado.destravado()) { Cadeado.pedir(raiz, () => { render(); carregar(); }); return; }
   if (!CFG || S.erro === 'auth') {
     raiz.innerHTML = `<div class="acesso card"><div class="titulo">${S.erro === 'auth' ? 'Acesso recusado' : 'Jarvão · Central do PC'}</div>
@@ -618,14 +640,14 @@ function render() {
   const titulo = (ABAS.find(a => a[0] === S.aba) || ABAS[0])[1];
   raiz.innerHTML = `<main><div class="barra"><div class="marca">${MapaVivo.logo()}<span class="marca-txt">${MapaVivo.marca()}<span class="marca-sub"><span class="orbe ${geral}" aria-hidden="true"></span>Núcleo de controle</span></span></div>
       ${S.hudHtml || ''}
-      <div class="barra-dir"><button type="button" class="buscar" data-acao="paleta" aria-label="Buscar e navegar (Ctrl K)">${ico('buscar')}<span>Buscar</span><kbd>Ctrl K</kbd></button>
+      <div class="barra-dir">${NARR && NARR.emB() ? '<button type="button" class="buscar ir-b" data-acao="ir-direto" aria-label="Ir direto aos dados (tecla D)"><span>Ir direto</span><kbd>D</kbd></button>' : ''}<button type="button" class="buscar" data-acao="paleta" aria-label="Buscar e navegar (Ctrl K)">${ico('buscar')}<span>Buscar</span><kbd>Ctrl K</kbd></button>
       <button type="button" class="btn" data-acao="conferir" ${S.carregando || S.ocupado ? 'disabled' : ''}>${S.carregando ? 'Conferindo…' : ico('refresh') + ' Conferir tudo'}</button></div></div>
-    <header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>
+    ${S.aba === 'geral' ? `<h1 class="sr" tabindex="-1">${esc(titulo)}</h1>` : `<header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>`}
     ${conteudo}
     <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></main>
     <nav class="dock" aria-label="Seções">${ABAS.map(([id, nome]) => { const [n, rot] = contagem[id] || [0, '']; return `<button type="button" id="nav-${id}" ${S.aba === id ? 'aria-current="page"' : ''} data-aba="${id}" aria-label="${esc(nome)}">${ico(id)}<span class="rot" aria-hidden="true">${esc(nome)}</span>${n ? `<span class="cont ${id === 'clientes' ? 'alerta' : ''}">${n}<span class="sr"> ${rot}</span></span>` : ''}</button>`; }).join('')}</nav>`;
   raiz.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => { if (el.type !== 'password' && el.id in S.rasc) el.value = S.rasc[el.id]; });
-  ligarMapa(); revelar();
+  ligarMapa(); revelar(); if (NARR) NARR.atualizar();
   if (focoId && $(focoId)) { const n = $(focoId); n.focus({ preventScroll: true }); try { if (selA !== null) n.setSelectionRange(selA, selB); } catch (e) { /* tipo sem cursor */ } }
 }
 
@@ -633,17 +655,20 @@ function render() {
 function ligarMapa() {
   if (!MV) return;
   if (!MV.el.isConnected) document.body.prepend(MV.el);
-  if (!S.P) { MV.pausar(true); return; }
+  if (!S.P || acessoAtual() !== 'livre') { MV.pausar(!NARR); return; }
   MV.pausar(false);
   const geral = S.aba === 'geral';
   MV.modo(geral ? 'palco' : 'fundo');
-  MV.rolagem(geral ? window.scrollY / (innerHeight * .7) : 0);
+  MV.rolagem(geral ? rolagemAposNarrativa() : 0);
   MV.atualizar(S.P.estado.projetos, { estado: S.sit[0], titulo: S.sit[1] });
   MV.selecionar(S.sel);
 }
-window.addEventListener('scroll', () => { if (MV && S.aba === 'geral') MV.rolagem(window.scrollY / (innerHeight * .7)); }, { passive: true });
+/** Rolagem da visão geral descontando a narrativa que fica acima dela (enquanto existe). */
+function rolagemAposNarrativa() { const off = NARR ? NARR.altura() : 0; return Math.max(0, window.scrollY - off) / (innerHeight * .7); }
+window.addEventListener('scroll', () => { if (MV && S.aba === 'geral' && acessoAtual() === 'livre') MV.rolagem(rolagemAposNarrativa()); }, { passive: true });
 /** Clicar num projeto do núcleo abre o sistema dele; sem endereço (ou sem https), abre o painel de detalhes. */
 function abrirProjeto(id) {
+  if (NARR && NARR.entrarProjeto(id)) return;          // na narrativa: portal no planeta → painel lateral
   const p = S.P && S.P.estado.projetos.find(x => x.id === id), link = p && /^https:\/\//.test(String(p.link || '')) ? p.link : '';
   if (link) { window.open(link, '_blank', 'noopener'); return; }
   S.sel = S.sel === id ? '' : id; render();
@@ -654,8 +679,8 @@ let stOk = false;
 function revelar() {
   if (!window.ScrollTrigger || !window.gsap || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   if (!stOk) { gsap.registerPlugin(ScrollTrigger); stOk = true; }
-  ScrollTrigger.getAll().forEach(t => t.kill());
-  if (S.aba === 'geral' && document.querySelector('.palco'))
+  ScrollTrigger.getAll().forEach(t => { if (!t.vars || t.vars.id !== 'narrativa') t.kill(); });
+  if (S.aba === 'geral' && document.querySelector('.palco') && document.querySelector('.topo'))
     gsap.to('.topo', { opacity: 0, y: -50, ease: 'none', scrollTrigger: { trigger: '.palco', start: 'top 38%', end: 'bottom 55%', scrub: true } });
   if (S.animar) {
     const alvos = [...document.querySelectorAll('main > .card, main > h2, main > .grade > *, main > .faixa, main > .rodape, .veu > .card, .veu > h2, .veu > .grade > *')];
@@ -671,6 +696,11 @@ function revelar() {
 window.addEventListener('scroll', () => { const b = document.querySelector('.barra'); if (b) b.classList.toggle('rolou', window.scrollY > 24); }, { passive: true });
 
 function irPara(aba, mudarHash) {
+  if (NARR && NARR.ativa()) {                                    // durante a narrativa: o dock leva aos dados (ou ao PIN, se ainda travado)
+    if (NARR.acessoPendente()) { NARR.irAoAcesso(); return; }
+    if (abaValida(aba) === 'geral') { NARR.irDireto(); return; }
+    NARR.terminar();
+  }
   S.animar = true; S.aba = abaValida(aba); S.voltar = null; S.cancelar = null; S.apagarToken = null;
   if (mudarHash && location.hash.slice(1) !== S.aba) history.pushState(null, '', '#' + S.aba);
   render(); window.scrollTo(0, 0);
@@ -763,18 +793,48 @@ document.addEventListener('click', async ev => {
     case 'retomar': { const r = await ocupado('pausar', () => enviar({ tipo: 'pausar', ate: '' })); if (r && r.ok) carregar(); break; }
     case 'sair': try { localStorage.removeItem(LS); localStorage.removeItem(LR); } catch (e) {} if (window.Cadeado) Cadeado.travar(); CFG = null; S.P = null; render(); break;
     case 'colar': colarLink(); break;
+    case 'ir-direto': if (NARR) NARR.irDireto(); break;
   }
 });
 /** Cole-o-link: chamada direto pelo envio do formulário (o clique no botão "Entrar", type=submit, é ignorado de propósito pelo listener de click acima, pra não disparar a ação duas vezes). */
-function colarLink() {
-  const c = cfgDeTexto(($('cola') || {}).value || '');
-  if (!c) { avisar('Esse não parece o link da central do PC.', true); return; }
-  CFG = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) {} S.erro = ''; carregar();
+function colarLink(texto) {
+  const c = cfgDeTexto(texto !== undefined ? texto : (($('cola') || {}).value || ''));
+  if (!c) { avisar('Esse não parece o link da central do PC.', true); return false; }
+  CFG = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) {} S.erro = ''; carregar(); return true;
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});   // com manifesto + service worker o Chrome oferece "Instalar"
 window.addEventListener('popstate', () => irPara(location.hash.slice(1)));
 const digitando = () => /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || S.voltar || S.cancelar || S.apagarToken || S.ocupado;
 setInterval(() => { if (document.visibilityState === 'visible' && !digitando()) carregar(); }, 5 * 60e3);
+
+// ---------------------------------------------------------------- narrativa (só apresentação: o link e o PIN são conferidos pelo código acima, como sempre)
+/** 'link' sem chave (ou chave recusada) · 'pin' com chave e travado · 'livre' com chave e destravado. */
+function acessoAtual() { return !CFG || S.erro === 'auth' ? 'link' : (window.Cadeado && !Cadeado.destravado() ? 'pin' : 'livre'); }
+/** Financeiro real para a narrativa (a mesma ação só-leitura 'assistente-dados' da rodada anterior); falhou = "sem dados". */
+function carregarFin() {
+  if (S.finPedido || !CFG || acessoAtual() !== 'livre') return; S.finPedido = true;
+  api('assistente-dados').then(r => { S.fin = r; }).catch(() => { S.fin = { ok: false }; }).then(() => { if (NARR) NARR.atualizar(); });
+}
+var NARR = null;
+if (window.Narrativa && (S.aba === 'geral' || acessoAtual() !== 'livre')) {
+  try {
+    if (MV && !MV.el.isConnected) document.body.prepend(MV.el);
+    if (MV) MV.pausar(false);
+    NARR = Narrativa.montar({ host: $('narrativa'), mapa: MV, api: {
+      acesso: acessoAtual,
+      aoLink: t => colarLink(t),
+      aoPin: v => { if (!Cadeado.tentar(v)) return false; render(); carregar(); carregarFin(); return true; },
+      dados: () => ({ P: S.P, fin: S.fin }),
+      ha: iso => ha(iso),
+      erro: () => S.erro && S.erro !== 'auth' ? S.erro : '',
+      abrirPainel: id => { S.sel = id || ''; render(); },
+      irClientes: () => irPara('clientes', true),
+      aoEntrar: () => { render(); carregarFin(); },
+      aoTerminar: () => { NARR = null; render(); },
+    } });
+  } catch (e) { NARR = null; console.warn('narrativa', e); }
+}
+if (acessoAtual() === 'livre') carregarFin();
 render();
 carregar();
 </script>

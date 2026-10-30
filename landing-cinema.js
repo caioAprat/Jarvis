@@ -56,29 +56,32 @@
     ].join('\n'),
   };
 
-  function interp(p) {
-    let i = 1; while (i < CHAVES.length - 1 && CHAVES[i].p < p) i++;
-    const A = CHAVES[i - 1], B = CHAVES[i], u = B.p === A.p ? 0 : Math.max(0, Math.min(1, (p - A.p) / (B.p - A.p)));
+  function interp(p, K) {
+    K = K || CHAVES;
+    let i = 1; while (i < K.length - 1 && K[i].p < p) i++;
+    const A = K[i - 1], B = K[i], u = B.p === A.p ? 0 : Math.max(0, Math.min(1, (p - A.p) / (B.p - A.p)));
     const m = (k) => A[k] + (B[k] - A[k]) * u;
-    return { d: m('d'), a: m('a'), f: m('f'), o: m('o'), g: m('g'), x: m('x') };
+    const n = (k) => (A[k] || 0) + ((B[k] || 0) - (A[k] || 0)) * u;
+    return { d: m('d'), a: m('a'), f: m('f'), o: m('o'), g: m('g'), x: m('x'), cx: n('cx'), cy: n('cy'), cz: n('cz') };
   }
 
-  /** `mapa`: instância de MapaVivo.montar(). `reduzido`: prefers-reduced-motion (câmera fixa na cena 0). */
-  function criar(mapa, reduzido) {
+  /** `mapa`: instância de MapaVivo.montar(). `reduzido`: prefers-reduced-motion (câmera fixa na cena 0). `chaves`: tabela própria (opcional). */
+  function criar(mapa, reduzido, chaves) {
+    let K = chaves || CHAVES;
     // 390 px: a tela é alta e estreita, então a cena já nasce longe (cam.z do mapa-vivo). Aproxima tudo.
     const fator = innerWidth < 700 ? .62 : 1;
     let passe = null;
     if (mapa && mapa.passe && !reduzido) passe = mapa.passe(DISTORCAO);
 
     function aplicar(p) {
-      const v = interp(reduzido ? 0 : p);
+      const v = interp(reduzido ? 0 : p, K);
       if (!mapa) return;
       mapa.cinema({ dist: v.d * fator, alt: v.a, fov: v.f, orbita: v.o });
       mapa.congelar(v.g);
       if (passe) passe.uniforms.uForca.value = v.x;
     }
     aplicar(0);
-    return { aplicar, passe: () => passe, chaves: CHAVES, interp, fator };
+    return { aplicar, passe: () => passe, trocar: (k) => { K = k || CHAVES; }, chaves: () => K, interp: (p) => interp(p, K), fator };
   }
 
   window.LandingCinema = { criar, CHAVES, interp };

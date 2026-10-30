@@ -11,6 +11,7 @@
  *   mapa.varredura();  mapa.modo('palco' | 'fundo');  mapa.rolagem(0..1);
  *   landing (extras, desligados por padrão): mapa.cinema({dist,alt,fov,orbita}) | mapa.cinema(null);  mapa.congelar(0..1);  mapa.passe(shader)
  *   mapa.explodir(0..1);  mapa.fluxoIntensidade(1..3);  mapa.partesExplodidas() -> {casca,interior,malha,nucleo}
+ *   mapa.portal({origem, pose}) -> {progresso(0..1), destruir()};  mapa.poseProjeto(id) -> pose do cinema
  */
 (function () {
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
@@ -124,9 +125,10 @@
                  mix(mix(h31(i + vec3(0,0,1)), h31(i + vec3(1,0,1)), f.x), mix(h31(i + vec3(0,1,1)), h31(i + vec3(1,1,1)), f.x), f.y), f.z); }
     float fbm(vec3 p){ float a = .5, s = 0.; for (int i = 0; i < 4; i++) { s += a * n3(p); p = p * 2.03 + vec3(1.7, 9.2, 3.1); a *= .5; } return s; }`;
   const VERT_PLASMA = `
-    uniform float uTime, uBulge; uniform vec3 uM; varying vec3 vP, vVN, vV;
+    uniform float uTime, uBulge, uDeform; uniform vec3 uM; varying vec3 vP, vVN, vV;
     void main(){ vec3 n = normalize(normal); float b = pow(max(dot(n, uM), 0.), 5.) * uBulge;
-      vec3 p = position + n * (b * .42 + sin(uTime * 1.3 + position.y * 3.) * .02);
+      float dfm = sin(position.x * 4. + uTime * 1.7) * sin(position.y * 3.1 - uTime * 1.1) * sin(position.z * 3.7 + uTime * .9);
+      vec3 p = position + n * (b * .42 + sin(uTime * 1.3 + position.y * 3.) * .02 + dfm * uDeform * .2);
       vP = position; vVN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(p, 1.); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`;
   const FRAG_PLASMA = RUIDO + `
     uniform float uTime; uniform vec3 uM, uTint; varying vec3 vP, vVN, vV;
@@ -229,6 +231,7 @@
     // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/app.html.
     let cine = null; const congela = { v: 0 };
     let explosao = 0, fluxoMult = 1;     // landing: vista explodida do núcleo e intensidade das veias de dados
+    let portalObj = null;                // landing: portal entre ambientes (ver portal())
 
     // ------------------------------------------------------------ núcleo
     const tilt = new THREE.Group(); scene.add(tilt);
@@ -237,7 +240,7 @@
     const glowMat = new THREE.SpriteMaterial(Object.assign({ map: T_GLOW, color: new THREE.Color(1, .55, .2), opacity: .4 }, aditivo));
     const glow = new THREE.Sprite(glowMat); glow.scale.setScalar(7.5); nucleo.add(glow);
     const plasmaMat = new THREE.ShaderMaterial(Object.assign({ vertexShader: VERT_PLASMA, fragmentShader: FRAG_PLASMA,
-      uniforms: { uTime: { value: 0 }, uBulge: { value: 0 }, uM: { value: mDir }, uTint: { value: tintaVetor } } }, aditivo));
+      uniforms: { uTime: { value: 0 }, uBulge: { value: 0 }, uDeform: { value: 0 }, uM: { value: mDir }, uTint: { value: tintaVetor } } }, aditivo));
     const plasma = new THREE.Mesh(new THREE.SphereGeometry(1.05, o.leve ? 32 : 72, o.leve ? 24 : 52), plasmaMat); plasma.renderOrder = 5; nucleo.add(plasma);
     // interior: giroscópio, poliedros e raios
     const interior = new THREE.Group(); nucleo.add(interior);
@@ -498,10 +501,10 @@
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
       if (cine) {                                                      // landing: a rolagem conduz a câmera (distância, altura, FOV, giro)
         const dz = Math.max(.6, (cam.z - chute.v * 1.6) * cine.dist), a = cine.orbita;
-        camera.position.set(Math.sin(a) * dz + off.x * .4, dz * cine.alt + off.y * .4, Math.cos(a) * dz);
+        camera.position.set(cine.cx + Math.sin(a) * dz + off.x * .4, cine.cy + dz * cine.alt + off.y * .4, cine.cz + Math.cos(a) * dz);
         if (camera.fov !== cine.fov) { camera.fov = cine.fov; camera.updateProjectionMatrix(); }
       } else camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1));
-      camera.lookAt(0, 0, 0);
+      if (cine) camera.lookAt(cine.cx, cine.cy, cine.cz); else camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
 
       nos.forEach((n, i) => {
@@ -573,6 +576,7 @@
         }
         rg.attributes.position.needsUpdate = rg.attributes.color.needsUpdate = rg.attributes.size.needsUpdate = true;
       }
+      if (portalObj) portalObj.quadro(d);                             // landing: portal (render target do "outro ambiente")
       if (comp) comp.render(); else renderer.render(scene, camera);
     }
     function ligar() { if (rodando) return; rodando = true; ultimo = performance.now(); gsap.ticker.add(quadro); }
@@ -598,6 +602,7 @@
     const ix = gsap.quickTo(inclina, 'x', { duration: 1.1, ease: 'power3.out' }), iy = gsap.quickTo(inclina, 'y', { duration: 1.1, ease: 'power3.out' });
     const alvoNo = e => {
       ray.setFromCamera({ x: ptr.mx, y: ptr.my }, camera);
+      if (!orbitas.visible) return null;                                // landing: planetas escondidos não recebem clique
       const hit = ray.intersectObjects(nos.map(n => n.alvo), false)[0]; return hit ? hit.object.userData.no : null;
     };
     const noEl = e => e.target instanceof Node && (e.target === el || el.contains(e.target));
@@ -663,11 +668,17 @@
     /** Conduz a câmera pela rolagem. `{ dist, alt, fov, orbita }` em multiplicadores; `null` volta ao normal. */
     function cinema(c) {
       if (!c) { cine = null; if (camera.fov !== 40) { camera.fov = 40; camera.updateProjectionMatrix(); } }
-      else cine = { dist: c.dist == null ? 1 : c.dist, alt: c.alt == null ? .34 : c.alt, fov: c.fov == null ? 40 : c.fov, orbita: c.orbita || 0 };
+      else cine = { dist: c.dist == null ? 1 : c.dist, alt: c.alt == null ? .34 : c.alt, fov: c.fov == null ? 40 : c.fov, orbita: c.orbita || 0, cx: c.cx || 0, cy: c.cy || 0, cz: c.cz || 0 };   // c*: centro que a câmera olha (padrão: o núcleo)
       if (reduzido) estatico();
     }
     /** 0 a 1: as peças param no ar (sem parar o desenho). */
     function congelar(v) { congela.v = Math.max(0, Math.min(1, v || 0)); if (reduzido) estatico(); }
+    /** 0 a 1: a esfera de plasma ondula (deformação suave por ruído). 0 = a esfera de sempre. */
+    function deformar(v) { plasmaMat.uniforms.uDeform.value = Math.max(0, Math.min(1, v || 0)); }
+    /** Mostra/esconde os planetas, as ligações e os pacotes das veias (o protótipo da landing toma o centro). */
+    function orbitasVisiveis(v) { v = v !== false; orbitas.visible = v; pulsosPts.visible = v; fluxoLigacao.visible = v; }
+    /** Nível da qualidade adaptativa (0 = cheio; sobe quando os quadros caem). */
+    function qualidade() { return nivel; }
     /** 0 a 1: vista explodida do núcleo (interior, casca e malha se afastam do centro). */
     function explodir(v) { explosao = Math.max(0, Math.min(1, v || 0)); if (reduzido) estatico(); }
     /** Multiplica o ritmo/tamanho dos pacotes de dados nas veias (1 = normal; pc.html/app.html nunca chamam isto). */
@@ -677,6 +688,65 @@
       const posTela = (obj) => { obj.getWorldPosition(tmp); tmp.project(camera); return { x: tmp.x * .5 + .5, y: 1 - (tmp.y * .5 + .5), atras: tmp.z > 1 }; };
       return { casca: posTela(casca), interior: posTela(interior), malha: posTela(malha), nucleo: posTela(nucleo) };
     }
+    /** Pose de câmera (no formato do cinema) que olha para o núcleo passando por trás de um projeto: o planeta fica em primeiro plano. */
+    function poseProjeto(id) {
+      const n = nos.find(x => x.id === id); if (!n) return null;
+      const P = n.grupo.getWorldPosition(new THREE.Vector3()), rr = Math.hypot(P.x, P.z), dz = rr + ESC * 2.4;
+      return { dist: dz / cam.z, alt: (P.y + ESC * .7) / dz, orbita: Math.atan2(P.x, P.z), fov: 36, ponto: P };
+    }
+    /**
+     * Portal (Zentry): uma janela em perspectiva, contorno fino na cor de --linha, presa a um ponto da cena, que mostra
+     * AO VIVO (WebGLRenderTarget) a mesma cena vista da `pose` de destino. progresso(0..1) a expande até cobrir a tela;
+     * em 1 ela mostra exatamente o que a câmera verá ao assumir a pose — quem chama troca a câmera e fecha o portal.
+     * Segue o ponteiro com inclinação de até 3° (só com mouse; no toque, nada). O render target só existe enquanto o portal existe.
+     *   op: { origem: () => Vector3 (mundo), pose: { dist, alt, orbita, fov }, tamanho }
+     */
+    function portal(op) {
+      if (portalObj) portalObj.destruir();
+      op = op || {};
+      const rt = new THREE.WebGLRenderTarget(o.leve ? 256 : 512, o.leve ? 256 : 512, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+      const camB = new THREE.PerspectiveCamera(40, 1, .1, 400);
+      const g = new THREE.Group(); g.renderOrder = 30;
+      const mat = new THREE.MeshBasicMaterial({ map: rt.texture, color: new THREE.Color(1.25, 1.25, 1.25), transparent: true, opacity: 0, depthTest: false, depthWrite: false });
+      const tela = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); tela.renderOrder = 30;
+      const cantos = [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]].map(([x, y]) => new THREE.Vector3(x, y, 0));
+      const bordaMat = new THREE.LineBasicMaterial({ color: 0xffaa64, transparent: true, opacity: 0, depthTest: false });
+      const borda = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(cantos), bordaMat); borda.renderOrder = 31;
+      g.add(tela, borda); scene.add(g);
+      const comHover = !!(window.matchMedia && matchMedia('(hover: hover)').matches);
+      const st = { p: 0, abre: { v: 0 }, tx: 0, ty: 0 }, origem = new THREE.Vector3(), frente = new THREE.Vector3(), dir = new THREE.Vector3();
+      const tam = op.tamanho || ESC * 1.6;
+      if (reduzido) st.abre.v = 1; else gsap.to(st.abre, { v: 1, duration: .6, ease: 'power2.out' });
+      const hp = {
+        quadro(d) {
+          const pose = op.pose || { dist: .5, alt: .2, orbita: 0, fov: 36 };
+          const dz = Math.max(.6, cam.z * pose.dist);
+          const pcx = pose.cx || 0, pcy = pose.cy || 0, pcz = pose.cz || 0;
+          camB.position.set(pcx + Math.sin(pose.orbita) * dz, pcy + dz * pose.alt, pcz + Math.cos(pose.orbita) * dz); camB.lookAt(pcx, pcy, pcz);
+          camB.fov = pose.fov || 40; camB.aspect = h ? w / h : 1; camB.updateProjectionMatrix();
+          // posição: da origem na cena até logo à frente da câmera; tamanho: da janela inicial até cobrir o quadro todo
+          if (op.origem) origem.copy(op.origem()); else origem.set(0, 0, 0);
+          camera.getWorldDirection(dir); const dPerto = 1.2; frente.copy(camera.position).addScaledVector(dir, dPerto);
+          const e = st.p * st.p * (3 - 2 * st.p);
+          g.position.lerpVectors(origem, frente, e);
+          const asp = camera.aspect || 1, hCheio = 2 * dPerto * Math.tan(camera.fov * Math.PI / 360) * 1.04;
+          const altura = tam + (hCheio - tam) * e;
+          g.scale.set(altura * asp, altura, 1);
+          g.quaternion.copy(camera.quaternion);
+          const alvoX = comHover && ptr.dentro ? -ptr.my * .052 : 0, alvoY = comHover && ptr.dentro ? ptr.mx * .052 : 0;   // ~3°
+          const k = 1 - Math.exp(-d * 2.6); st.tx += (alvoX - st.tx) * k; st.ty += (alvoY - st.ty) * k;
+          g.rotateX(st.tx * (1 - e)); g.rotateY(st.ty * (1 - e));
+          mat.opacity = st.abre.v; bordaMat.opacity = .5 * st.abre.v * (1 - e);
+          g.visible = false; renderer.setRenderTarget(rt); renderer.render(scene, camB); renderer.setRenderTarget(null); g.visible = true;
+        },
+        progresso(p) { st.p = Math.max(0, Math.min(1, p || 0)); if (reduzido) estatico(); },
+        pose: () => op.pose,
+        destruir() { scene.remove(g); tela.geometry.dispose(); mat.dispose(); borda.geometry.dispose(); bordaMat.dispose(); rt.dispose(); if (portalObj === hp) portalObj = null; },
+      };
+      portalObj = hp;
+      if (reduzido) estatico();
+      return hp;
+    }
     /** Acrescenta um ShaderPass depois do brilho. Devolve o passe, ou null se não há pós-processamento. */
     function passe(shader) {
       if (!comp || !THREE.ShaderPass) return null;
@@ -685,7 +755,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, scene, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

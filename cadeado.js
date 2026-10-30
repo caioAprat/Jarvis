@@ -20,6 +20,8 @@
   function destravado() { const t = Number(localStorage.getItem(LS_ATE) || 0); return Date.now() < t; }
   function destravar() { try { localStorage.setItem(LS_ATE, String(Date.now() + VALIDADE_H * 36e5)); } catch (e) {} }
   function travar() { try { localStorage.removeItem(LS_ATE); } catch (e) {} }
+  /** A conferência do PIN (a mesma de sempre): acertou → destrava por 12 h e devolve true. Usada pela tela antiga e pela cena da narrativa. */
+  function tentar(valor) { if (String(valor) === PIN) { destravar(); return true; } return false; }
 
   if (!document.getElementById('cadeado-css')) {
     const s = document.createElement('style'); s.id = 'cadeado-css';
@@ -54,11 +56,11 @@
     const campo = el.querySelector('#cadeadoPin'), erro = el.querySelector('#cadeadoErro'), form = el.querySelector('#cadeadoForm');
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
-      if (campo.value === PIN) { destravar(); aoEntrar(); }
+      if (tentar(campo.value)) aoEntrar();
       else { erro.textContent = 'PIN errado.'; campo.value = ''; campo.focus(); }
     });
     setTimeout(() => campo.focus(), 30);
   }
 
-  window.Cadeado = { destravado, destravar, travar, pedir };
+  window.Cadeado = { destravado, destravar, travar, tentar, pedir, tamanho: PIN.length };
 })();

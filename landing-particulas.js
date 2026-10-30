@@ -22,16 +22,16 @@
     '  p.x += sin(uTime * .06 + aFase) * (1.6 + aCamada * 1.2);',
     '  p.y += cos(uTime * .05 + aFase * 1.3) * (1.1 + aCamada * .9);',
     '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
-    '  gl_PointSize = aTam * (260.0 / -mv.z);',
+    '  gl_PointSize = min(aTam * (260.0 / -mv.z), 14.0);',          // perto da câmera não vira mancha
     '  gl_Position = projectionMatrix * mv;',
     '}',
   ].join('\n');
   const FRAG = [
-    'varying vec3 vCor; varying float vCamada; uniform sampler2D uMapa;',
+    'varying vec3 vCor; varying float vCamada; uniform sampler2D uMapa; uniform float uInt;',
     'void main() {',
     '  vec4 t = texture2D(uMapa, gl_PointCoord);',
     '  float op = t.a * (vCamada < .5 ? .9 : .4);',    // camada 0 = principal/secundária; 1 = fundo, mais fraca
-    '  gl_FragColor = vec4(vCor, op);',
+    '  gl_FragColor = vec4(vCor, op * uInt);',
     '}',
   ].join('\n');
 
@@ -67,7 +67,7 @@
     geo.setAttribute('aCor', new THREE.BufferAttribute(cor, 3));
     geo.setAttribute('aCamada', new THREE.BufferAttribute(camada, 1));
     const mat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uMapa: { value: texturaPonto() } }, vertexShader: VERT, fragmentShader: FRAG,
+      uniforms: { uTime: { value: 0 }, uMapa: { value: texturaPonto() }, uInt: { value: 1 } }, vertexShader: VERT, fragmentShader: FRAG,
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     });
     const pontos = new THREE.Points(geo, mat);
@@ -90,7 +90,7 @@
       for (let i = 0; i < n * 3; i++) { if (Math.abs(empurro[i]) > 1e-4) mexeu = true; empurro[i] *= Math.pow(.06, d); pos[i] = base[i] + empurro[i]; }
       if (mexeu) geo.attributes.position.needsUpdate = true;
     }
-    return { pontos, quadro, perto, longe, destruir: () => { cena.remove(pontos); geo.dispose(); mat.dispose(); } };
+    return { pontos, quadro, perto, longe, intensidade: (v) => { mat.uniforms.uInt.value = v; }, destruir: () => { cena.remove(pontos); geo.dispose(); mat.dispose(); } };
   }
 
   window.LandingParticulas = { montar };
