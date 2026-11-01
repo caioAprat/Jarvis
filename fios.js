@@ -8,6 +8,7 @@
   const VERT = `
     uniform float uTime, uAmp;
     uniform vec3 uDelta;
+    uniform vec2 uMouse;
     attribute float aTipo, aPercurso, aAncora;
     attribute vec3 aCor;
     varying vec2 vUv;
@@ -17,7 +18,7 @@
       vUv = uv; vTipo = aTipo; vCor = aCor; vPercurso = aPercurso;
       vec3 p = position + uDelta * aAncora;
       float janela = smoothstep(0., .12, aPercurso) * (1. - smoothstep(.7, 1., aPercurso));
-      float s = sin(uTime * 1.25 + p.x * .35 + p.z * .28) * uAmp * janela;
+      float s = (sin(uTime * 1.25 + p.x * .35 + p.z * .28) + (uMouse.x * sin(p.z * .2) + uMouse.y) * .3) * uAmp * janela;
       p.y += s; p.x += s * .4;
       vMundo = (modelMatrix * vec4(p, 1.)).xyz;
       vNormal = normalize(mat3(modelMatrix) * normal);
@@ -60,7 +61,7 @@
     const recursos = new Set();
     function material(comprimento) {
       const mat = new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG,
-        uniforms: { uTime: { value: 0 }, uAmp: { value: 0 }, uDelta: { value: new THREE.Vector3() },
+        uniforms: { uTime: { value: 0 }, uAmp: { value: 0 }, uDelta: { value: new THREE.Vector3() }, uMouse: { value: new THREE.Vector2() },
           uAcende: { value: 0 }, uEscala: { value: E }, uComprimento: { value: comprimento } } });
       recursos.add(mat); return mat;
     }
@@ -169,19 +170,92 @@
       const curva = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', .5);
       chao.push(criarCabo(curva, ESP[(i + 1) % 3], 96, null, i, true));
     }
-    // ------------------------------------------------------------ pacotes de arquivos nos esticados
-    const NP = leve ? 4 : 6, total = nEst * NP;
-    const pPos = new Float32Array(total * 3), pCor = new Float32Array(total * 3), pTam = new Float32Array(total);
-    const pac = [];
-    for (let i = 0; i < total; i++) pac.push({ f: i % nEst, u: rnd(), v: .12 + rnd() * .16, dir: rnd() < .5 ? 1 : -1 });
+    // Poeira: trajetos amostrados uma vez; milhares de posições calculadas no vertex shader.
+    const lista = () => esticados.concat(chao), N = nEst + nChao, AMOSTRAS = 128;
+    const dadosCurvas = new Float32Array(AMOSTRAS * N * 4);
+    const texturaCurvas = new THREE.DataTexture(dadosCurvas, AMOSTRAS, N, THREE.RGBAFormat, THREE.FloatType);
+    texturaCurvas.minFilter = texturaCurvas.magFilter = THREE.NearestFilter;
+    recursos.add(texturaCurvas);
+    function gravarCurvas() {
+      lista().forEach((f, i) => {
+        for (let k = 0; k < AMOSTRAS; k++) {
+          const u = k / (AMOSTRAS - 1);
+          const p = f.extensao && u < .16 ? f.extensao.getPointAt(u / .16) : f.curva.getPointAt(f.extensao ? (u - .16) / .84 : u);
+          const off = (i * AMOSTRAS + k) * 4;
+          dadosCurvas[off] = p.x; dadosCurvas[off + 1] = p.y; dadosCurvas[off + 2] = p.z; dadosCurvas[off + 3] = 1;
+        }
+      });
+      texturaCurvas.needsUpdate = true;
+    }
+    gravarCurvas();
+    const total = leve ? 2400 : 8000;
+    const ids = new Float32Array(total), sementes = new Float32Array(total * 4), cores = new Float32Array(total * 3);
+    for (let i = 0; i < total; i++) {
+      ids[i] = i % N;
+      for (let j = 0; j < 4; j++) sementes[i * 4 + j] = rnd();
+      const sorte = rnd(), c = new THREE.Color(sorte < .025 ? COR.ok : sorte < .05 ? COR.atencao : sorte < .42 ? CREME : PRI);
+      c.toArray(cores, i * 3);
+    }
     const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute('color', new THREE.BufferAttribute(pCor, 3)); pGeo.setAttribute('size', new THREE.BufferAttribute(pTam, 1));
+    pGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(total * 3), 3));
+    pGeo.setAttribute('aCabo', new THREE.BufferAttribute(ids, 1));
+    pGeo.setAttribute('aSemente', new THREE.BufferAttribute(sementes, 4));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(cores, 3));
+    const revelacoes = new Float32Array(N), amplitudes = new Float32Array(N), deltas = Array.from({ length: N }, () => new THREE.Vector3());
+    const cursor = new THREE.Vector2(), cursorAlvo = new THREE.Vector2();
     const pMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
-      uniforms: { uVis: { value: 0 } },
-      vertexShader: 'attribute float size; varying vec3 vC; void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.); gl_PointSize = min(size * (220. / -mv.z), 18.); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'uniform float uVis; varying vec3 vC; void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard; gl_FragColor = vec4(vC * smoothstep(.5, 0., d) * 1.6 * uVis, 1.); }' });
-    const pontos = new THREE.Points(pGeo, pMat); pontos.frustumCulled = false; grupo.add(pontos);
-    const cPri = new THREE.Color(PRI), cCre = new THREE.Color(CREME), tmp = new THREE.Vector3();
+      uniforms: { uCurvas: { value: texturaCurvas }, uTime: { value: 0 }, uEscala: { value: E },
+        uReveal: { value: revelacoes }, uAmplitude: { value: amplitudes }, uDelta: { value: deltas },
+        uMouse: { value: cursor }, uPixel: { value: Math.min(1.5, dep.renderer ? dep.renderer.getPixelRatio() : 1) }, uVis: { value: 0 } },
+      vertexShader: `
+        uniform sampler2D uCurvas;
+        uniform float uTime, uEscala, uPixel, uVis;
+        uniform float uReveal[${N}], uAmplitude[${N}];
+        uniform vec3 uDelta[${N}];
+        uniform vec2 uMouse;
+        attribute float aCabo;
+        attribute vec4 aSemente;
+        varying vec3 vCor;
+        varying float vBrilho;
+        vec3 ponto(float u) {
+          float x = clamp(u, 0., 1.) * ${AMOSTRAS - 1}.;
+          float linha = (aCabo + .5) / ${N}.;
+          vec3 a = texture2D(uCurvas, vec2((floor(x) + .5) / ${AMOSTRAS}., linha)).xyz;
+          vec3 b = texture2D(uCurvas, vec2((min(floor(x) + 1., ${AMOSTRAS - 1}.) + .5) / ${AMOSTRAS}., linha)).xyz;
+          return mix(a, b, fract(x));
+        }
+        void main() {
+          int id = int(aCabo);
+          float u = fract(aSemente.x + uTime * (.035 + aSemente.y * .055));
+          float percurso = aCabo >= ${nEst}. ? max(0., (u - .16) / .84) : u;
+          float ancora = aCabo < ${nEst}. ? 1. - smoothstep(0., .18, percurso) : 0.;
+          vec3 p = ponto(u) + uDelta[id] * ancora;
+          vec3 tangente = normalize(ponto(min(1., u + .008)) - ponto(max(0., u - .008)));
+          vec3 ref = abs(tangente.y) > .9 ? vec3(1., 0., 0.) : vec3(0., 1., 0.);
+          vec3 lateral = normalize(cross(tangente, ref)), vertical = cross(tangente, lateral);
+          float solto = pow(max(0., sin(uTime * .35 + aSemente.w * 37.)), 12.);
+          float raio = (.035 + aSemente.z * .14 + solto * .32) * uEscala;
+          float angulo = aSemente.w * 6.28318 + uTime * (.3 + aSemente.z);
+          p += (lateral * cos(angulo) + vertical * sin(angulo)) * raio;
+          float janela = smoothstep(0., .12, percurso) * (1. - smoothstep(.7, 1., percurso));
+          vec3 centro = ponto(u) + uDelta[id] * ancora;
+          float s = (sin(uTime * 1.25 + centro.x * .35 + centro.z * .28) + (uMouse.x * sin(centro.z * .2) + uMouse.y) * .3) * uAmplitude[id] * janela;
+          p.y += s; p.x += s * .4;
+          vec4 mv = modelViewMatrix * vec4(p, 1.);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = clamp((.8 + aSemente.z * 1.7) * uPixel * 32. / max(1., -mv.z), .65, 4.);
+          vCor = color;
+          vBrilho = (.25 + aSemente.y * .6) * (1. - solto * .6) * (.7 + uVis * .3);
+          if (uReveal[id] <= .001 || percurso > uReveal[id]) { gl_Position = vec4(2., 2., 2., 1.); vBrilho = 0.; }
+        }`,
+      fragmentShader: `varying vec3 vCor; varying float vBrilho;
+        void main(){ float r = length(gl_PointCoord - .5); if(r > .5) discard;
+          gl_FragColor = vec4(vCor * vBrilho, smoothstep(.5, .08, r)); }` });
+    recursos.add(pGeo); recursos.add(pMat);
+    const pontos = new THREE.Points(pGeo, pMat); pontos.name = 'poeira-cabos'; pontos.frustumCulled = false; grupo.add(pontos);
+    const mover = ev => { cursorAlvo.set(ev.clientX / innerWidth * 2 - 1, 1 - ev.clientY / innerHeight * 2); };
+    const sairCursor = () => cursorAlvo.set(0, 0);
+    addEventListener('pointermove', mover, { passive: true }); addEventListener('pointerout', sairCursor, { passive: true });
 
     // ------------------------------------------------------------ controle
     const est = { chao: 0, est: 0, pac: 0 };
@@ -193,7 +267,7 @@
     function acenderEsticados(v) { est.est = v; revelar(esticados, v); pilares.forEach(p => { p.mat.opacity = .08 + .22 * v; }); }
     function pacotes(v) { est.pac = v; pMat.uniforms.uVis.value = v; }
     function status(projetos) { esticados.forEach(f => { const p = projetos.find(x => x.id === f.id); if (p && f.ponta) f.ponta.material.color.setHex(COR[p.status] || COR.aguardando); }); }
-    function refazer() { montarEsticados(); revelar(esticados, est.est); }
+    function refazer() { montarEsticados(); gravarCurvas(); revelar(esticados, est.est); }
     let ultimaCam = new THREE.Vector3(); let agito = 0;
     function quadro(t, d) {
       const cam = dep.camera.position; agito = Math.max(agito * Math.pow(.2, d), Math.min(1, cam.distanceTo(ultimaCam) / (d * 40 + 1e-4))); ultimaCam.copy(cam);
@@ -205,17 +279,17 @@
         const alvo = f.modulo.g.localToWorld(new THREE.Vector3(0, .5 * E, 0));
         f.mat.uniforms.uDelta.value.copy(alvo).sub(f.inicio);
       });
-      if (est.pac <= 0) return;
-      for (let i = 0; i < total; i++) {
-        const q = pac[i], f = esticados[q.f]; if (!f) continue;
-        if (!movimento.matches) { q.u += d * q.v * q.dir; if (q.u > 1) q.u -= 1; if (q.u < 0) q.u += 1; }
-        const lim = f.mat.uniforms.uAcende.value; const u = q.u * lim;
-        f.curva.getPointAt(Math.min(1, u), tmp); pPos[i * 3] = tmp.x; pPos[i * 3 + 1] = tmp.y; pPos[i * 3 + 2] = tmp.z;
-        const c = q.dir > 0 ? cPri : cCre, e = Math.sin(q.u * Math.PI); pCor[i * 3] = c.r * e; pCor[i * 3 + 1] = c.g * e; pCor[i * 3 + 2] = c.b * e;
-        pTam[i] = (1.6 + (q.f % 3) * .5) * (leve ? .8 : 1.2) * (lim > .02 ? 1 : 0);
-      }
-      pGeo.attributes.position.needsUpdate = pGeo.attributes.color.needsUpdate = pGeo.attributes.size.needsUpdate = true;
+      cursor.lerp(cursorAlvo, 1 - Math.exp(-Math.max(d, .001) * 5));
+      lista().forEach((f, i) => {
+        f.mat.uniforms.uMouse.value.copy(cursor);
+        revelacoes[i] = f.mat.uniforms.uAcende.value;
+        amplitudes[i] = f.mat.uniforms.uAmp.value;
+        deltas[i].copy(f.mat.uniforms.uDelta.value);
+      });
+      pMat.uniforms.uTime.value = t;
+      pGeo.setDrawRange(0, Math.max(600, Math.floor(total / Math.pow(1.65, mapa.qualidade ? mapa.qualidade() : 0))));
     }
+
     function mostrar(v) { grupo.visible = !!v; }
     return { grupo, acenderChao, acenderEsticados, pacotes, status, refazer, quadro, mostrar, contagem: () => ({ esticados: esticados.length, chao: chao.length }) };
   }
