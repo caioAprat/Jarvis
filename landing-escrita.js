@@ -2,6 +2,7 @@
 /** Letras com espaço reservado. A cena 3D e a sua linha do tempo não dependem deste módulo. */
 (function () {
   const movimento = matchMedia('(prefers-reduced-motion: reduce)');
+  const animando = new Set();
   const GLIFOS = '01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   if (window.gsap && window.ScrambleTextPlugin && window.SplitText) gsap.registerPlugin(ScrambleTextPlugin, SplitText);
   const css = document.createElement('style');
@@ -17,6 +18,7 @@
 
   // O original conserva os campos/canvas e os efeitos antigos. Só as letras usam a camada irmã.
   function superficie(el) {
+    if (el._superficie) return el._superficie;
     const cena = el.closest('.narr-cena');
     if (!cena || movimento.matches) return el;
     if (!cena._textoCamada) {
@@ -44,6 +46,7 @@
     return el._superficie || el;
   }
   function cancelar(el) {
+    animando.delete(el);
     el._geracao = (el._geracao || 0) + 1;
     if (el._tl) { el._tl.kill(); el._tl = null; }
     if (el._resolver) { el._resolver(false); el._resolver = null; }
@@ -70,16 +73,17 @@
     alvo.style.color = op.cor || '';
     const vis = alvo.querySelector('.esc-vis');
     if (!vis) return false;
-    vis.textContent = el._texto; vis.style.opacity = '.85';
-    if (movimento.matches || !window.gsap || !window.SplitText || !window.ScrambleTextPlugin) { el.dataset.escrito = '1'; return true; }
+    vis.textContent = el._texto; vis.style.opacity = '0';
+    if (movimento.matches || !window.gsap || !window.SplitText || !window.ScrambleTextPlugin) { vis.style.opacity = '.85'; el.dataset.escrito = '1'; return true; }
     // Medir somente depois da fonte chegar evita larguras erradas e saltos de linha.
     if (document.fonts) { try { await document.fonts.load(getComputedStyle(alvo).font, el._texto); } catch (e) {} }
     if (geracao !== el._geracao || !el.isConnected) return false;
-    const split = el._split = new SplitText(vis, { type: 'chars', charsClass: 'esc-char', aria: 'none' });
-    split.chars.forEach(ch => { ch.style.width = ch.getBoundingClientRect().width + 'px'; });
+    vis.style.opacity = '.85';
+    const split = el._split = new SplitText(vis, { type: 'words,chars', charsClass: 'esc-char', aria: 'none' });
+    split.chars.forEach(ch => { ch.style.width = ch.getBoundingClientRect().width + 'px'; ch.style.letterSpacing = '0'; });
     return new Promise(resolve => {
-      el._resolver = resolve;
-      const tl = el._tl = gsap.timeline({ onComplete: () => { el.dataset.escrito = '1'; el._resolver = null; resolve(true); } });
+      el._resolver = resolve; animando.add(el);
+      const tl = el._tl = gsap.timeline({ onComplete: () => { animando.delete(el); el.dataset.escrito = '1'; el._resolver = null; resolve(true); } });
       split.chars.forEach((ch, i) => {
         const final = ch.textContent;
         ch.textContent = GLIFOS[Math.floor(Math.random() * GLIFOS.length)];
@@ -94,12 +98,16 @@
     const alvo = el._superficie || el, vis = alvo.querySelector('.esc-vis');
     if (!vis) return;
     if (movimento.matches || !window.gsap) { vis.style.opacity = '0'; return; }
-    const estado = { p: 0 };
-    el._tl = gsap.to(estado, { p: 1, duration: .25, ease: 'none', onUpdate: () => {
-      vis.style.opacity = String(.85 * (1 - estado.p));
-      vis.textContent = [...el._texto].map(c => /\s/.test(c) ? c : GLIFOS[Math.floor(Math.random() * GLIFOS.length)]).join('');
-    } });
+    if (!window.SplitText || !window.ScrambleTextPlugin) { vis.style.opacity = '0'; return; }
+    const split = el._split = new SplitText(vis, { type: 'words,chars', charsClass: 'esc-char', aria: 'none' });
+    split.chars.forEach(ch => { ch.style.width = ch.getBoundingClientRect().width + 'px'; ch.style.letterSpacing = '0'; });
+    animando.add(el);
+    el._tl = gsap.timeline({ onComplete: () => animando.delete(el) })
+      .to(vis, { opacity: 0, duration: .25, ease: 'none' }, 0);
+    split.chars.forEach(ch => el._tl.to(ch, { duration: .25,
+      scrambleText: { text: GLIFOS[Math.floor(Math.random() * GLIFOS.length)], chars: GLIFOS, speed: 1 }, ease: 'none' }, 0));
   }
+
   function zerar(el) {
     cancelar(el); el.dataset.escrito = ''; el.dataset.saindo = '';
     const vis = (el._superficie || el).querySelector('.esc-vis');
@@ -113,5 +121,13 @@
     cena.querySelectorAll('.mom-g,.mom-p').forEach(zerar);
     cena._textoCamada = null;
   }
+  movimento.addEventListener('change', () => {
+    if (!movimento.matches) return;
+    [...animando].forEach(el => {
+      cancelar(el);
+      const vis = (el._superficie || el).querySelector('.esc-vis');
+      if (vis) { vis.textContent = el._texto || ''; vis.style.opacity = el.dataset.saindo === '1' ? '0' : '.85'; }
+    });
+  });
   window.Escrita = { grande, pequeno, decodificar: pequeno, preparar, sair, zerar, liberar, get reduzido() { return movimento.matches; } };
 })();

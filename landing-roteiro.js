@@ -266,6 +266,7 @@
     }
     function montarAcesso() {
       const c = cena('acesso'); if (!c) return;
+      Escrita.liberar(c.el);
       modoAcesso = api.acesso();
       if (modoAcesso === 'livre') { c.el.innerHTML = ''; acesso = null; return; }
       acesso = LandingAcesso.montar(c.el, { modo: modoAcesso,
@@ -322,16 +323,23 @@
     let primeira = true;
     async function escrever(c) {
       if (c.escrito) return; c.escrito = true;
+      const rodada = c.rodada = (c.rodada || 0) + 1;
       if (primeira && c.ini === 0 && !reduzido) { primeira = false; await new Promise(r => setTimeout(r, 900)); }   // o núcleo entra e se firma; só então a palavra se escreve
+      if (!c.escrito || c.rodada !== rodada || !c.el.isConnected) return;
       if (c.id === 'acesso') { if (acesso) { await acesso.escrever(); if (!('ontouchstart' in window)) acesso.focar(); } return; }
       const T = textos(c.id); c.vers = JSON.stringify(T);
       Escrita.preparar(c.partes.g, T.g); Escrita.preparar(c.partes.p, T.p);
+      if (c.tela) {
+        const tempoAnterior = reduzido ? 0 : 1.05 + Math.max(0, String(T.g || '').length - 1) * .055 + Math.min(1.1, .45 + String(T.p || '').length * .012);
+        setTimeout(() => { if (c.escrito && c.rodada === rodada) c.el.classList.add('pronto'); }, tempoAnterior * 1000);
+      }
       if (c.partes.g && T.g !== undefined) { c.partes.g.classList.toggle('medio', !!T.medio); if (!await Escrita.grande(c.partes.g, T.g, { cor: T.cor })) return; }
+      if (!c.escrito || c.rodada !== rodada) return;
       if (c.partes.p) await Escrita.decodificar(c.partes.p, T.p);
-      c.el.classList.add('pronto');
+      if (!c.tela) c.el.classList.add('pronto');
     }
     function zerar(c) {
-      if (!c.escrito) return; c.escrito = false; c.el.classList.remove('pronto');
+      if (!c.escrito) return; c.escrito = false; c.rodada = (c.rodada || 0) + 1; c.el.classList.remove('pronto');
       if (c.id === 'acesso') { if (acesso) acesso.zerar(); return; }
       if (c.partes.g) Escrita.zerar(c.partes.g); if (c.partes.p) Escrita.zerar(c.partes.p);
     }
@@ -350,8 +358,8 @@
         aplicarPlano(c, s > .84 ? 1 : 0);
         // Mesma janela da cena: só os caracteres saem, sem transformar a camada das letras.
         if (c.escrito && (s > .97 || s < 0)) {
-          [c.partes.g, c.partes.p].forEach(Escrita.sair);
-        } else if (c.escrito && s >= 0 && s < .97 && c.partes.g && c.partes.g.dataset.saindo === '1') {
+          c.el.querySelectorAll('.mom-g,.mom-p').forEach(Escrita.sair);
+        } else if (c.escrito && s >= 0 && s < .97 && c.el.querySelector('[data-saindo="1"]')) {
           zerar(c); escrever(c);
         }
         if (c.tela) c.tela.ativar(v > .5 && c.escrito);
@@ -543,7 +551,7 @@
       const linhas = [MapaVivo.limpar(p.nome), p.detalhe ? MapaVivo.limpar(p.detalhe) : '', p.disp7 != null ? Math.round(p.disp7 * 10) / 10 + '% no ar em 7 dias' : ''];
       if ((id === 'painel' || id === 'assistente') && fin) linhas.push('livre ' + real(fin.livre) + ' até ' + dm(fin.diaMenor) + ' · conta ' + real(fin.conta));
       const est = { ok: 'No ar', atencao: 'Atenção', erro: 'Problema', pausado: 'Pausado', config: 'Configurar', aguardando: 'Aguardando' };
-      Escrita.grande(camadaProj.querySelector('[data-g]'), est[p.status] || p.status, { cor: COR_STATUS[p.status] }).then(() => Escrita.pequeno(camadaProj.querySelector('[data-p]'), linhas.filter(Boolean).join(' · ')));
+      Escrita.grande(camadaProj.querySelector('[data-g]'), est[p.status] || p.status, { cor: COR_STATUS[p.status] }).then(ok => { if (ok && camadaProj) Escrita.pequeno(camadaProj.querySelector('[data-p]'), linhas.filter(Boolean).join(' · ')); });
       camadaProj.querySelector('.proj-sair').addEventListener('click', sairProjeto);
       api.abrirPainel(id);
       addEventListener('keydown', escProjeto); addEventListener('wheel', sairProjeto, { once: true, passive: true }); addEventListener('touchmove', sairProjeto, { once: true, passive: true });
@@ -552,7 +560,7 @@
     function sairProjeto() {
       if (!projeto) return;
       removeEventListener('keydown', escProjeto); removeEventListener('wheel', sairProjeto); removeEventListener('touchmove', sairProjeto);
-      projeto = null; if (camadaProj) { camadaProj.remove(); camadaProj = null; }
+      projeto = null; if (camadaProj) { Escrita.liberar(camadaProj); camadaProj.remove(); camadaProj = null; }
       cenas.forEach(c => { c.el.style.visibility = ''; });
       api.abrirPainel('');
       if (!cine || !window.gsap) { voando = false; travarRolagem(false); if (mapa) mapa.congelar(0); aplicar(atual.p); return; }
@@ -567,9 +575,10 @@
     // ------------------------------------------------------------ fim da narrativa / ir direto
     function terminar() {
       if (!ativa) return; ativa = false;
-      if (projeto) { projeto = null; if (camadaProj) camadaProj.remove(); }
+      if (projeto) { projeto = null; if (camadaProj) { Escrita.liberar(camadaProj); camadaProj.remove(); } }
       if (trigger) { trigger.kill(); trigger = null; }
       if (portalDados) { portalDados.destruir(); portalDados = null; }
+      cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
       if (proto) proto.aparecer(0); if (fios) fios.mostrar(false); if (planeta) planeta.mostrar(0);
