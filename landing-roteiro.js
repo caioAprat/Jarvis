@@ -368,8 +368,7 @@
         const c = cena('acesso');
         if (modoAcesso === 'livre' && c) {
           const pp = Math.max(0, Math.min(1, (p - (c.ini + (c.fim - c.ini) * .25)) / ((c.fim - c.ini) * .7)));
-          if (pp > 0 && !portalDados) criarPortalDados();
-          if (portalDados) { portalDados.progresso(pp); if (pp >= .999 && !emPortal) trocarParaB(); if (pp <= 0 && portalDados) { portalDados.destruir(); portalDados = null; } }
+          if(pp>=.999)trocarParaB();
         }
       }
     }
@@ -474,60 +473,11 @@
       aplicar(0);
     }
 
-    // ------------------------------------------------------------ portal 1: núcleo → ambiente dos dados
-    let portalDados = null;
-    function poseB0() { const k = chavesB()[0]; return { dist: k.d, alt: k.a, orbita: k.o, fov: k.f, cx: 0, cy: 0, cz: 0 }; }
-    function criarPortalDados() {
-      if (!mapa || !mapa.portal) return null;
-      portalDados = mapa.portal({ origem: () => new THREE.Vector3(0, 0, 0), pose: poseB0() });
-      return portalDados;
-    }
-    function abrirPortalDados() {
-      if (emPortal) return;
-      if (reduzido || !mapa || !mapa.portal || !window.gsap) { trocarParaB(); return; }
-      travarRolagem(true);
-      const ca = cena('acesso'); if (ca) gsap.to(ca.el, { opacity: 0, duration: .45, ease: 'power2.out' });   // a pergunta sai; só o portal fica
-      const pd = portalDados || criarPortalDados();
-      if (!pd) { trocarParaB(); return; }
-      const est = { p: 0 };
-      gsap.to(est, { p: 1, duration: 1.6, ease: 'power2.inOut', onUpdate: () => pd.progresso(est.p), onComplete: () => { trocarParaB(); } });
-    }
-    function trocarParaB() {
-      if (emPortal) return; emPortal = true;
-      porCamera(poseB0());                                    // a câmera assume exatamente o que a janela mostrava
-      if (portalDados) { portalDados.destruir(); portalDados = null; }
-      if (passe && window.gsap && !reduzido) gsap.fromTo(pulso, { v: .9 }, { v: 0, duration: .7, ease: 'power3.out' });   // a distorção quente cobre a troca
-      montarB();
-      window.scrollTo(0, host.offsetTop);
-      if (window.ScrollTrigger) ScrollTrigger.refresh();
-      travarRolagem(false);
-      emPortal = false;
-      api.aoEntrar();
-    }
-    function travarRolagem(v) { document.documentElement.style.overflow = v ? 'hidden' : ''; }
-
-    // ------------------------------------------------------------ portal 2: planeta → projeto
-    function entrarProjeto(id) {
-      if (!ativa || trecho !== 'B' || projeto || voando || !mapa || !mapa.portal) return false;
-      let pose = null, ponto = null;
-      const mod = proto && proto.modulos.find(m => m.id === id);
-      if (mod) { ponto = mod.g.getWorldPosition(new THREE.Vector3()); pose = { dist: 2.4 * E * mob / camZ(), alt: .04, orbita: Math.atan2(ponto.x, ponto.z), fov: 34, cx: ponto.x, cy: ponto.y, cz: ponto.z }; }
-      else { const pp = mapa.poseProjeto(id); if (pp) { ponto = pp.ponto.clone(); pose = { dist: pp.dist, alt: pp.alt, orbita: pp.orbita, fov: pp.fov }; } }
-      if (!pose) return false;
-      projeto = id; travarRolagem(true); mapa.congelar(1);
-      const destino = pose;
-      const fim = () => {
-        porCamera(destino);
-        if (pd) pd.destruir();
-        if (passe && window.gsap && !reduzido) gsap.fromTo(pulso, { v: .8 }, { v: 0, duration: .6, ease: 'power3.out', onUpdate: () => { passe.uniforms.uForca.value = pulso.v; } });
-        mostrarProjeto(id);
-      };
-      const pd = reduzido ? null : mapa.portal({ origem: () => ponto, pose: destino, tamanho: 1.2 * E });
-      if (!pd) { fim(); return true; }
-      const est = { p: 0 };
-      gsap.to(est, { p: 1, duration: 1.4, ease: 'power2.inOut', onUpdate: () => pd.progresso(est.p), onComplete: fim });
-      return true;
-    }
+    // O acesso continua usando as validações originais; sem janela/câmera secundária.
+    function abrirPortalDados() { trocarParaB(); }
+    function trocarParaB() { montarB(); window.scrollTo(0,host.offsetTop); if(window.ScrollTrigger)ScrollTrigger.refresh(); api.aoEntrar(); }
+    function travarRolagem(v) { document.documentElement.style.overflow=v?'hidden':''; }
+    function entrarProjeto(id) { if(!ativa||trecho!=='B')return false; projeto=id; mostrarProjeto(id); return true; }
     let camadaProj = null;
     function mostrarProjeto(id) {
       const D = api.dados() || {}, P = D.P, p = P && P.estado.projetos.find(x => x.id === id); if (!p) return sairProjeto();
@@ -565,7 +515,6 @@
       if (!ativa) return; ativa = false;
       if (projeto) { projeto = null; if (camadaProj) camadaProj.remove(); }
       if (trigger) { trigger.kill(); trigger = null; }
-      if (portalDados) { portalDados.destruir(); portalDados = null; }
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
       if (proto) proto.aparecer(0); if (fios) fios.mostrar(false); if (planeta) planeta.mostrar(0);
