@@ -2,10 +2,13 @@
 (function(){
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   const chars='01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  function limpar(el){if(!el)return;el._tl?.kill();el._resolve?.();el._split?.revert();el._tl=el._split=el._resolve=null;el.replaceChildren();el.dataset.escrito='';}
-  function escrever(el,texto,duration=.85){
+  function limpar(el){if(!el)return;el._generation=(el._generation||0)+1;el._tl?.kill();el._resolve?.();el._split?.revert();el._tl=el._split=el._resolve=null;el.replaceChildren();el.dataset.escrito='';}
+  async function escrever(el,texto,duration=.85){
     if(!el)return Promise.resolve();limpar(el);texto=String(texto??'');el.setAttribute('aria-label',texto);
     if(reduced()||!window.ScrambleTextPlugin||!window.SplitText){el.textContent=texto;el.dataset.escrito='1';return Promise.resolve();}
+    const generation=el._generation;el.textContent=texto;
+    if(document.fonts){const style=getComputedStyle(el);await document.fonts.load(style.fontWeight+' '+style.fontSize+' '+style.fontFamily,texto||'Jarvão').catch(()=>{});await document.fonts.ready;}
+    if(el._generation!==generation)return;el.replaceChildren();
     gsap.registerPlugin(ScrambleTextPlugin,SplitText);
     const real=document.createElement('span'),vis=document.createElement('span');real.className='esc-reserva';vis.className='esc-vis';
     real.setAttribute('aria-hidden','true');vis.setAttribute('aria-hidden','true');real.textContent=vis.textContent=texto;el.append(real,vis);el.classList.add('esc-host');

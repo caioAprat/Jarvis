@@ -11,7 +11,6 @@
  *   mapa.varredura();  mapa.modo('palco' | 'fundo');  mapa.rolagem(0..1);
  *   landing (extras, desligados por padrão): mapa.cinema({dist,alt,fov,orbita}) | mapa.cinema(null);  mapa.congelar(0..1);  mapa.passe(shader)
  *   mapa.explodir(0..1);  mapa.fluxoIntensidade(1..3);  mapa.partesExplodidas() -> {casca,interior,malha,nucleo}
- *   mapa.portal({origem, pose}) -> {progresso(0..1), destruir()};  mapa.poseProjeto(id) -> pose do cinema
  */
 (function () {
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
@@ -459,7 +458,7 @@
         if (d > .03) lentos++; else lentos = Math.max(0, lentos - 1);
         if (lentos > 36) {
           lentos = 0; nivel++;
-          if (nivel === 1 && comp) comp = null;
+          if (nivel === 1 && comp) { const anterior=comp; comp=null; anterior.renderTarget1?.dispose(); anterior.renderTarget2?.dispose(); anterior.passes.forEach(p=>{p.dispose?.();p.material?.dispose();}); }
           else if (nivel <= 2) { renderer.setPixelRatio(1); pix.value = 1; renderer.setSize(w, h, false); }
           else if (nivel === 3) fluxoObjs.forEach(f => f.geometry.setDrawRange(0, Math.floor(f.geometry.attributes.position.count * .4)));
           else limite30 = true;
@@ -687,12 +686,6 @@
       const posTela = (obj) => { obj.getWorldPosition(tmp); tmp.project(camera); return { x: tmp.x * .5 + .5, y: 1 - (tmp.y * .5 + .5), atras: tmp.z > 1 }; };
       return { casca: posTela(casca), interior: posTela(interior), malha: posTela(malha), nucleo: posTela(nucleo) };
     }
-    /** Pose de câmera (no formato do cinema) que olha para o núcleo passando por trás de um projeto: o planeta fica em primeiro plano. */
-    function poseProjeto(id) {
-      const n = nos.find(x => x.id === id); if (!n) return null;
-      const P = n.grupo.getWorldPosition(new THREE.Vector3()), rr = Math.hypot(P.x, P.z), dz = rr + ESC * 2.4;
-      return { dist: dz / cam.z, alt: (P.y + ESC * .7) / dz, orbita: Math.atan2(P.x, P.z), fov: 36, ponto: P };
-    }
     /** Acrescenta um ShaderPass depois do brilho. Devolve o passe, ou null se não há pós-processamento. */
     function passe(shader) {
       if (!comp || !THREE.ShaderPass) return null;
@@ -701,7 +694,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

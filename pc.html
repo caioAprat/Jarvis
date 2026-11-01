@@ -203,6 +203,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrambleTextPlugin.min.js" integrity="sha384-QsPhgdP78a1erQNT34dj/oyh7uPCXUnT/FkptUa/56LnSGsbTBmdiAOfB7j+8K4A" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js" integrity="sha384-xb96EMJeax+NLXMC88ZBa1xAeAW+kn+horHh/zFlbMLG2UPWhMJJSlv7fi57hS+Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.11/dist/lenis.min.js" integrity="sha384-kdY9hFBPoAPpxcrLihsO3APivFOxtQwSeYdzFD5CIIfLurwhdMrEHhkQxZJDkxgk" crossorigin="anonymous"></script>
+<script src="landing-movimento.js"></script>
 <script src="landing-scroll.js"></script>
 <script src="mapa-vivo.js?v=26"></script>
 <script src="cadeado.js?v=2"></script>
@@ -673,7 +674,7 @@ function rolagemAposNarrativa() { const off = NARR ? NARR.altura() : 0; return M
 window.addEventListener('scroll', () => { if (MV && S.aba === 'geral' && acessoAtual() === 'livre') MV.rolagem(rolagemAposNarrativa()); }, { passive: true });
 /** Clicar num projeto do núcleo abre o sistema dele; sem endereço (ou sem https), abre o painel de detalhes. */
 function abrirProjeto(id) {
-  if (NARR && NARR.entrarProjeto(id)) return;          // na narrativa: portal no planeta → painel lateral
+  if (NARR && NARR.entrarProjeto(id)) return;          // na narrativa: abre o painel do projeto sem deslocar a câmera
   const p = S.P && S.P.estado.projetos.find(x => x.id === id), link = p && /^https:\/\//.test(String(p.link || '')) ? p.link : '';
   if (link) { window.open(link, '_blank', 'noopener'); return; }
   S.sel = S.sel === id ? '' : id; render();

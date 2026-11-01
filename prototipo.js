@@ -77,7 +77,13 @@
     const W = 1.7 * E, H = 1.06 * E, D = .09 * E;
     const resTela = leve ? [160, 100] : [256, 160];
     function criarModulos(projetos) {
-      modulos.forEach(m => { raiz.remove(m.g); m.tex.dispose(); });
+      modulos.forEach(m => {
+        raiz.remove(m.g);
+        const materiais = new Set();
+        m.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { materiais.add(o.material); o.material.dispose(); } });
+        for (let i = mats.length - 1; i >= 0; i--) if (materiais.has(mats[i])) mats.splice(i, 1);
+        m.tex.dispose();
+      });
       modulos.length = 0;
       projetos.forEach((p, i) => {
         const g = new THREE.Group();

@@ -23,7 +23,7 @@
       fragmentShader:`uniform float uVis;varying vec3 vB,vC;varying float vFade;void main(){float edge=min(vB.x,min(vB.y,vB.z));float width=max(fwidth(edge)*1.4,.018);float line=1.-smoothstep(.02,.02+width,edge);gl_FragColor=vec4(vC,line*vFade*uVis*.65);}`});
     const pontos=new THREE.Mesh(geo,mat);pontos.frustumCulled=false;scene.add(pontos);
     return{pontos,progresso:p=>uniforms.uProgress.value=p,quadro:(t)=>uniforms.uTime.value=t,perto:(x,z)=>uniforms.uPointer.value.set(x,0,z),longe:()=>uniforms.uPointer.value.set(1000,0,1000),intensidade:v=>uniforms.uVis.value=v,
-      qualidade:q=>geo.instanceCount=Math.max(600,Math.floor(n/(1+q))),destruir(){scene.remove(pontos);geo.dispose();mat.dispose();}};
+      qualidade:q=>geo.instanceCount=LandingMovimento.quantidade(n,q),destruir(){scene.remove(pontos);geo.dispose();mat.dispose();}};
   }
   window.LandingParticulas={montar};
 })();

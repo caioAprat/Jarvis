@@ -20,3 +20,5 @@ html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!
 .narr-cena .mom-lado{position:relative}.narr-cena:not(:nth-child(2)) .mom-lado:before,.narr-cena:not(:nth-child(2)) .mom-lado:after{content:'';position:absolute;width:12px;height:12px;border-color:var(--pri);opacity:.45;pointer-events:none}
 .narr-cena .mom-lado:before{left:-12px;top:-12px;border-top:1px solid;border-left:1px solid}.narr-cena .mom-lado:after{right:-12px;bottom:-12px;border-bottom:1px solid;border-right:1px solid}
 @media(prefers-reduced-motion:reduce){.esc-vis{position:static}}
+.narr-sem-rotulos .mv-rotulo,.narr-sem-rotulos .mv-nucleo{visibility:hidden!important;pointer-events:none!important}
+@media(min-width:701px){.narr-cena:first-child .mom-g{font-size:clamp(36px,3.4vw,54px)}.narr-cena:not(:nth-child(2)) .mom-lado{padding:24px;background:linear-gradient(110deg,rgba(8,7,6,.7),rgba(8,7,6,.18));backdrop-filter:blur(6px)}.narr-cena:nth-child(2) .mom-g{color:rgba(246,234,219,.6)}}
