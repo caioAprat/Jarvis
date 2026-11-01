@@ -19,3 +19,7 @@ testes/           node testes/testes.js  (roda antes de cada publicação)
 2. Se for `batida`, o projeto chama no fim de cada execução:
    `POST <URL>?k=<CHAVE_BATIDA>` com `{"tipo":"batida","projeto":"<id>","ok":true,"detalhe":"..."}`.
 3. `git push` → testes → publica sozinho.
+
+## Visualizar esta branch no seu PC
+
+Consulte [VISUALIZAR-LOCALMENTE.md](VISUALIZAR-LOCALMENTE.md). Instale Node.js LTS e abra `ABRIR-JARVAO.bat`: o navegador mostra a interface desta branch com dados simulados, sem configurar serviços reais.
