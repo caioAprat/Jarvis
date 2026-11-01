@@ -1,88 +1,23 @@
 'use strict';
-/**
- * JARVÃO · escrita — palavras que se escrevem (técnica Ovechkin) e texto pequeno que aparece depois.
- *
- * grande(el, texto, { cor }): monta um SVG com um <tspan> por letra; cada letra é desenhada pelo
- *   contorno (stroke-dashoffset, em laranja da marca) e depois preenchida (em --tx ou na cor de status
- *   passada). Devolve uma Promise que resolve quando terminou. O texto real fica num .sr para leitor de tela.
- * pequeno(el, texto): letras aparecem em sequência rápida (mono). Devolve Promise.
- * zerar(el): volta ao estado "ainda não escrito" (para a cena poder se escrever de novo).
- * Com prefers-reduced-motion: tudo aparece pronto, sem animação.
- *
- * Sem build: carregado por <script> em pc.html. Usa GSAP (já carregado).
- */
-(function () {
-  const NS = 'http://www.w3.org/2000/svg';
-  const reduzido = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-  function limpar(el) { if (el._tl) { el._tl.kill(); el._tl = null; } el.innerHTML = ''; el.dataset.escrito = ''; }
-
-  function grande(el, texto, op) {
-    op = op || {};
-    limpar(el);
-    texto = String(texto == null ? '' : texto);
-    const sr = document.createElement('span'); sr.className = 'sr'; sr.textContent = texto; el.appendChild(sr);
-    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'esc-svg');
-    const t = document.createElementNS(NS, 'text');
-    const fs = parseFloat(getComputedStyle(el).fontSize) || 96;
-    t.setAttribute('x', String(fs * .04)); t.setAttribute('y', String(fs * .86));
-    const letras = [];
-    for (const ch of texto) {
-      const s = document.createElementNS(NS, 'tspan'); s.textContent = ch;
-      s.setAttribute('class', 'esc-l'); t.appendChild(s); letras.push(s);
-    }
-    svg.appendChild(t); el.appendChild(svg);
-    const cor = op.cor || 'var(--tx)';
-    // dimensiona pelo texto de verdade (fonte já carregada)
-    try { const b = t.getBBox(); svg.setAttribute('viewBox', `0 0 ${Math.ceil(b.x + b.width + fs * .08)} ${Math.ceil(fs * 1.08)}`); svg.style.width = Math.ceil(b.x + b.width + fs * .08) + 'px'; svg.style.height = Math.ceil(fs * 1.08) + 'px'; } catch (e) {}
-    const L = fs * 3.2;                                                     // comprimento de traço que cobre o contorno de uma letra
-    letras.forEach(s => { s.style.fill = cor; s.style.stroke = 'var(--pri)'; s.style.strokeWidth = Math.max(1, fs / 90) + 'px'; s.style.strokeDasharray = L; });
-    if (reduzido || !window.gsap) { letras.forEach(s => { s.style.strokeDashoffset = 0; s.style.fillOpacity = 1; s.style.strokeOpacity = 0; }); el.dataset.escrito = '1'; return Promise.resolve(); }
-    letras.forEach(s => { s.style.strokeDashoffset = L; s.style.fillOpacity = 0; s.style.strokeOpacity = 1; });
-    return new Promise(res => {
-      const tl = gsap.timeline({ onComplete: () => { el.dataset.escrito = '1'; res(); } });
-      tl.to(letras, { strokeDashoffset: 0, duration: .55, ease: 'power2.inOut', stagger: .055 }, 0)
-        .to(letras, { fillOpacity: 1, duration: .35, ease: 'power1.out', stagger: .055 }, .32)
-        .to(letras, { strokeOpacity: 0, duration: .5, ease: 'power1.out', stagger: .055 }, .55);
-      el._tl = tl;
+(function(){
+  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const chars='01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function limpar(el){if(!el)return;el._tl?.kill();el._resolve?.();el._split?.revert();el._tl=el._split=el._resolve=null;el.replaceChildren();el.dataset.escrito='';}
+  function escrever(el,texto,duration=.85){
+    if(!el)return Promise.resolve();limpar(el);texto=String(texto??'');el.setAttribute('aria-label',texto);
+    if(reduced()||!window.ScrambleTextPlugin||!window.SplitText){el.textContent=texto;el.dataset.escrito='1';return Promise.resolve();}
+    gsap.registerPlugin(ScrambleTextPlugin,SplitText);
+    const real=document.createElement('span'),vis=document.createElement('span');real.className='esc-reserva';vis.className='esc-vis';
+    real.setAttribute('aria-hidden','true');vis.setAttribute('aria-hidden','true');real.textContent=vis.textContent=texto;el.append(real,vis);el.classList.add('esc-host');
+    // O texto final reserva altura/largura; somente a camada visual muda caracteres.
+    const split=new SplitText(vis,{type:'lines,words',aria:'none'});el._split=split;
+    split.words.forEach(w=>{w.style.display='inline-block';w.style.width=w.getBoundingClientRect().width+'px';w.style.whiteSpace='nowrap';});
+    return new Promise(resolve=>{el._resolve=resolve;el._tl=gsap.timeline({onComplete:()=>{el.dataset.escrito='1';el._resolve=null;resolve();}});
+      split.words.forEach((w,i)=>el._tl.to(w,{duration,scrambleText:{text:w.textContent,chars,revealDelay:.1,speed:.65},ease:'none'},i*.04));
+      if(!split.words.length)resolve();
     });
   }
-
-  function pequeno(el, texto) {
-    limpar(el);
-    texto = String(texto == null ? '' : texto);
-    if (reduzido || !window.gsap) { el.textContent = texto; el.dataset.escrito = '1'; return Promise.resolve(); }
-    const sr = document.createElement('span'); sr.className = 'sr'; sr.textContent = texto; el.appendChild(sr);
-    const vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true'); el.appendChild(vis);
-    const est = { n: 0 };
-    return new Promise(res => {
-      el._tl = gsap.to(est, { n: texto.length, duration: Math.min(1.1, .25 + texto.length * .018), ease: 'none',
-        onUpdate: () => { vis.textContent = texto.slice(0, Math.round(est.n)); },
-        onComplete: () => { vis.textContent = texto; el.dataset.escrito = '1'; res(); } });
-    });
-  }
-
-  /** Decodificação: letras embaralhadas que se resolvem da esquerda para a direita (~0,7 s) até virar o texto real. */
-  const GLIFOS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789▮/#%';
-  function decodificar(el, texto, dur) {
-    limpar(el);
-    texto = String(texto == null ? '' : texto);
-    if (reduzido || !window.gsap) { el.textContent = texto; el.dataset.escrito = '1'; return Promise.resolve(); }
-    const sr = document.createElement('span'); sr.className = 'sr'; sr.textContent = texto; el.appendChild(sr);
-    const vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true'); el.appendChild(vis);
-    const est = { k: 0 }, n = texto.length;
-    return new Promise(res => {
-      el._tl = gsap.to(est, { k: 1, duration: dur || Math.min(1.1, .45 + n * .012), ease: 'power1.inOut',
-        onUpdate: () => {
-          const pronto = Math.floor(est.k * n); let out = texto.slice(0, pronto);
-          for (let i = pronto; i < Math.min(n, pronto + 14); i++) out += texto[i] === ' ' ? ' ' : GLIFOS[(Math.random() * GLIFOS.length) | 0];
-          vis.textContent = out;
-        },
-        onComplete: () => { vis.textContent = texto; el.dataset.escrito = '1'; res(); } });
-    });
-  }
-
-  function zerar(el) { limpar(el); }
-
-  window.Escrita = { grande, pequeno, decodificar, zerar, reduzido };
+  function sair(el){if(!el||reduced()||!el._split)return;el._tl?.kill();el._resolve?.();el._tl=gsap.timeline();
+    el._split.words.forEach(w=>el._tl.to(w,{duration:.25,scrambleText:{text:chars.slice(0,Math.max(1,Math.min(w.textContent.length,chars.length))),chars,speed:1},opacity:0,ease:'none'},0));}
+  window.Escrita={grande:(el,t,op)=>{if(op?.cor)el.style.color=op.cor;return escrever(el,t,.85);},pequeno:(el,t)=>escrever(el,t,.55),decodificar:escrever,zerar:limpar,sair,reduzido:reduced()};
 })();

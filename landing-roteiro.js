@@ -52,6 +52,9 @@
       if(fios){fios.acenderChao(1);fios.acenderEsticados(Math.min(1,effective*4));fios.pacotes(1);fios.progresso?.(effective);}
       if(next!==index){if(index>=0){const old=scenes[index];Escrita.sair?.(old.g);Escrita.sair?.(old.p);}
         index=next;const s=scenes[index];if(index===3&&access)access.escrever();else{s.version='';escrever(s);}}
+      const current=scenes[index],exiting=!reduced&&Math.abs(effective*9-index)>.32;
+      if(exiting&&!current.exiting){current.exiting=true;Escrita.sair?.(current.g);Escrita.sair?.(current.p);}
+      else if(!exiting&&current.exiting){current.exiting=false;current.version='';if(index!==3||!access)escrever(current);}
       scenes.forEach((s,i)=>{const visible=reduced||i===index;s.el.inert=!visible;s.el.style.visibility=visible?'visible':'hidden';s.el.style.opacity=visible?'.88':'0';});
       if(livre&&p>.38&&!entered){entered=true;api.aoEntrar();}
     }
