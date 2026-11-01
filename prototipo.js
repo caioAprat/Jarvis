@@ -31,15 +31,10 @@
     const fio = (geo, cor, op0) => { const m = new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: op0, blending: THREE.AdditiveBlending, depthWrite: false }); m.userData.base = op0; mats.push(m); return new THREE.Mesh(geo, m); };
 
     // ------------------------------------------------------------ base
-    const base = new THREE.Group(); raiz.add(base);
-    [[5 * E, .3 * E, 5 * E, -2.25, 0], [4.2 * E, .3 * E, 4.2 * E, -2.6, .38], [6 * E, .24 * E, 3.4 * E, -2.92, -.22]].forEach(([w, h, d, y, r]) => {
-      const g = new THREE.BoxGeometry(w, h, d), s = solido(g, ESCURO, .96), l = linha(g, AMBAR, .45);
-      s.position.y = l.position.y = y * E; s.rotation.y = l.rotation.y = r; base.add(s, l);
-    });
-    const portas = [];                                 // pontos (mundo) de onde saem os fios do chão
+    // O pedestal apoiado no piso e suas portas pertencem a AmbienteControle.
+    // A estrutura energética e os monitores abaixo conservam sua geometria e animação.
+    const portas = [];
     for (let i = 0; i < 8; i++) { const a = i / 8 * 6.2832 + .2; portas.push(new THREE.Vector3(Math.cos(a) * 2.3 * E, -3 * E, Math.sin(a) * 2.3 * E)); }
-    const espinha = solido(new THREE.CylinderGeometry(.11 * E, .16 * E, .55 * E, 10), ESCURO2, 1); espinha.position.y = -1.85 * E; raiz.add(espinha);
-    const espinhaL = linha(new THREE.CylinderGeometry(.11 * E, .16 * E, .55 * E, 10), CREME, .25); espinhaL.position.y = -1.85 * E; raiz.add(espinhaL);
 
     // ------------------------------------------------------------ coração (gaiola em volta do núcleo)
     const coracao = new THREE.Group(); raiz.add(coracao);
