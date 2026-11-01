@@ -36,3 +36,7 @@ Sem React/Vue/Tailwind/UI kit, sem biblioteca de gráficos (as barras de histór
 ## Fora da interface (para referência)
 
 `sw.js` (service worker próprio, sem Workbox), Apps Script no servidor (`apps-script/`), `clasp` e GitHub Actions só para publicar.
+
+## Atualização da landing
+
+`pc.html` usa GSAP/ScrollTrigger, ScrambleTextPlugin e SplitText **3.13.0** (cdnjs, integridade SHA-384), Lenis **1.3.11** (jsDelivr, MIT) e Three.js **0.128.0**. GSAP usa licença própria gratuita, não MIT. A aplicação móvel conserva suas versões. Unbounded 300/400 e Manrope 300/400 passam a compor os textos da landing; JetBrains Mono e Michroma permanecem. `landing-scroll.js` integra Lenis ao relógio GSAP e respeita movimento reduzido.
