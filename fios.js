@@ -19,6 +19,35 @@
       const boot=new THREE.Mesh(new THREE.CylinderGeometry(raio,.052*E,.16*E,8),casco);boot.position.y=.15*E;g.add(boot);
       return g;
     }
+    let poeira=null,texturaCurvas=null,dadosCurvas=null,tempoFluxo=0;
+    function limparPoeira(){if(poeira){grupo.remove(poeira);poeira.geometry.dispose();poeira.material.dispose();poeira=null;}if(texturaCurvas){texturaCurvas.dispose();texturaCurvas=null;}}
+    function criarPoeira(){
+      limparPoeira();const n=cabos.length;if(!n)return;
+      dadosCurvas=new Float32Array(SEG*n*4);texturaCurvas=new THREE.DataTexture(dadosCurvas,SEG,n,THREE.RGBAFormat,THREE.FloatType);texturaCurvas.minFilter=texturaCurvas.magFilter=THREE.NearestFilter;
+      const total=op.leve?Math.min(2400,n*400):Math.min(9000,n*1100),sementes=new Float32Array(total*4),ids=new Float32Array(total);
+      for(let i=0;i<total;i++){ids[i]=i%n;for(let j=0;j<4;j++)sementes[i*4+j]=Math.random();}
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(total*3),3));geo.setAttribute('aSeed',new THREE.BufferAttribute(sementes,4));geo.setAttribute('aCabo',new THREE.BufferAttribute(ids,1));
+      const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+        uniforms:{uCurvas:{value:texturaCurvas},uTime:{value:0},uE:{value:E},uVis:{value:0}},
+        vertexShader:`attribute vec4 aSeed;attribute float aCabo;uniform sampler2D uCurvas;uniform float uTime,uE;varying vec3 vCor;varying float vAlpha;
+          vec3 amostra(float u){float x=clamp(u,0.,1.)*${SEG-1}.;float y=(aCabo+.5)/${n}.;vec3 a=texture2D(uCurvas,vec2((floor(x)+.5)/${SEG}.,y)).xyz;vec3 b=texture2D(uCurvas,vec2((min(floor(x)+1.,${SEG-1}.)+.5)/${SEG}.,y)).xyz;return mix(a,b,fract(x));}
+          void main(){float u=fract(aSeed.x+uTime*(.04+aSeed.y*.055));vec3 p=amostra(u);vec3 t=normalize(amostra(min(1.,u+.01))-amostra(max(0.,u-.01)));vec3 ref=abs(t.y)>.9?vec3(1,0,0):vec3(0,1,0);vec3 n=normalize(cross(t,ref)),b=cross(t,n);
+            float solto=pow(max(0.,sin(uTime*.3+aSeed.w*31.)),14.);float r=(.032+aSeed.z*.055+solto*.16)*uE;float a=aSeed.w*6.28318+uTime*.3;p+=(n*cos(a)+b*sin(a))*r;
+            vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=clamp((1.+aSeed.z*1.8)*38./max(1.,-mv.z),.7,4.);
+            vCor=aSeed.w<.015?vec3(.48,.94,.7):aSeed.w<.03?vec3(1.,.76,.28):aSeed.w<.4?vec3(1.,.88,.72):vec3(1.,.6,.3);vAlpha=(.25+aSeed.y*.65)*(1.-solto*.6);}`,
+        fragmentShader:'uniform float uVis;varying vec3 vCor;varying float vAlpha;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vCor,vAlpha*uVis*(1.-smoothstep(.08,.5,r)));}'});
+      poeira=new THREE.Points(geo,mat);poeira.name='poeira-cabos';poeira.frustumCulled=false;poeira.userData.total=total;grupo.add(poeira);
+    }
+    function materialCabo(i,comprimento){return new THREE.ShaderMaterial({uniforms:{uE:{value:E},uTime:{value:0},uVel:{value:.7+i*.11},uLength:{value:comprimento},uVis:{value:1}},
+      vertexShader:'varying vec3 vP,vN;varying vec2 vUv;void main(){vP=(modelMatrix*vec4(position,1.)).xyz;vN=normalize(mat3(modelMatrix)*normal);vUv=uv;gl_Position=projectionMatrix*viewMatrix*vec4(vP,1.);}',
+      fragmentShader:`uniform float uE,uTime,uVel,uLength,uVis;varying vec3 vP,vN;varying vec2 vUv;
+        void main(){if(fract(sin(dot(gl_FragCoord.xy,vec2(12.98,78.23)))*43758.54)>uVis)discard;
+          vec3 n=normalize(vN),l=normalize(-vP),v=normalize(cameraPosition-vP);float perto=1./(1.+dot(vP,vP)/(uE*uE)*.16);float rim=pow(1.-abs(dot(n,v)),3.);
+          float faixa=smoothstep(.79,.83,fract(vUv.x*uLength/uE*2.))*(1.-smoothstep(.95,.99,fract(vUv.x*uLength/uE*2.)))*smoothstep(.1,.4,sin(vUv.y*6.28318));
+          vec3 base=mix(vec3(.025,.023,.02),vec3(.25,.22,.18),faixa*.65);
+          float pulso=pow(max(0.,cos(vUv.x*19.-uTime*uVel*3.)),32.);
+          vec3 cor=base*(.7+max(dot(n,l),0.)*perto*2.)+vec3(1.,.4,.12)*perto*(.035+rim*.08)+vec3(1.,.88,.72)*rim*.035+vec3(1.,.5,.2)*pulso*.12;
+          gl_FragColor=vec4(cor,1.);}`});}
     function criar(a, b, i) {
       const fisica = new CordaVerlet.Corda(a.ancora.toArray(),b.ancora.toArray(),{pontos:22,chao:ambiente.CHAO,raio,folga:.18+(i%3)*.025,gravidade:.8*E});
       const geo=new THREE.BufferGeometry(), pos=new Float32Array(SEG*LADOS*3), normal=new Float32Array(pos.length), uv=new Float32Array(SEG*LADOS*2), indices=[];
@@ -28,7 +57,7 @@
       }
       geo.setAttribute('position',new THREE.BufferAttribute(pos,3).setUsage(THREE.DynamicDrawUsage));
       geo.setAttribute('normal',new THREE.BufferAttribute(normal,3).setUsage(THREE.DynamicDrawUsage));geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));geo.setIndex(indices);
-      const mat = new THREE.MeshBasicMaterial({color:0x29231c});
+      const mat = materialCabo(i,fisica.comprimento);
       const mesh=new THREE.Mesh(geo,mat);mesh.name='cabo-'+b.id;mesh.frustumCulled=false;grupo.add(mesh);
       const c={id:b.id,a,b,fisica,geo,mat,mesh,centros:new Float32Array(SEG*3),inicio:conector(),fim:conector()};cabos.push(c);atualizarTubo(c);return c;
     }
@@ -61,7 +90,7 @@
       const f=(SEG-1)*3;c.fim.position.copy(c.b.ancora);dir.set(centros[f-3]-centros[f],centros[f-2]-centros[f+1],centros[f-1]-centros[f+2]).normalize();c.fim.quaternion.setFromUnitVectors(eixo,dir);
     }
     function limpar(){cabos.forEach(c=>{grupo.remove(c.mesh,c.inicio,c.fim);c.geo.dispose();c.mat.dispose();[c.inicio,c.fim].forEach(g=>g.traverse(o=>{if(o.geometry)o.geometry.dispose();}));});cabos.length=0;}
-    function refazer(){limpar();ambiente.sincronizar();ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));}
+    function refazer(){limpar();ambiente.sincronizar();ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));criarPoeira();}
     const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),plano=new THREE.Plane(new THREE.Vector3(0,1,0),-ambiente.CHAO-.3*E),ponto=new THREE.Vector3();
     let pointerAtivo=false,vis=0,ativo=true,acumulado=0,scrollAnterior=scrollY,ultimo=performance.now();
     const mover=ev=>{pointer.set(ev.clientX/innerWidth*2-1,1-ev.clientY/innerHeight*2);pointerAtivo=true;};
@@ -74,10 +103,13 @@
       const impulso=reduzido?0:Math.max(-.35,Math.min(.35,(scrollY-scrollAnterior)*.0005));scrollAnterior=scrollY;
       cabos.forEach(c=>{const a=c.a.ancora,b=c.b.ancora;c.fisica.ancoras(a.x,a.y,a.z,b.x,b.y,b.z);c.fisica.reduzido=reduzido;c.fisica.impulso+=impulso;c.fisica.ponteiro.ativo=temPonto&&!reduzido;c.fisica.ponteiro.x=ponto.x;c.fisica.ponteiro.y=ponto.y;c.fisica.ponteiro.z=ponto.z;c.fisica.ponteiro.raio=2*E;});
       acumulado+=dt;let passos=0;while(acumulado>=1/120&&passos<6){cabos.forEach(c=>c.fisica.passo(1/120));acumulado-=1/120;passos++;}cabos.forEach(atualizarTubo);
+      tempoFluxo+=dt*(reduzido?.12:1);
+      cabos.forEach((c,i)=>{c.mat.uniforms.uTime.value=tempoFluxo;c.mat.uniforms.uVis.value=Math.min(vis,proto.visivel());for(let j=0;j<SEG;j++){const k=(i*SEG+j)*4;dadosCurvas[k]=c.centros[j*3];dadosCurvas[k+1]=c.centros[j*3+1];dadosCurvas[k+2]=c.centros[j*3+2];dadosCurvas[k+3]=1;}});
+      if(poeira){texturaCurvas.needsUpdate=true;poeira.material.uniforms.uTime.value=tempoFluxo;poeira.material.uniforms.uVis.value=Math.min(vis,proto.visivel());poeira.geometry.setDrawRange(0,Math.max(500,Math.floor(poeira.userData.total/Math.pow(1.7,mapa.qualidade()))));}
     }
     function mostrar(v){ativo=!!v;grupo.visible=!!v;ambiente.mostrar(v);}
     function acenderChao(v){vis=v;}
-    function destruir(){limpar();metal.dispose();casco.dispose();dep.scene.remove(grupo);ambiente.destruir();removeEventListener('pointermove',mover);removeEventListener('pointerleave',sair);}
+    function destruir(){limparPoeira();limpar();metal.dispose();casco.dispose();dep.scene.remove(grupo);ambiente.destruir();removeEventListener('pointermove',mover);removeEventListener('pointerleave',sair);}
     refazer();return{grupo,refazer,quadro,acenderChao,acenderEsticados(){},pacotes(){},status(){},mostrar,destruir,contagem:()=>({cabos:cabos.length})};
   }
   window.Fios={montar};
