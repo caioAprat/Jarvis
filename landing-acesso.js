@@ -37,6 +37,7 @@
       </div>`;
     const g = host.querySelector('[data-g]'), p = host.querySelector('[data-p]'), form = host.querySelector('[data-form]');
     const campo = host.querySelector('input'), aviso = host.querySelector('[data-aviso]'), orbes = host.querySelector('[data-orbes]');
+    Escrita.preparar(g, T.grande); Escrita.preparar(p, T.pequeno);
     let escrito = false, enviando = false;
 
     function pintar(erro) {
@@ -69,7 +70,7 @@
 
     async function escrever() {
       if (escrito) return; escrito = true;
-      await Escrita.grande(g, T.grande);
+      if (!await Escrita.grande(g, T.grande)) return;
       await Escrita.pequeno(p, T.pequeno);
       host.classList.add('pronto');
     }

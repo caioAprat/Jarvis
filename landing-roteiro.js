@@ -50,20 +50,16 @@
   #narrativa{position:relative;z-index:2}
   .narr-trilho{position:relative}
   .narr-fix{position:sticky;top:0;height:100vh;min-height:520px;overflow:hidden;pointer-events:none}
-  .narr-cena{position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(140px,24vw) 1fr;align-items:center;padding:0 clamp(64px,7vw,104px) 0 clamp(18px,4.5vw,64px);opacity:0;will-change:opacity,filter,transform}
-  .narr-cena .mom-esq{grid-column:1;grid-row:1;justify-self:start;min-width:0}
-  .narr-cena .mom-dir{grid-column:3;grid-row:1;justify-self:end;max-width:360px;min-width:0}
-  .narr-cena.inv .mom-esq{grid-column:3;justify-self:end;text-align:right}
-  .narr-cena.inv .mom-dir{grid-column:1;justify-self:start}
-  .mom-g{font:700 clamp(56px,9vw,140px)/1 var(--disp);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--tx);white-space:nowrap;
-    filter:drop-shadow(0 0 8px #000) drop-shadow(0 2px 3px #000);-webkit-mask-image:linear-gradient(to right,#000 72%,rgba(0,0,0,.45));mask-image:linear-gradient(to right,#000 72%,rgba(0,0,0,.45))}
-  .narr-cena.inv .mom-g{-webkit-mask-image:linear-gradient(to left,#000 72%,rgba(0,0,0,.45));mask-image:linear-gradient(to left,#000 72%,rgba(0,0,0,.45))}
-  .mom-g.medio{font-size:clamp(44px,6.4vw,104px)}
-  .esc-svg{display:block;overflow:visible;font:inherit;letter-spacing:inherit}
-  .esc-svg text{font:inherit;letter-spacing:inherit}
-  .mom-p{font:500 11.5px/1.75 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mu);text-shadow:0 0 8px #000,0 1px 2px #000;min-height:1.75em}
+  :is(.narr-cena,.narr-texto-camada){position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(140px,24vw) 1fr;align-items:center;padding:0 clamp(64px,7vw,104px) 0 clamp(18px,4.5vw,64px);opacity:0;will-change:opacity,filter,transform}
+  :is(.narr-cena,.narr-texto-camada) .mom-esq{grid-column:1;grid-row:1;justify-self:start;min-width:0}
+  :is(.narr-cena,.narr-texto-camada) .mom-dir{grid-column:3;grid-row:1;justify-self:end;max-width:360px;min-width:0}
+  :is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:3;justify-self:end;text-align:right}
+  :is(.narr-cena,.narr-texto-camada).inv .mom-dir{grid-column:1;justify-self:start}
+  .mom-g{font:300 clamp(32px,4vw,62px)/1.15 'Unbounded',var(--disp);letter-spacing:.055em;text-transform:uppercase;font-variant-numeric:tabular-nums;color:var(--tx);white-space:nowrap;text-shadow:0 0 8px #000}
+  .mom-g.medio{font-size:clamp(28px,3.5vw,54px)}
+  .mom-p{font:400 13px/1.75 'Manrope',sans-serif;letter-spacing:.02em;color:var(--mu);text-shadow:0 0 8px #000;min-height:1.75em}
   .mom-tela{display:block;width:min(220px,100%);height:58px;margin-top:16px;opacity:0;transition:opacity .4s}
-  .narr-cena.pronto .mom-tela{opacity:1}
+  :is(.narr-cena,.narr-texto-camada).pronto .mom-tela{opacity:1}
   .acesso-campo{pointer-events:auto;position:relative;margin-top:22px;width:max-content;max-width:100%}
   .orbes{display:flex;gap:13px;padding:6px 2px}
   .orbes i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,170,100,.45);transition:background-color .15s,box-shadow .15s,transform .15s cubic-bezier(.2,0,0,1)}
@@ -90,15 +86,15 @@
   body.narr-b #raiz .barra .marca{transform:scale(.7)}
   body.narr-b:not(.momentos-vistos) .hud-c{opacity:0;pointer-events:none}
   @media (max-width:700px){
-    .narr-cena{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;align-items:start;padding:84px 18px 116px}
-    .narr-cena .mom-esq,.narr-cena.inv .mom-esq{grid-column:1;grid-row:1;justify-self:start;text-align:left}
-    .narr-cena .mom-dir,.narr-cena.inv .mom-dir{grid-column:1;grid-row:3;justify-self:start;align-self:end}
-    .mom-g,.narr-cena.inv .mom-g{-webkit-mask-image:none;mask-image:none}
+    :is(.narr-cena,.narr-texto-camada){grid-template-columns:1fr;grid-template-rows:auto 1fr auto;align-items:start;padding:84px 18px 116px}
+    :is(.narr-cena,.narr-texto-camada) .mom-esq,:is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:1;grid-row:1;justify-self:start;text-align:left}
+    :is(.narr-cena,.narr-texto-camada) .mom-dir,:is(.narr-cena,.narr-texto-camada).inv .mom-dir{grid-column:1;grid-row:3;justify-self:start;align-self:end}
+    .mom-g,:is(.narr-cena,.narr-texto-camada).inv .mom-g{-webkit-mask-image:none;mask-image:none}
     .ir-direto{top:12px;right:12px}
     body.narr-b #raiz .barra{padding:8px 18px}
   }
   .narr-estatico .narr-fix{position:relative;height:auto;min-height:0;overflow:visible}
-  .narr-estatico .narr-cena{position:relative;inset:auto;opacity:1 !important;filter:none !important;transform:none !important;min-height:62vh}
+  .narr-estatico :is(.narr-cena,.narr-texto-camada){position:relative;inset:auto;opacity:1 !important;filter:none !important;transform:none !important;min-height:62vh}
   .narr-estatico .narr-trilho{height:auto !important}`;
 
   function janela(p, ini, fim, m) {
@@ -246,6 +242,7 @@
     // ------------------------------------------------------------ montagem dos trechos
     function construir(lista) {
       const ints = intervalos(lista), soma = lista.reduce((s, x) => s + x[1], 0);
+      cenas.forEach(c => Escrita.liberar(c.el));
       host.innerHTML = `<div class="narr-trilho" style="height:${Math.round((soma + 1) * 100)}vh"><div class="narr-fix"></div></div>`;
       const fix = host.querySelector('.narr-fix');
       cenas = ints.map((c, i) => {
@@ -328,7 +325,8 @@
       if (primeira && c.ini === 0 && !reduzido) { primeira = false; await new Promise(r => setTimeout(r, 900)); }   // o núcleo entra e se firma; só então a palavra se escreve
       if (c.id === 'acesso') { if (acesso) { await acesso.escrever(); if (!('ontouchstart' in window)) acesso.focar(); } return; }
       const T = textos(c.id); c.vers = JSON.stringify(T);
-      if (c.partes.g && T.g !== undefined) { c.partes.g.classList.toggle('medio', !!T.medio); await Escrita.grande(c.partes.g, T.g, { cor: T.cor }); }
+      Escrita.preparar(c.partes.g, T.g); Escrita.preparar(c.partes.p, T.p);
+      if (c.partes.g && T.g !== undefined) { c.partes.g.classList.toggle('medio', !!T.medio); if (!await Escrita.grande(c.partes.g, T.g, { cor: T.cor })) return; }
       if (c.partes.p) await Escrita.decodificar(c.partes.p, T.p);
       c.el.classList.add('pronto');
     }
@@ -350,6 +348,12 @@
         else if (v === 0 && (s < -.05 || s > 1.05)) zerar(c);
         // conjunto sai para o plano secundário antes da próxima cena entrar (um elemento por vez)
         aplicarPlano(c, s > .84 ? 1 : 0);
+        // Mesma janela da cena: só os caracteres saem, sem transformar a camada das letras.
+        if (c.escrito && (s > .97 || s < 0)) {
+          [c.partes.g, c.partes.p].forEach(Escrita.sair);
+        } else if (c.escrito && s >= 0 && s < .97 && c.partes.g && c.partes.g.dataset.saindo === '1') {
+          zerar(c); escrever(c);
+        }
         if (c.tela) c.tela.ativar(v > .5 && c.escrito);
       }
       if (trecho === 'B' && p >= .999 && !projeto && !voando) { if (mapa) mapa.cinema(null); }   // fim: devolve a câmera normal do pc.html (mesma pose)

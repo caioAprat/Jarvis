@@ -21,8 +21,8 @@
   .cham-bloco{position:fixed;left:0;top:0;z-index:4;max-width:250px;pointer-events:none;will-change:transform,opacity;transition:opacity .35s;
     text-shadow:0 0 8px #000,0 1px 2px #000}
   .cham-bloco .cm-rot{font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--di)}
-  .cham-bloco .cm-g{font:600 28px/1.1 var(--mono);color:var(--tx);font-variant-numeric:tabular-nums;margin:3px 0 4px;white-space:nowrap}
-  .cham-bloco .cm-ex{font:500 11px/1.55 var(--mono);letter-spacing:.04em;color:var(--mu);min-height:1.5em}
+  .cham-bloco .cm-g{font:300 21px/1.3 'Unbounded',var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--tx);font-variant-numeric:tabular-nums;margin:3px 0 4px;white-space:nowrap}
+  .cham-bloco .cm-ex{font:400 12px/1.55 'Manrope',sans-serif;letter-spacing:.04em;color:var(--mu);min-height:1.5em}
   .cham-bloco .cm-acao{pointer-events:auto;margin-top:10px;display:inline-flex;align-items:center;gap:10px;font:600 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--pri);min-height:36px}
   .cham-bloco .cm-acao i{width:22px;height:22px;border-radius:50%;border:1.2px dashed var(--pri);animation:cm-gira 5s linear infinite}
   .cham-bloco .cm-acao:hover{color:var(--tx)}
@@ -38,7 +38,16 @@
     let itens = [];
     const v = new THREE.Vector3(), dir = new THREE.Vector3();
 
-    function limpar() { itens.forEach(it => { it.el.remove(); it.g.remove(); }); itens = []; }
+    function limpar() {
+      itens.forEach(it => {
+        it.g.remove(); it.el.querySelectorAll('button').forEach(b => b.remove());
+        const textos = it.el.querySelectorAll('.cm-g,.cm-ex');
+        textos.forEach(Escrita.sair);
+        const remover = () => { textos.forEach(Escrita.zerar); it.el.remove(); };
+        if (Escrita.reduzido) remover(); else setTimeout(remover, 260);
+      });
+      itens = [];
+    }
     function definir(lista) {
       const chave = lista.map(x => x.id + '|' + x.grande + '|' + x.explica).join('§');
       if (chave === definir.ultima) return; definir.ultima = chave;
@@ -52,6 +61,8 @@
           b.querySelector('span').textContent = x.acao.texto; b.addEventListener('click', () => x.acao.f()); el.appendChild(b);
         }
         if (x.micro) { const m = document.createElement('div'); m.className = 'cm-ex'; m.innerHTML = '<span></span><i class="cm-cursor" aria-hidden="true"></i>'; m.querySelector('span').textContent = x.micro; el.appendChild(m); }
+        Escrita.preparar(el.querySelector('.cm-g'), x.grande);
+        Escrita.preparar(el.querySelector('.cm-ex'), x.explica);
         document.body.appendChild(el);
         const g = document.createElementNS(NS, 'g'); svg.appendChild(g);
         g.innerHTML = x.marcador === 'cruz'
@@ -95,7 +106,7 @@
         const ex = paraDireita ? bx - 6 : bx + w + 6, ey = by + 18, cx = ax + (ex - ax) * .55;
         it.g.style.display = ''; it.g.setAttribute('transform', `translate(${ax.toFixed(1)},${ay.toFixed(1)})`);
         it.g.querySelector('polyline').setAttribute('points', `0,0 ${(cx - ax).toFixed(1)},0 ${(cx - ax).toFixed(1)},${(ey - ay).toFixed(1)} ${(ex - ax).toFixed(1)},${(ey - ay).toFixed(1)}`);
-        if (!it.escrito && window.Escrita) { it.escrito = true; Escrita.decodificar(it.el.querySelector('.cm-ex'), it.x.explica || ''); }
+        if (!it.escrito && window.Escrita) { it.escrito = true; Escrita.grande(it.el.querySelector('.cm-g'), it.x.grande || '').then(ok => { if (ok && itens.includes(it)) Escrita.decodificar(it.el.querySelector('.cm-ex'), it.x.explica || ''); }); }
       });
     }
     function esconder(v) { svg.style.display = v ? 'none' : ''; itens.forEach(it => { it.el.style.display = v ? 'none' : ''; }); }
