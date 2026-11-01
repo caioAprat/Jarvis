@@ -500,7 +500,8 @@
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
       if (cine) {                                                      // landing: a rolagem conduz a câmera (distância, altura, FOV, giro)
         const dz = Math.max(.6, (cam.z - chute.v * 1.6) * cine.dist), a = cine.orbita;
-        camera.position.set(cine.cx + Math.sin(a) * dz + off.x * .4, cine.cy + dz * cine.alt + off.y * .4, cine.cz + Math.cos(a) * dz);
+        if(cine.pos)camera.position.set(cine.pos[0]+off.x*.12,cine.pos[1]+off.y*.12,cine.pos[2]);
+        else camera.position.set(cine.cx + Math.sin(a) * dz + off.x * .4, cine.cy + dz * cine.alt + off.y * .4, cine.cz + Math.cos(a) * dz);
         if (camera.fov !== cine.fov) { camera.fov = cine.fov; camera.updateProjectionMatrix(); }
       } else camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1));
       if (cine) camera.lookAt(cine.cx, cine.cy, cine.cz); else camera.lookAt(0, 0, 0);
@@ -666,7 +667,7 @@
     /** Conduz a câmera pela rolagem. `{ dist, alt, fov, orbita }` em multiplicadores; `null` volta ao normal. */
     function cinema(c) {
       if (!c) { cine = null; if (camera.fov !== 40) { camera.fov = 40; camera.updateProjectionMatrix(); } }
-      else cine = { dist: c.dist == null ? 1 : c.dist, alt: c.alt == null ? .34 : c.alt, fov: c.fov == null ? 40 : c.fov, orbita: c.orbita || 0, cx: c.cx || 0, cy: c.cy || 0, cz: c.cz || 0 };   // c*: centro que a câmera olha (padrão: o núcleo)
+      else cine = { pos:c.pos||null, dist: c.dist == null ? 1 : c.dist, alt: c.alt == null ? .34 : c.alt, fov: c.fov == null ? 40 : c.fov, orbita: c.orbita || 0, cx: c.cx || 0, cy: c.cy || 0, cz: c.cz || 0 };   // c*: centro que a câmera olha (padrão: o núcleo)
       if (reduzido) estatico();
     }
     /** 0 a 1: as peças param no ar (sem parar o desenho). */
