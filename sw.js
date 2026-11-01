@@ -1,16 +1,36 @@
 // Jarvão: guarda a tela para abrir sem internet e mostra as notificações.
 // O push chega vazio; aqui buscamos o texto do aviso no Jarvão com a chave guardada pelo app.
 // Regra do iPhone: TODO push precisa mostrar uma notificação, senão o Safari cancela a inscrição.
-const VERSAO = 'jarvis-v5';
-const CASCA = ['./', 'index.html', 'app.html', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
+const VERSAO = 'jarvis-textos-v1';
+const CASCA = ["./", "index.html", "app.html", "pc.html", "icons/icon-192.png", "icons/apple-touch-icon.png", "mapa-vivo.js", "cadeado.js", "landing-dados.js", "landing-escrita.js", "landing-acesso.js", "landing-telas.js", "landing-cinema.js", "landing-particulas.js", "landing-ponteiro.js", "prototipo.js", "fios.js", "telas-vivas.js", "chamadas.js", "planeta.js", "fundo.js", "nav-cenas.js", "landing-roteiro.js"];
 
-self.addEventListener('install', e => e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting())));
+const BIBLIOTECAS = ["https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js", "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js", "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrambleTextPlugin.min.js", "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js", "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js", "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap", "https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400&family=Manrope:wght@300;400&display=swap"];
+self.addEventListener('install', e => e.waitUntil((async () => {
+  const cache = await caches.open(VERSAO);
+  await cache.addAll(CASCA);
+  // Fontes e bibliotecas ficam disponíveis após a primeira instalação online.
+  await Promise.allSettled(BIBLIOTECAS.map(async url => {
+    const response = await fetch(url); if (!response.ok) throw new Error('Recurso indisponível');
+    await cache.put(url, response.clone());
+    if (url.includes('fonts.googleapis.com')) {
+      const css = await response.text();
+      await Promise.allSettled([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map(m => cache.add(m[1])));
+    }
+  }));
+  await self.skipWaiting();
+})()));
 self.addEventListener('activate', e => e.waitUntil(caches.keys()
   .then(ks => Promise.all(ks.filter(k => k !== VERSAO && k !== 'jarvis-cfg').map(k => caches.delete(k)))).then(() => self.clients.claim())));
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (e.request.method !== 'GET') return;
+  if (url.origin !== location.origin) {
+    if (BIBLIOTECAS.includes(url.href) || url.hostname === 'fonts.gstatic.com') {
+      e.respondWith(caches.match(e.request, { ignoreVary: true }).then(r => r || fetch(e.request)));
+    }
+    return;
+  }
   if (e.request.mode === 'navigate') {
     // index.html = landing; app.html = app do iPhone; pc.html = Central do PC
     const pagina = url.pathname.endsWith('pc.html') ? 'pc.html' : url.pathname.endsWith('app.html') ? 'app.html' : 'index.html';
