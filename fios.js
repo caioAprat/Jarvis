@@ -26,6 +26,7 @@
     }`;
   const FRAG = `
     uniform float uAcende, uEscala, uComprimento;
+    uniform vec3 uEstado;
     varying vec2 vUv;
     varying vec3 vNormal, vMundo, vCor;
     varying float vTipo, vPercurso;
@@ -38,14 +39,15 @@
       float difusa = max(dot(n, luz), 0.);
       float borda = pow(1. - abs(dot(n, vista)), 3.);
       // Grafite fosco: a faixa creme é tinta no corpo, não uma linha emissiva.
-      float faixa = step(.78, fract(vUv.x * uComprimento / uEscala * 1.1)) * step(.35, sin(vUv.y * 6.28318));
+      float fase = fract(vUv.x * uComprimento / uEscala * 1.1);
+      float faixa = smoothstep(.77, .8, fase) * (1. - smoothstep(.96, .99, fase)) * smoothstep(.3, .4, sin(vUv.y * 6.28318));
       vec3 base = mix(vec3(.026, .025, .024), vec3(.36, .31, .25), faixa * .65);
       if (vTipo > .5) base = vec3(.12, .115, .105);
       if (vTipo > 1.5) base = vCor * .35;
       vec3 cor = base * (.55 + difusa * calor * 2.2);
-      cor += vec3(1., .35, .09) * calor * (difusa * .11 + borda * .065);
+      cor += vec3(1., .35, .09) * calor * (.045 + difusa * .11 + borda * .065);
       cor += vec3(1., .88, .72) * borda * .035;
-      if (vTipo > 2.5) cor = vCor * .65;
+      if (vTipo > 2.5) cor = uEstado * .45;
       gl_FragColor = vec4(cor, 1.);
     }`;
 
@@ -62,7 +64,7 @@
     function material(comprimento) {
       const mat = new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG,
         uniforms: { uTime: { value: 0 }, uAmp: { value: 0 }, uDelta: { value: new THREE.Vector3() }, uMouse: { value: new THREE.Vector2() },
-          uAcende: { value: 0 }, uEscala: { value: E }, uComprimento: { value: comprimento } } });
+          uEstado: { value: new THREE.Color(PRI) }, uAcende: { value: 0 }, uEscala: { value: E }, uComprimento: { value: comprimento } } });
       recursos.add(mat); return mat;
     }
     // Junta corpo, anéis e terminações em uma única geometria por cabo (um draw call).
@@ -123,11 +125,18 @@
       cores.forEach((cor, j) => {
         const a = j * Math.PI / 2;
         const saida = origem.clone().add(new THREE.Vector3(Math.cos(a) * esp, 0, Math.sin(a) * esp));
-        const chegada = noChao ? extensao.getPoint(0).add(new THREE.Vector3(Math.cos(a) * .06 * E, .06 * E, Math.sin(a) * .06 * E)) : inicio.clone().add(new THREE.Vector3(Math.cos(a) * .07 * E, -.16 * E, Math.sin(a) * .01 * E));
+        const chegada = noChao ? extensao.getPoint(0).add(new THREE.Vector3(Math.cos(a) * .06 * E, .06 * E, Math.sin(a) * .06 * E)) : inicio.clone().add(new THREE.Vector3(Math.cos(a) * .07 * E, -.16 * E, Math.sin(a) * .01 * E).applyQuaternion(modulo ? modulo.g.quaternion : new THREE.Quaternion()));
         const meio = saida.clone().lerp(chegada, .5).add(new THREE.Vector3(Math.cos(a) * .055 * E, 0, Math.sin(a) * .055 * E));
         partes.push({ geo: new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(saida, meio, chegada), 12, .009 * E, 5, false), tipo: 2, percurso: 0, cor, ancora: noChao ? 0 : 1 });
       });
-      const mat = material(curva.getLength()), mesh = new THREE.Mesh(juntar(partes), mat);
+      if (modulo) {
+        const porta = new THREE.SphereGeometry(esp * .8, 6, 4);
+        porta.translate(inicio.x, inicio.y, inicio.z);
+        partes.push({ geo: porta, tipo: 3, percurso: 0, ancora: 1 });
+      }
+      const mat = material(curva.getLength());
+      mat.uniforms.uEstado.value.setHex(modulo ? COR[modulo.status] || COR.aguardando : PRI);
+      const mesh = new THREE.Mesh(juntar(partes), mat);
       mesh.name = (noChao ? 'cabo-chao-' : 'cabo-suspenso-') + indice;
       // Guardado para inspeção/testes, sem reconstruir curvas ou buffers a cada quadro.
       mesh.userData.curva = curva; grupo.add(mesh);
@@ -204,12 +213,12 @@
     const revelacoes = new Float32Array(N), amplitudes = new Float32Array(N), deltas = Array.from({ length: N }, () => new THREE.Vector3());
     const cursor = new THREE.Vector2(), cursorAlvo = new THREE.Vector2();
     const pMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
-      uniforms: { uCurvas: { value: texturaCurvas }, uTime: { value: 0 }, uEscala: { value: E },
+      uniforms: { uCurvas: { value: texturaCurvas }, uTime: { value: 0 }, uFluxo: { value: 0 }, uEscala: { value: E },
         uReveal: { value: revelacoes }, uAmplitude: { value: amplitudes }, uDelta: { value: deltas },
         uMouse: { value: cursor }, uPixel: { value: Math.min(1.5, dep.renderer ? dep.renderer.getPixelRatio() : 1) }, uVis: { value: 0 } },
       vertexShader: `
         uniform sampler2D uCurvas;
-        uniform float uTime, uEscala, uPixel, uVis;
+        uniform float uTime, uFluxo, uEscala, uPixel, uVis;
         uniform float uReveal[${N}], uAmplitude[${N}];
         uniform vec3 uDelta[${N}];
         uniform vec2 uMouse;
@@ -226,16 +235,16 @@
         }
         void main() {
           int id = int(aCabo);
-          float u = fract(aSemente.x + uTime * (.035 + aSemente.y * .055));
+          float u = fract(aSemente.x + uFluxo * (.035 + aSemente.y * .055));
           float percurso = aCabo >= ${nEst}. ? max(0., (u - .16) / .84) : u;
           float ancora = aCabo < ${nEst}. ? 1. - smoothstep(0., .18, percurso) : 0.;
           vec3 p = ponto(u) + uDelta[id] * ancora;
           vec3 tangente = normalize(ponto(min(1., u + .008)) - ponto(max(0., u - .008)));
           vec3 ref = abs(tangente.y) > .9 ? vec3(1., 0., 0.) : vec3(0., 1., 0.);
           vec3 lateral = normalize(cross(tangente, ref)), vertical = cross(tangente, lateral);
-          float solto = pow(max(0., sin(uTime * .35 + aSemente.w * 37.)), 12.);
+          float solto = pow(max(0., sin(uFluxo * .35 + aSemente.w * 37.)), 12.);
           float raio = (.035 + aSemente.z * .14 + solto * .32) * uEscala;
-          float angulo = aSemente.w * 6.28318 + uTime * (.3 + aSemente.z);
+          float angulo = aSemente.w * 6.28318 + uFluxo * (.3 + aSemente.z);
           p += (lateral * cos(angulo) + vertical * sin(angulo)) * raio;
           float janela = smoothstep(0., .12, percurso) * (1. - smoothstep(.7, 1., percurso));
           vec3 centro = ponto(u) + uDelta[id] * ancora;
@@ -250,48 +259,78 @@
         }`,
       fragmentShader: `varying vec3 vCor; varying float vBrilho;
         void main(){ float r = length(gl_PointCoord - .5); if(r > .5) discard;
-          gl_FragColor = vec4(vCor * vBrilho, smoothstep(.5, .08, r)); }` });
+          gl_FragColor = vec4(vCor * vBrilho, (1. - smoothstep(.08, .5, r))); }` });
     recursos.add(pGeo); recursos.add(pMat);
     const pontos = new THREE.Points(pGeo, pMat); pontos.name = 'poeira-cabos'; pontos.frustumCulled = false; grupo.add(pontos);
     const mover = ev => { cursorAlvo.set(ev.clientX / innerWidth * 2 - 1, 1 - ev.clientY / innerHeight * 2); };
-    const sairCursor = () => cursorAlvo.set(0, 0);
+    const sairCursor = ev => { if (!ev || !ev.relatedTarget) cursorAlvo.set(0, 0); };
     addEventListener('pointermove', mover, { passive: true }); addEventListener('pointerout', sairCursor, { passive: true });
 
     // ------------------------------------------------------------ controle
     const est = { chao: 0, est: 0, pac: 0 };
     function revelar(lista, v) {                                        // um depois do outro, ao longo do comprimento
       const n = lista.length;
-      lista.forEach((f, i) => { const k = Math.max(0, Math.min(1, v * (n * .55 + 1) - i * .55)); f.mat.uniforms.uAcende.value = k; if (f.ponta) f.ponta.material.opacity = k >= 1 ? .95 : 0; });
+      lista.forEach((f, i) => { const k = Math.max(0, Math.min(1, v * (n * .55 + 1) - i * .55)); f.mat.uniforms.uAcende.value = k; });
     }
     function acenderChao(v) { est.chao = v; revelar(chao, v); }
     function acenderEsticados(v) { est.est = v; revelar(esticados, v); pilares.forEach(p => { p.mat.opacity = .08 + .22 * v; }); }
     function pacotes(v) { est.pac = v; pMat.uniforms.uVis.value = v; }
-    function status(projetos) { esticados.forEach(f => { const p = projetos.find(x => x.id === f.id); if (p && f.ponta) f.ponta.material.color.setHex(COR[p.status] || COR.aguardando); }); }
+    function status(projetos) { esticados.forEach(f => { const p = projetos.find(x => x.id === f.id); if (p) f.mat.uniforms.uEstado.value.setHex(COR[p.status] || COR.aguardando); }); }
     function refazer() { montarEsticados(); gravarCurvas(); revelar(esticados, est.est); }
-    let ultimaCam = new THREE.Vector3(); let agito = 0;
+    const ultimaCam = new THREE.Vector3(), alvoAncora = new THREE.Vector3();
+    let agito = 0, destruido = false, tempoFluxo = 0, ultimoQuadro = performance.now();
+    let mediaQuadro = 1 / 60, periodoQualidade = 0, qualidadeLocal = 0;
+    function reiniciarRelogio() { ultimoQuadro = performance.now(); }
+    document.addEventListener('visibilitychange', reiniciarRelogio);
+    const reduzir = () => { if (movimento.matches) { cursor.set(0, 0); cursorAlvo.set(0, 0); } };
+    movimento.addEventListener('change', reduzir);
     function quadro(t, d) {
+      const agora = performance.now(), real = Math.min(.1, Math.max(0, (agora - ultimoQuadro) / 1000)); ultimoQuadro = agora;
+      if (destruido || document.hidden || !grupo.visible) return;
+      const reduzido = movimento.matches;
+      tempoFluxo += real * (reduzido ? .12 : 1);
+      mediaQuadro += (real - mediaQuadro) * .035; periodoQualidade += real;
+      if (periodoQualidade > 3) {
+        if (mediaQuadro > 1 / 42) qualidadeLocal = Math.min(3, qualidadeLocal + 1);
+        else if (mediaQuadro < 1 / 58) qualidadeLocal = Math.max(0, qualidadeLocal - 1);
+        periodoQualidade = 0;
+      }
       const cam = dep.camera.position; agito = Math.max(agito * Math.pow(.2, d), Math.min(1, cam.distanceTo(ultimaCam) / (d * 40 + 1e-4))); ultimaCam.copy(cam);
-      const amp = (.025 + .05 * agito) * E;
+      const amp = reduzido ? 0 : (.025 + .05 * agito) * E;
       chao.forEach(f => { f.mat.uniforms.uTime.value = t; f.mat.uniforms.uAmp.value = amp; });
-      esticados.forEach(f => { f.mat.uniforms.uTime.value = t; f.mat.uniforms.uAmp.value = .012 * E * (1 + agito); });
+      esticados.forEach(f => { f.mat.uniforms.uTime.value = t; f.mat.uniforms.uAmp.value = reduzido ? 0 : .012 * E * (1 + agito); });
       esticados.forEach(f => {
         if (!f.modulo) return;
-        const alvo = f.modulo.g.localToWorld(new THREE.Vector3(0, .5 * E, 0));
+        const alvo = f.modulo.g.localToWorld(alvoAncora.set(0, .5 * E, 0));
         f.mat.uniforms.uDelta.value.copy(alvo).sub(f.inicio);
       });
-      cursor.lerp(cursorAlvo, 1 - Math.exp(-Math.max(d, .001) * 5));
+      if (reduzido) cursor.set(0, 0); else cursor.lerp(cursorAlvo, 1 - Math.exp(-real * 5));
       lista().forEach((f, i) => {
         f.mat.uniforms.uMouse.value.copy(cursor);
         revelacoes[i] = f.mat.uniforms.uAcende.value;
         amplitudes[i] = f.mat.uniforms.uAmp.value;
         deltas[i].copy(f.mat.uniforms.uDelta.value);
       });
-      pMat.uniforms.uTime.value = t;
-      pGeo.setDrawRange(0, Math.max(600, Math.floor(total / Math.pow(1.65, mapa.qualidade ? mapa.qualidade() : 0))));
+      pMat.uniforms.uTime.value = t; pMat.uniforms.uFluxo.value = tempoFluxo;
+      pGeo.setDrawRange(0, Math.max(600, Math.floor(total / Math.pow(1.65, Math.max(qualidadeLocal, mapa.qualidade ? mapa.qualidade() : 0)))));
     }
 
-    function mostrar(v) { grupo.visible = !!v; }
-    return { grupo, acenderChao, acenderEsticados, pacotes, status, refazer, quadro, mostrar, contagem: () => ({ esticados: esticados.length, chao: chao.length }) };
+    function mostrar(v) {
+      if (destruido) return;
+      // Mantém os dados de CPU para o scroll reverso; devolve buffers/programas à GPU ao ocultar.
+      if (grupo.visible && !v) recursos.forEach(r => r.dispose());
+      if (!grupo.visible && v) texturaCurvas.needsUpdate = true;
+      grupo.visible = !!v;
+    }
+    function destruir() {
+      if (destruido) return; destruido = true;
+      removeEventListener('pointermove', mover); removeEventListener('pointerout', sairCursor);
+      removeEventListener('pagehide', destruir);
+      document.removeEventListener('visibilitychange', reiniciarRelogio); movimento.removeEventListener('change', reduzir);
+      recursos.forEach(r => r.dispose()); recursos.clear(); if (grupo.parent) grupo.parent.remove(grupo);
+    }
+    addEventListener('pagehide', destruir, { once: true });
+    return { grupo, destruir, acenderChao, acenderEsticados, pacotes, status, refazer, quadro, mostrar, contagem: () => ({ esticados: esticados.length, chao: chao.length }) };
   }
 
   window.Fios = { montar };
