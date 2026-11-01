@@ -146,7 +146,8 @@
     const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => trecho === 'B' && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
     const fundo = window.Fundo ? Fundo.montar(mapa, { particulas, chao: -3.2 * E }) : null;
-    const chamadas = mapa && window.Chamadas ? Chamadas.montar({ camera: () => dep.camera, nucleoRaio: () => 2.1 * E }) : null;
+    const rotulos = proto && window.RotulosLayout ? RotulosLayout.montar({ camera: () => dep.camera, proto, E }) : null;
+    const chamadas = mapa && window.Chamadas ? Chamadas.montar({ camera: () => dep.camera, nucleoRaio: () => 2.1 * E, layout: rotulos }) : null;
     const nav = window.NavCenas ? NavCenas.montar() : null;
     if (mapa) mapa.orbitas(false);
     // ao sair/recarregar: devolve a memória de vídeo na hora (GPU integrada não recupera a tempo e a próxima carga fica a 1 quadro/s)
@@ -163,6 +164,7 @@
         if (fios) fios.quadro(t, reduzido ? 0 : d);
         if (telas) telas.quadro(t, d);
         if (planeta) planeta.quadro(t, reduzido ? 0 : d);
+        if (rotulos) rotulos.quadro(host);
         if (chamadas) chamadas.quadro();
       });
     }
@@ -579,6 +581,7 @@
       if (trigger) { trigger.kill(); trigger = null; }
       if (portalDados) { portalDados.destruir(); portalDados = null; }
       cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
+      if (rotulos) rotulos.remover();
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
       if (proto) proto.aparecer(0); if (fios) fios.mostrar(false); if (planeta) planeta.mostrar(0);

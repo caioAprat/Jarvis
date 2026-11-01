@@ -36,7 +36,6 @@
     if (!document.getElementById('cham-css')) { const s = document.createElement('style'); s.id = 'cham-css'; s.textContent = CSS; document.head.appendChild(s); }
     const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'cham-svg'); svg.setAttribute('aria-hidden', 'true'); document.body.appendChild(svg);
     let itens = [];
-    const v = new THREE.Vector3(), dir = new THREE.Vector3();
 
     function limpar() {
       itens.forEach(it => {
@@ -74,38 +73,11 @@
       });
     }
     function quadro() {
-      if (!itens.length) return;
-      const cam = op.camera(), W = innerWidth, H = innerHeight, gut = 16;
-      // zona proibida: o objeto da cena (o núcleo, ou o que a chamada indicar em `zona`) projetado na tela
-      const z = itens[0] && itens[0].x.zona ? itens[0].x.zona() : { centro: new THREE.Vector3(0, 0, 0), raio: op.nucleoRaio() };
-      v.copy(z.centro).project(cam); const nx = (v.x * .5 + .5) * W, ny = (-v.y * .5 + .5) * H;
-      cam.getWorldDirection(dir); const lado = new THREE.Vector3().crossVectors(dir, cam.up).normalize().multiplyScalar(z.raio).add(z.centro);
-      v.copy(lado).project(cam); const nr = Math.abs((v.x * .5 + .5) * W - nx) + 24;
-      const ocupados = [];
+      if (!itens.length || !op.layout) return;
       itens.forEach(it => {
-        const p = it.x.ancora && it.x.ancora(); if (!p) { it.el.style.opacity = '0'; it.g.style.display = 'none'; return; }
-        v.copy(p).project(cam);
-        const atras = v.z > 1, ax = (v.x * .5 + .5) * W, ay = (-v.y * .5 + .5) * H;
-        if (atras || ax < -40 || ax > W + 40 || ay < -40 || ay > H + 40) { it.el.style.opacity = '0'; it.g.style.display = 'none'; return; }
-        const w = Math.max(it.w || 0, W < 700 ? 160 : 250), h = it.h || 80, paraDireita = ax >= nx;
-        let bx, by;
-        if (W < 700) {                                                    // celular: não há lados — empilha acima e abaixo do objeto
-          const i = ocupados.length, acima = ny - nr - 10, abaixo = ny + nr + 10;
-          bx = gut + (i % 2) * Math.max(0, W - 2 * gut - 34 - w);
-          by = i === 0 ? acima - h : abaixo + (i - 1) * (h + 10);
-          by = Math.max(170, Math.min(H - h - 110, by));
-        } else {
-          bx = paraDireita ? Math.max(ax + 60, nx + nr) : Math.min(ax - 60 - w, nx - nr - w);
-          bx = Math.max(gut, Math.min(W - w - 84, bx));                    // à direita fica a navegação numerada
-          by = ay - h - 26; if (by < gut + 60) by = ay + 26;
-          for (const o of ocupados) if (Math.abs(o.x - bx) < w && Math.abs(o.y - by) < h + 8) by = o.y + h + 12;   // não empilha um sobre o outro
-          by = Math.max(gut + 56, Math.min(H - h - 96, by));
-        }
-        ocupados.push({ x: bx, y: by });
-        it.el.style.transform = `translate(${Math.round(bx)}px,${Math.round(by)}px)`; it.el.style.opacity = '1';
-        const ex = paraDireita ? bx - 6 : bx + w + 6, ey = by + 18, cx = ax + (ex - ax) * .55;
-        it.g.style.display = ''; it.g.setAttribute('transform', `translate(${ax.toFixed(1)},${ay.toFixed(1)})`);
-        it.g.querySelector('polyline').setAttribute('points', `0,0 ${(cx - ax).toFixed(1)},0 ${(cx - ax).toFixed(1)},${(ey - ay).toFixed(1)} ${(ex - ax).toFixed(1)},${(ey - ay).toFixed(1)}`);
+        const p = it.x.ancora && it.x.ancora();
+        if (!p || !op.layout.colocar(it.el, p, it.g)) { it.el.style.opacity = '0'; it.g.style.display = 'none'; return; }
+        it.el.style.opacity = '1';
         if (!it.escrito && window.Escrita) { it.escrito = true; Escrita.grande(it.el.querySelector('.cm-g'), it.x.grande || '').then(ok => { if (ok && itens.includes(it)) Escrita.decodificar(it.el.querySelector('.cm-ex'), it.x.explica || ''); }); }
       });
     }

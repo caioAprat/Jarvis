@@ -63,7 +63,10 @@
     [[4.4 * E, .18], [5.3 * E, -.22]].forEach(([r, inc], k) => {
       const t = fio(new THREE.TorusGeometry(r, .012 * E, 4, 120), AMBAR, .32); t.rotation.x = Math.PI / 2 + inc; t.position.y = (k ? .8 : 2.2) * E; raiz.add(t); trilhos.push(t);
     });
-    const marcaGeo = new THREE.BoxGeometry(.14 * E, .14 * E, .14 * E), marcaMat = new THREE.MeshBasicMaterial({ color: CREME, transparent: true, opacity: .85 }); marcaMat.userData.base = .85; mats.push(marcaMat);
+    const marcaGeo = new THREE.BufferGeometry();
+    marcaGeo.setAttribute('position', new THREE.Float32BufferAttribute([-.09 * E, -.07 * E, 0, .09 * E, -.07 * E, 0, 0, .1 * E, 0], 3));
+    marcaGeo.computeVertexNormals();
+    const marcaMat = new THREE.MeshBasicMaterial({ color: CREME, wireframe: true, side: THREE.DoubleSide, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }); marcaMat.userData.base = .85; mats.push(marcaMat);
     const marcas = new THREE.InstancedMesh(marcaGeo, marcaMat, 12); raiz.add(marcas);
     const marcaInfo = []; for (let i = 0; i < 12; i++) marcaInfo.push({ t: i < 6 ? 0 : 1, a: (i % 6) / 6 * 6.2832, v: (i < 6 ? .12 : -.08) });
 
