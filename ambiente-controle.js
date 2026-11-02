@@ -11,9 +11,9 @@
     [metal, escuro, acento].forEach(m => recursos.add(m));
     function mesh(geo, mat, parent = grupo) { recursos.add(geo); const m = new THREE.Mesh(geo, mat); parent.add(m); return m; }
     const hub = new THREE.Group(); hub.name = 'hub'; grupo.add(hub);
-    const pedestal = mesh(new THREE.CylinderGeometry(1.55 * E, 1.7 * E, .34 * E, 6), metal, hub);
+    const pedestal = mesh(new THREE.CylinderGeometry(1.55 * E, 1.7 * E, .34 * E, 64), metal, hub);
     pedestal.position.y = CHAO + .17 * E;
-    const tampa = mesh(new THREE.CylinderGeometry(1.5 * E, 1.5 * E, .035 * E, 6), escuro, hub); tampa.position.y = CHAO + .35 * E;
+    const tampa = mesh(new THREE.CylinderGeometry(1.5 * E, 1.5 * E, .035 * E, 64), escuro, hub); tampa.position.y = CHAO + .35 * E;
     const aro = mesh(new THREE.TorusGeometry(1.48 * E, .009 * E, 4, 72), acento, hub); aro.rotation.x = Math.PI / 2; aro.position.y = CHAO + .375 * E;
     const centros = Array.from({ length: 16 }, () => new THREE.Vector3(10000, 0, 10000));
     const pisoMat = new THREE.ShaderMaterial({ uniforms: { uE: { value: E }, uBases: { value: centros } },
@@ -24,9 +24,9 @@
           for(int i=0;i<16;i++){vec2 d=(vP.xz-uBases[i].xz)/uE;sombra=max(sombra,exp(-dot(d,d)*8.)*.85);}
           float marca=pow(max(0.,cos(r*6.28318)),180.)*step(1.9,r)*(1.-smoothstep(6.,10.,r));
           vec3 cor=vec3(.009,.007,.006)*(1.-sombra*.85)+vec3(.12,.035,.007)*luz*(1.-sombra)+vec3(.06,.025,.008)*marca;
-          cor=mix(cor,vec3(.003,.002,.002),smoothstep(9.,24.,r));gl_FragColor=vec4(cor,1.);}` }); recursos.add(pisoMat);
-    const piso = mesh(new THREE.PlaneGeometry(60 * E, 60 * E), pisoMat); piso.name = 'chao-unico'; piso.rotation.x = -Math.PI / 2; piso.position.y = CHAO - .03 * E;
-    const eixo = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion();
+          cor=mix(cor,vec3(.03137,.02745,.02353),smoothstep(8.,20.,r));gl_FragColor=vec4(cor,1.);}` }); recursos.add(pisoMat);
+    const piso = mesh(new THREE.PlaneGeometry(60 * E, 60 * E), pisoMat); piso.name = 'chao-unico'; piso.rotation.x = -Math.PI / 2; piso.position.y = CHAO;
+    const eixo = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion(), giroSoquete = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI / 2);
     function limparApoios() {
       [...apoios, ...portas].forEach(a => { const g = a.grupo; grupo.remove(g); g.traverse(o => { if (o.geometry) { o.geometry.dispose(); recursos.delete(o.geometry); } }); });
       apoios.length = portas.length = 0; centros.forEach(c => c.set(10000, 0, 10000));
@@ -43,7 +43,7 @@
         const aro = mesh(new THREE.TorusGeometry(.072 * E, .01 * E, 4, 12), acento, g);
         apoios.push({ grupo: g, id: m.id, modulo: m, pe, haste, junta, soquete, aro, ancora: new THREE.Vector3(), apoio: new THREE.Vector3() });
         const ang = i / Math.max(1, proto.modulos.length) * Math.PI * 2;
-        const pos = new THREE.Vector3(Math.cos(ang) * 1.52 * E, CHAO + .22 * E, Math.sin(ang) * 1.52 * E);
+        const pos = new THREE.Vector3(Math.cos(ang) * 1.52 * E, CHAO + .26 * E, Math.sin(ang) * 1.52 * E);
         const pg = new THREE.Group(); pg.name = 'porta-hub-' + m.id; grupo.add(pg);
         const normal = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
         const corpo = mesh(new THREE.CylinderGeometry(.075 * E, .09 * E, .15 * E, 12), metal, pg); corpo.position.copy(pos); corpo.quaternion.setFromUnitVectors(eixo, normal);
@@ -62,12 +62,12 @@
         const altura = Math.max(.01 * E, a.apoio.y - CHAO - .08 * E);
         a.haste.position.set(a.apoio.x, CHAO + .08 * E + altura / 2, a.apoio.z); a.haste.scale.y = altura;
         a.junta.position.copy(a.apoio); a.soquete.position.copy(a.ancora);
-        m.getWorldQuaternion(q); a.soquete.quaternion.copy(q).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI / 2));
+        m.getWorldQuaternion(q); a.soquete.quaternion.copy(q).multiply(giroSoquete);
         a.aro.position.copy(a.ancora); a.aro.quaternion.copy(q);
-        centros[i].copy(a.pe.position);
+        if(centros[i]){if (a.grupo.visible) centros[i].copy(a.pe.position); else centros[i].set(10000, 0, 10000);}
       });
     }
-    function mostrar(v) { grupo.visible = !!v; }
+    function mostrar(v) { if(grupo.visible && !v) recursos.forEach(r=>r.dispose()); grupo.visible = !!v; }
     function destruir() { recursos.forEach(r => r.dispose()); recursos.clear(); dep.scene.remove(grupo); }
     sincronizar();
     return { grupo, CHAO, portas, apoios, sincronizar, quadro, mostrar, destruir };

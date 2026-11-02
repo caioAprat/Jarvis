@@ -42,16 +42,18 @@
       [a, b, c].forEach((v, j) => { v.sub(m).multiplyScalar(k).add(m).multiplyScalar(sobe); pos.setXYZ(i + j, v.x, v.y, v.z); });
     }
     ico.computeVertexNormals();
-    const placaMat = new THREE.MeshBasicMaterial({ color: 0x120e0b, transparent: true, opacity: 0, side: THREE.DoubleSide }); mats.push([placaMat, .97]);
+    const placaMat = new THREE.MeshBasicMaterial({ color: 0xff8a3d, wireframe: true, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([placaMat, .12]);
     grupo.add(new THREE.Mesh(ico, placaMat));
     const bordaMat = new THREE.LineBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([bordaMat, .35]);
     grupo.add(new THREE.LineSegments(new THREE.EdgesGeometry(ico, 1), bordaMat));
     const malhaMat = new THREE.MeshBasicMaterial({ color: 0xffe0b8, wireframe: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([malhaMat, .12]);
     grupo.add(new THREE.Mesh(new THREE.IcosahedronGeometry(R * 1.12, 1), malhaMat));
 
-    // fragmentos = blocos de dados que se soltam e orbitam
-    const NF = leve ? 18 : 42, fragMat = new THREE.MeshBasicMaterial({ color: 0xffe0b8, transparent: true, opacity: 0 }); mats.push([fragMat, .9]);
-    const frags = new THREE.InstancedMesh(new THREE.BoxGeometry(R * .06, R * .06, R * .06), fragMat, NF); grupo.add(frags);
+    // Projeção de dados: triângulos de energia, sem blocos sólidos no espaço.
+    const NF = leve ? 18 : 42, fragMat = new THREE.MeshBasicMaterial({ color: 0xffe0b8, wireframe: true, side: THREE.DoubleSide, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([fragMat, .6]);
+    const fragGeo = new THREE.BufferGeometry();
+    fragGeo.setAttribute('position', new THREE.Float32BufferAttribute([-.035*R,-.03*R,0,.035*R,-.03*R,0,0,.045*R,0],3));fragGeo.computeVertexNormals();
+    const frags = new THREE.InstancedMesh(fragGeo, fragMat, NF); grupo.add(frags);
     const fi = []; for (let i = 0; i < NF; i++) fi.push({ th: Math.random() * 6.28, ph: Math.acos(2 * Math.random() - 1), r: 1.02 + Math.random() * .1, v: .1 + Math.random() * .25, sai: Math.random() * 1.4, inc: (Math.random() - .5) * .8 });
     const dm = new THREE.Object3D();
 

@@ -5,7 +5,7 @@
  * Procedural (Three r128, sem modelo externo). O núcleo de plasma do mapa-vivo NÃO é tocado: o protótipo é
  * montado em volta dele, na mesma cena, na mesma origem. Unidade = E (raio do núcleo, mapa.depurar().escala).
  *
- *   base     3 lajes escuras empilhadas e giradas (y ≈ −2,2E…−3E), contorno âmbar; 8 portas de onde saem os fios do chão
+ *   base     hub e apoios físicos ficam em ambiente-controle.js, no piso comum
  *   coração  gaiola aberta em volta do núcleo: 4 colunas finas, 2 anéis, marcadores em cruz
  *   módulos  uma placa escura por projeto real, empilhadas em espiral e desalinhadas, cada uma com uma TELA VIVA
  *            (CanvasTexture, desenhada por telas-vivas.js) e um LED na cor de status (a única cor de status do modelo)
@@ -33,8 +33,6 @@
     // ------------------------------------------------------------ base
     // O pedestal apoiado no piso e suas portas pertencem a AmbienteControle.
     // A estrutura energética e os monitores abaixo conservam sua geometria e animação.
-    const portas = [];
-    for (let i = 0; i < 8; i++) { const a = i / 8 * 6.2832 + .2; portas.push(new THREE.Vector3(Math.cos(a) * 2.3 * E, -3 * E, Math.sin(a) * 2.3 * E)); }
 
     // ------------------------------------------------------------ coração (gaiola em volta do núcleo)
     const coracao = new THREE.Group(); raiz.add(coracao);
@@ -161,7 +159,7 @@
     }
 
     aparecer(0);
-    return { E, raiz, portas, modulos, aparecer, enfatizar, atualizarStatus, quadro, ancora, ancoraFora, centroModulos, telaEm, visivel: () => vis.v };
+    return { E, raiz, modulos, aparecer, enfatizar, atualizarStatus, quadro, ancora, ancoraFora, centroModulos, telaEm, visivel: () => vis.v };
   }
 
   window.Prototipo = { montar };

@@ -27,15 +27,16 @@
       const a=projetar(p);if(a.z>1)return false;
       const b=el.getBoundingClientRect(),w=Math.min(W-24,b.width),h=b.height;
       const margem=12,xs=[margem,Math.max(margem,W-w-64),(W-w)/2,Math.max(margem,Math.min(W-w-margem,a.x+40)),Math.max(margem,Math.min(W-w-margem,a.x-w-40))];
-      const ys=[Math.max(margem,Math.min(H-h-margem,a.y-h/2))];for(let y=margem;y<=H-h-margem;y+=12)ys.push(y);
+      const anterior=el._layoutRect;if(anterior){xs.push(Math.max(margem,Math.min(W-w-margem,anterior.x)));}
+      const ys=[Math.max(margem,Math.min(H-h-margem,a.y-h/2))];if(anterior)ys.push(Math.max(margem,Math.min(H-h-margem,anterior.y)));for(let y=margem;y<=H-h-margem;y+=12)ys.push(y);
       let melhor=null,nota=Infinity,colisao=Infinity;
       for(const x of xs)for(const y of ys){const box=rect(x,y,w,h);let overlap=0;for(const o of fixos)overlap+=area(box,o);for(const o of ocupados)overlap+=area(box,o)*2;
-        const custo=overlap*10000+Math.hypot(x+w/2-a.x,y+h/2-a.y);
+        const custo=overlap*10000+Math.hypot(x+w/2-a.x,y+h/2-a.y)*.2+(anterior?Math.hypot(x-anterior.x,y-anterior.y)*2:0);
         if(custo<nota){nota=custo;melhor=box;colisao=overlap;}}
       if(!melhor)return false;
-      el.dataset.sobreposicao=String(Math.round(colisao));el.style.transform=`translate(${Math.round(melhor.x)}px,${Math.round(melhor.y)}px)`;
+      el._layoutRect=melhor;const sobreposicao=String(Math.round(colisao));if(el.dataset.sobreposicao!==sobreposicao)el.dataset.sobreposicao=sobreposicao;const transform=`translate(${Math.round(melhor.x)}px,${Math.round(melhor.y)}px)`;if(el.style.transform!==transform)el.style.transform=transform;
       ocupados.push(rect(melhor.x-8,melhor.y-8,w+16,h+16));
-      if(!guia){if(!el._linhaLayout){el._linhaLayout=document.createElementNS(NS,'polyline');svg.appendChild(el._linhaLayout);}guia=el._linhaLayout;}
+      if(!guia){if(!el._linhaLayout){el._linhaLayout=document.createElementNS(NS,'polyline');el._linhaLayout._dono=el;svg.appendChild(el._linhaLayout);}guia=el._linhaLayout;}
       const x=a.x<melhor.x?melhor.x-5:a.x>melhor.x+w?melhor.x+w+5:Math.max(melhor.x,Math.min(melhor.x+w,a.x));
       const y=Math.max(melhor.y+8,Math.min(melhor.y+h-8,a.y));
       if(guia.tagName.toLowerCase()==='g'){
@@ -44,7 +45,7 @@
       return true;
     }
     function quadro(host){
-      obstaculos();svg.querySelectorAll('polyline').forEach(l=>l.style.display='none');
+      obstaculos();svg.querySelectorAll('polyline').forEach(l=>{if(l._dono&&!l._dono.isConnected)l.remove();else l.style.display='none';});
       host.querySelectorAll('.narr-texto-camada').forEach(c=>{
         if(Number(c.style.opacity)<.08)return;
         c.querySelectorAll('.mom-lado').forEach(el=>{

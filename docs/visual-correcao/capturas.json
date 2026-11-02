@@ -1,0 +1,160 @@
+[
+  {
+    "width": 1366,
+    "pct": 0,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "OLÁ, CAIO",
+        "overlap": 0
+      },
+      {
+        "text": "domingo, 1 de novembro",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "pct": 25,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "pct": 50,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "0",
+        "overlap": 0
+      },
+      {
+        "text": "avisos que você ainda não viu",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "pct": 75,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "BASE · FLUXO DE ARQUIVOS\n0\neventos no registr",
+        "overlap": 0
+      },
+      {
+        "text": "COROA · AVISOS\n0\navisos novos",
+        "overlap": 0
+      },
+      {
+        "text": "TRILHOS · PEDIDOS\n0\nfila de pedidos vaz}T",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "pct": 0,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "OLÁ, CAIO",
+        "overlap": 0
+      },
+      {
+        "text": "domingo, 1 de novembro",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "pct": 25,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "pct": 50,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "0",
+        "overlap": 0
+      },
+      {
+        "text": "avisos que você ainda não viu",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "pct": 75,
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "labels": [
+      {
+        "text": "BASE · FLUXO DE ARQUIVOS\n0\neventos no registr",
+        "overlap": 0
+      },
+      {
+        "text": "COROA · AVISOS\n0\navisos novos",
+        "overlap": 0
+      },
+      {
+        "text": "TRILHOS · PEDIDOS\n0\nfila de pedidos vazia",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "errors": []
+  }
+]

@@ -34,6 +34,9 @@
       for (let i = 0; i < 180; i++) this.passo(1 / 120);
     }
     ancoras(ax, ay, az, bx, by, bz) {
+      // Transporta a corda com as âncoras, sem injetar velocidade artificial na chegada dos monitores.
+      const dax=ax-this.a[0],day=ay-this.a[1],daz=az-this.a[2],dbx=bx-this.b[0],dby=by-this.b[1],dbz=bz-this.b[2];
+      for(let i=1;i<this.n-1;i++){const t=i/(this.n-1),j=i*3,dx=dax+(dbx-dax)*t,dy=day+(dby-day)*t,dz=daz+(dbz-daz)*t;this.p[j]+=dx;this.anterior[j]+=dx;this.p[j+1]+=dy;this.anterior[j+1]+=dy;this.p[j+2]+=dz;this.anterior[j+2]+=dz;}
       this.a[0] = ax; this.a[1] = ay; this.a[2] = az; this.b[0] = bx; this.b[1] = by; this.b[2] = bz;
       this.fixar();
     }

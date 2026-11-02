@@ -437,5 +437,30 @@ grupo('12. Correções da revisão (Jarvis v3)');
   t('disponibilidade conta a 1ª falha (mesmo em espera)', d[0].t === 1 && d[0].u === 0, d);
 }
 
+grupo('13. Cabos: Verlet, âncoras e colisão após 600 passos');
+{
+  const { Corda } = require('../corda-verlet');
+  const E=2.6,chao=-3.2*E;
+  for(let i=0;i<7;i++){
+    const ang=i/7*Math.PI*2, m=i*.98+.35,r=(3.15+(i%2)*.38)*E;
+    const a=[Math.cos(ang)*1.52*E,chao+.22*E,Math.sin(ang)*1.52*E];
+    const b=[Math.cos(m)*r,(-1.05+i*.62-.36)*E,Math.sin(m)*r];
+    const c=new Corda(a,b,{pontos:22,chao,raio:.028*E,folga:.2,gravidade:.8*E});
+    for(let k=0;k<600;k++){c.impulso=k%120===0?.1:c.impulso;c.passo(1/60);}
+    const fim=(c.n-1)*3;
+    t('cabo '+i+': ambas as pontas fixas',a.every((v,j)=>c.p[j]===v)&&b.every((v,j)=>c.p[fim+j]===v));
+    let erro=0;for(let j=0;j<fim;j+=3)erro=Math.max(erro,Math.abs(Math.hypot(c.p[j+3]-c.p[j],c.p[j+4]-c.p[j+1],c.p[j+5]-c.p[j+2])/c.segmento-1));
+    t('cabo '+i+': segmentos dentro de 5%',erro<=.05,erro);
+    t('cabo '+i+': nenhum ponto abaixo do chão',Array.from({length:c.n},(_,j)=>c.p[j*3+1]).every(y=>y>=chao+c.raio-1e-9));
+    t('cabo '+i+': nenhum NaN ou infinito',Array.from(c.p).every(Number.isFinite));
+  }
+  const c=new Corda([0,.2,0],[3,2,1],{raio:.03,chao:0});const buffer=c.p;c.reduzido=true;
+  for(let k=0;k<600;k++){const y=2+Math.sin(k*.01)*.04;c.ancoras(0,.2,0,3,y,1);c.passo(1/120);}
+  t('buffer da simulação é reutilizado',c.p===buffer);
+  t('âncora acompanha o objeto móvel',Math.abs(c.p[(c.n-1)*3+1]-(2+Math.sin(599*.01)*.04))<1e-12);
+  t('folga dentro de 12% a 25%',c.comprimento/Math.hypot(3,1.8,1)>=1.12&&c.comprimento/Math.hypot(3,1.8,1)<=1.25);
+  t('quantidade de pontos entre 18 e 24',c.n>=18&&c.n<=24);
+}
+
 console.log(`\n${ok} verificações passaram, ${falhas} falharam.`);
 process.exit(falhas ? 1 : 0);

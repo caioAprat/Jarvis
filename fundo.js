@@ -40,7 +40,7 @@
       for (let i = 0; i <= n; i++) { const k = -tam / 2 + i * tam / n; pts.push(-tam / 2, 0, k, tam / 2, 0, k, k, 0, -tam / 2, k, 0, tam / 2); }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
       grade = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0, depthWrite: false }));
-      grade.position.y = (op.chao != null ? op.chao : -3.2 * E) - .02 * E; cena.add(grade);
+      grade.position.y = (op.chao != null ? op.chao : -3.2 * E) + .002 * E; cena.add(grade);
     }
     const atual = { vel: 1, part: 1, x: 0 };
     function estado(x) {
