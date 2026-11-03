@@ -462,5 +462,33 @@ grupo('13. Cabos: Verlet, âncoras e colisão após 600 passos');
   t('quantidade de pontos entre 18 e 24',c.n>=18&&c.n<=24);
 }
 
+grupo('14. Curvas em profundidade e guia da corda');
+{
+  const { bezier } = require('../cenario-geometria');
+  const a={x:0,y:1,z:0},b={x:2,y:2,z:-4},c={x:4,y:3,z:-5},d={x:6,y:2,z:0};
+  const curva=new Float64Array(22*3);bezier(curva,a,b,c,d);
+  t('curva começa e termina nos destinos',curva[0]===a.x&&curva[1]===a.y&&curva[2]===a.z&&curva[63]===d.x&&curva[64]===d.y&&curva[65]===d.z);
+  t('curva tem profundidade entre as pontas',Math.min(...Array.from({length:22},(_,i)=>curva[i*3+2])) < -3);
+  t('curva não contém NaN',Array.from(curva).every(Number.isFinite));
+  const {Corda}=require('../corda-verlet'),corda=new Corda([a.x,a.y,a.z],[d.x,d.y,d.z],{gravidade:.2});
+  let len=0;for(let j=3;j<curva.length;j+=3)len+=Math.hypot(curva[j]-curva[j-3],curva[j+1]-curva[j-2],curva[j+2]-curva[j-1]);
+  corda.comprimento=len;corda.segmento=len/21;corda.p.set(curva);corda.anterior.set(curva);corda.guiar(curva,28);
+  for(let i=0;i<600;i++)corda.passo(1/60);
+  t('guia mantém as duas âncoras',corda.p[0]===0&&corda.p[1]===1&&corda.p[63]===6&&corda.p[64]===2);
+  t('corda guiada conserva profundidade',Math.min(...Array.from({length:22},(_,i)=>corda.p[i*3+2])) < -2.5);
+  t('corda guiada permanece acima do piso e sem NaN',Array.from(corda.p).every(Number.isFinite)&&Array.from({length:22},(_,i)=>corda.p[i*3+1]).every(y=>y>=corda.raio));
+  let erro=0;for(let j=0;j<63;j+=3)erro=Math.max(erro,Math.abs(Math.hypot(corda.p[j+3]-corda.p[j],corda.p[j+4]-corda.p[j+1],corda.p[j+5]-corda.p[j+2])/corda.segmento-1));
+  t('guia respeita tolerância de 5% nos segmentos',erro<=.05,erro);
+}
+
+{
+  const {bezier,uniformizar}=require('../cenario-geometria');
+  const dense=new Float64Array(96*3),guide=new Float64Array(22*3),dist=new Float64Array(96);
+  bezier(dense,{x:0,y:0,z:0},{x:6,y:1,z:-2},{x:7,y:5,z:-3},{x:1,y:7,z:0});uniformizar(dense,guide,dist);
+  const lengths=Array.from({length:21},(_,i)=>Math.hypot(guide[i*3+3]-guide[i*3],guide[i*3+4]-guide[i*3+1],guide[i*3+5]-guide[i*3+2]));
+  t('amostragem da curva distribui os nós sem segmentos muito desiguais',Math.max(...lengths)/Math.min(...lengths)<1.05);
+  t('amostragem mantém as pontas exatas',guide[0]===0&&guide[63]===1&&guide[64]===7&&guide[65]===0);
+}
+
 console.log(`\n${ok} verificações passaram, ${falhas} falharam.`);
 process.exit(falhas ? 1 : 0);

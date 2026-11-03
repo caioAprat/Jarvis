@@ -71,7 +71,7 @@
     // ------------------------------------------------------------ módulos (um por projeto)
     const modulos = [];
     const W = 1.7 * E, H = 1.06 * E, D = .09 * E;
-    const resTela = leve ? [160, 100] : [256, 160];
+    const resTela = leve ? [256, 160] : [512, 320];
     function criarModulos(projetos) {
       modulos.forEach(m => { raiz.remove(m.g); m.tex.dispose(); });
       modulos.length = 0;
@@ -80,13 +80,23 @@
         const ang = i * 0.98 + .35, r = 3.15 * E + (i % 2) * .38 * E, y = -1.05 * E + i * .62 * E;
         g.position.set(Math.cos(ang) * r, y, Math.sin(ang) * r);
         g.lookAt(0, y, 0); g.rotateY(Math.PI + (i % 3 - 1) * .2); g.rotateZ((i % 2 ? 1 : -1) * .05);
-        const corpoG = new THREE.BoxGeometry(W, H, D), corpo = solido(corpoG, ESCURO, .97), borda = linha(corpoG, AMBAR, .55);
+        // Carcaça contínua, cantos arredondados e um único contorno, sem diagonais de triangulação.
+        const formato = CenarioGeometria.retangulo(W - .024 * E, H - .024 * E, .065 * E);
+        const corpoG = new THREE.ExtrudeGeometry(formato, { depth: D - .024 * E, bevelEnabled: true, bevelThickness: .012 * E, bevelSize: .012 * E, bevelSegments: 1, steps: 1, curveSegments: 6 });
+        corpoG.translate(0, 0, -D / 2 + .012 * E);
+        const corpo = solido(corpoG, ESCURO, 1);
+        const bordaMat = new THREE.LineBasicMaterial({ color: AMBAR, transparent: true, opacity: .23, depthWrite: false }); bordaMat.userData.base = .23; mats.push(bordaMat);
+        const bordaForma = CenarioGeometria.retangulo(W - .04 * E, H - .04 * E, .06 * E);
+        const borda = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(bordaForma.getPoints(6)), bordaMat); borda.position.z = D / 2 + .001 * E;
         const cv = document.createElement('canvas'); cv.width = resTela[0]; cv.height = resTela[1];
-        const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+        const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; tex.anisotropy = Math.min(4, dep.renderer.capabilities.getMaxAnisotropy());
         const telaMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 1 }); telaMat.userData.base = 1; mats.push(telaMat);
-        const tela = new THREE.Mesh(new THREE.PlaneGeometry(W * .9, H * .82), telaMat); tela.position.z = D / 2 + .004 * E; tela.userData.projeto = p.id;
+        const telaG = new THREE.ShapeGeometry(CenarioGeometria.retangulo(W * .9, H * .82, .035 * E), 10);
+        const tp = telaG.attributes.position, tu = telaG.attributes.uv;
+        for (let j = 0; j < tp.count; j++) tu.setXY(j, tp.getX(j) / (W * .9) + .5, tp.getY(j) / (H * .82) + .5);
+        const tela = new THREE.Mesh(telaG, telaMat); tela.position.z = D / 2 + .004 * E; tela.userData.projeto = p.id;
         const ledMat = new THREE.MeshBasicMaterial({ color: COR[p.status] || COR.aguardando, transparent: true, opacity: 1 }); ledMat.userData.base = 1; mats.push(ledMat);
-        const led = new THREE.Mesh(new THREE.SphereGeometry(.05 * E, 8, 6), ledMat); led.position.set(W / 2 - .1 * E, H / 2 - .1 * E, D / 2 + .02 * E);
+        const led = new THREE.Mesh(new THREE.SphereGeometry(.035 * E, 12, 8), ledMat); led.position.set(W / 2 - .1 * E, H / 2 - .1 * E, D / 2 + .02 * E);
         g.add(corpo, borda, tela, led); raiz.add(g);
         modulos.push({ id: p.id, g, tela, tex, cv, ctx: cv.getContext('2d', { willReadFrequently: true }),   // canvas na memória comum: subir para a GPU não trava a placa integrada
  led, ledMat, corpo, borda, ang, raio: r, y, enf: { v: 1, alvo: 1 } });
@@ -99,7 +109,7 @@
     function aplicarOpacidade() {
       mats.forEach(m => { m.opacity = m.userData.base * vis.v; m.visible = vis.v > .005; });
       raiz.visible = vis.v > .005;
-      modulos.forEach(m => { const k = vis.v * m.enf.v; m.tela.material.opacity = k; m.borda.material.opacity = .55 * k; m.corpo.material.opacity = .97 * vis.v; m.ledMat.opacity = k; });
+      modulos.forEach(m => { const k = vis.v * m.enf.v; m.tela.material.opacity = k; m.borda.material.opacity = .23 * k; m.corpo.material.opacity = vis.v * (.3 + .7 * m.enf.v); m.ledMat.opacity = k; });
     }
     function aparecer(v) { vis.v = Math.max(0, Math.min(1, v)); raiz.position.y = (1 - vis.v) * -.6 * E; aplicarOpacidade(); }
     function enfatizar(ids) {

@@ -2,7 +2,7 @@
 /**
  * JARVÃO · chamadas ancoradas — explicações que saem de partes específicas do protótipo (Territory Studio / R1).
  *
- * Âncora no modelo (cruz ou círculo pontilhado girando) → linha 1px com cotovelo → bloco: rótulo em JetBrains Mono
+ * Âncora no modelo (cruz ou círculo pontilhado girando) → marcador espacial sem linha sobre a tela → bloco: rótulo em JetBrains Mono
  * maiúscula, dado real grande em JetBrains Mono 600, explicação embaixo com decodificação. A posição é recalculada a
  * cada quadro pela projeção 3D→2D (o texto acompanha a peça quando a câmera anda); o bloco vai para o lado de fora e
  * nunca fica sobre o núcleo. Uma ação real opcional por chamada (ex.: "SAIBA MAIS" → aba Clientes).
@@ -13,7 +13,7 @@
 (function () {
   const CSS = `
   .cham-svg{position:fixed;inset:0;width:100vw;height:100vh;z-index:3;pointer-events:none;overflow:visible}
-  .cham-svg line,.cham-svg polyline{stroke:rgba(255,170,100,.55);stroke-width:1;fill:none}
+  .cham-svg line{stroke:rgba(255,170,100,.55);stroke-width:1;fill:none}
   .cham-svg .cm-circ{fill:none;stroke:#ff9a4d;stroke-width:1.2;stroke-dasharray:2 3;transform-box:fill-box;transform-origin:center;animation:cm-gira 6s linear infinite}
   .cham-svg .cm-ponto{fill:#ff9a4d}
   .cham-svg .cm-cruz{stroke:#ffe0b8;stroke-width:1.2}
@@ -65,8 +65,8 @@
         document.body.appendChild(el);
         const g = document.createElementNS(NS, 'g'); svg.appendChild(g);
         g.innerHTML = x.marcador === 'cruz'
-          ? '<line class="cm-cruz" x1="-7" y1="0" x2="7" y2="0"/><line class="cm-cruz" x1="0" y1="-7" x2="0" y2="7"/><polyline/>'
-          : '<circle class="cm-circ" r="9" cx="0" cy="0"/><circle class="cm-ponto" r="2.2" cx="0" cy="0"/><polyline/>';
+          ? '<line class="cm-cruz" x1="-7" y1="0" x2="7" y2="0"/><line class="cm-cruz" x1="0" y1="-7" x2="0" y2="7"/>'
+          : '<circle class="cm-circ" r="9" cx="0" cy="0"/><circle class="cm-ponto" r="2.2" cx="0" cy="0"/>';
         const it = { x, el, g, escrito: false, w: 0, h: 0 };
         requestAnimationFrame(() => { const r = el.getBoundingClientRect(); it.w = r.width; it.h = r.height; });
         return it;

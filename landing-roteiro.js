@@ -47,8 +47,8 @@
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
 
   const CSS = `
-  #narrativa{position:relative;z-index:2}
-  .narr-trilho{position:relative}
+  #narrativa{position:relative;z-index:2;pointer-events:none}
+  .narr-trilho{position:relative;pointer-events:none}
   .narr-fix{position:sticky;top:0;height:100vh;min-height:520px;overflow:hidden;pointer-events:none}
   :is(.narr-cena,.narr-texto-camada){position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(140px,24vw) 1fr;align-items:center;padding:0 clamp(64px,7vw,104px) 0 clamp(18px,4.5vw,64px);opacity:0;will-change:opacity,filter,transform}
   :is(.narr-cena,.narr-texto-camada) .mom-esq{grid-column:1;grid-row:1;justify-self:start;min-width:0}
@@ -134,8 +134,7 @@
     const leve = innerWidth < 700, dep = mapa ? mapa.depurar() : null, E = dep ? dep.escala : 2.6;
     let particulas = null;
     if (mapa && window.LandingParticulas) {
-      particulas = LandingParticulas.montar(dep.scene, { leve });
-      if (particulas && !reduzido && window.LandingPonteiro) LandingPonteiro.montar({ camera: dep.camera, particulas });
+      particulas = LandingParticulas.montar(dep.scene, { leve, camera: dep.camera, escala: E, renderer: dep.renderer });
     }
     // v5: protótipo do Jarvão + fios + telas vivas + planeta tech + fundo que muda + chamadas + navegação numerada
     let trecho = 'A', ativa = true;
@@ -145,25 +144,28 @@
     const fios = proto && window.Fios ? Fios.montar(mapa, proto, { leve }) : null;
     const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => trecho === 'B' && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
+    const veias = mapa && window.VeiasCenario ? VeiasCenario.montar(mapa, planeta, { leve }) : null;
     const fundo = window.Fundo ? Fundo.montar(mapa, { particulas, chao: -3.2 * E }) : null;
     const rotulos = proto && window.RotulosLayout ? RotulosLayout.montar({ camera: () => dep.camera, proto, E }) : null;
     const chamadas = mapa && window.Chamadas ? Chamadas.montar({ camera: () => dep.camera, nucleoRaio: () => 2.1 * E, layout: rotulos }) : null;
     const nav = window.NavCenas ? NavCenas.montar() : null;
-    if (mapa) mapa.orbitas(false);
+    if (mapa) { mapa.orbitas(false); mapa.ambienteEmCamadas(true); }
     // ao sair/recarregar: devolve a memória de vídeo na hora (GPU integrada não recupera a tempo e a próxima carga fica a 1 quadro/s)
     addEventListener('pagehide', () => { try { if (dep && dep.renderer) { dep.renderer.dispose(); dep.renderer.forceContextLoss(); } } catch (e) {} });
     const intro = { v: reduzido ? 1 : 0 };                       // os fios do chão acendem sozinhos na chegada
     if (!reduzido && window.gsap) gsap.to(intro, { v: 1, duration: 3.2, delay: .6, ease: 'power1.inOut', onUpdate: () => { if (trecho === 'A' && atual.p < .05) aplicar(atual.p); } });
+    let quadroNarrativa = null;
     if (mapa && window.gsap) {
       let t = 0, tp = 0, u = performance.now();
-      gsap.ticker.add(() => {
-        if (!ativa) return;
+      gsap.ticker.add(quadroNarrativa = () => {
+        if (!ativa || document.hidden) { u = performance.now(); return; }
         const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1);
-        if (particulas) particulas.quadro(tp, d);
+        if (particulas) particulas.quadro(tp, d, Object.assign({ p: atual.p }, camAtual));
         if (proto) proto.quadro(t, reduzido ? 0 : d);
         if (fios) fios.quadro(t, reduzido ? 0 : d);
         if (telas) telas.quadro(t, d);
         if (planeta) planeta.quadro(t, reduzido ? 0 : d);
+        if (veias) veias.quadro(t, d);
         if (rotulos) rotulos.quadro(host);
         if (chamadas) chamadas.quadro();
       });
@@ -348,6 +350,7 @@
 
     // ------------------------------------------------------------ rolagem → cenas, planos, câmera
     function aplicar(p) {
+      if (!ativa) return;
       const ativas = [];
       for (const c of cenas) {
         const v = janela(p, c.ini, c.fim);
@@ -463,12 +466,15 @@
       return [];
     }
 
-    function laço() {
-      const d = alvo.p - atual.p; atual.p += d * (reduzido ? 1 : .16);
+    let ultimoScroll = 0;
+    function laço(agora) {
+      if (!ativa) { girando = false; return; }
+      const dt = ultimoScroll ? Math.min(.1, Math.max(0, (agora - ultimoScroll) / 1000)) : 1/60; ultimoScroll = agora;
+      const d = alvo.p - atual.p; atual.p += d * (reduzido ? 1 : 1 - Math.exp(-10.46 * dt));
       if (Math.abs(d) < .0004 || reduzido) { atual.p = alvo.p; girando = false; aplicar(atual.p); return; }
       aplicar(atual.p); requestAnimationFrame(laço);
     }
-    const acordar = () => { if (!girando) { girando = true; requestAnimationFrame(laço); } };
+    const acordar = () => { if (!girando) { girando = true; ultimoScroll = 0; requestAnimationFrame(laço); } };
     function ligarTrilho() {
       if (trigger) { trigger.kill(); trigger = null; }
       alvo.p = atual.p = 0;
@@ -577,15 +583,17 @@
     // ------------------------------------------------------------ fim da narrativa / ir direto
     function terminar() {
       if (!ativa) return; ativa = false;
+      if (quadroNarrativa) gsap.ticker.remove(quadroNarrativa);
       if (projeto) { projeto = null; if (camadaProj) { Escrita.liberar(camadaProj); camadaProj.remove(); } }
       if (trigger) { trigger.kill(); trigger = null; }
       if (portalDados) { portalDados.destruir(); portalDados = null; }
       cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
-      if (rotulos) rotulos.remover();
+      if (particulas) particulas.destruir();
+      if (veias) veias.destruir();
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
-      if (proto) proto.aparecer(0); if (fios) fios.mostrar(false); if (planeta) planeta.mostrar(0);
-      if (mapa) { mapa.orbitas(true); mapa.deformar(0); }
+      if (proto) proto.aparecer(0); if (fios) fios.destruir(); if (planeta) planeta.mostrar(0);
+      if (mapa) { mapa.orbitas(true); mapa.deformar(0); mapa.ambienteEmCamadas(false); }
       document.body.classList.remove('narr-on', 'narr-b', 'narr-sem-rotulos'); document.body.classList.add('momentos-vistos');
       travarRolagem(false);
       if (mapa) { mapa.cinema(null); mapa.explodir(0); mapa.fluxoIntensidade(1); mapa.congelar(0); }

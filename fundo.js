@@ -39,7 +39,11 @@
       const n = 34, tam = 36 * E, pts = [];
       for (let i = 0; i <= n; i++) { const k = -tam / 2 + i * tam / n; pts.push(-tam / 2, 0, k, tam / 2, 0, k, k, 0, -tam / 2, k, 0, tam / 2); }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      grade = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0, depthWrite: false }));
+      const mat = new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+        uniforms:{uVis:{value:0},uE:{value:E}},
+        vertexShader:'varying vec3 vP;varying float vD;void main(){vP=(modelMatrix*vec4(position,1.)).xyz;vec4 mv=viewMatrix*vec4(vP,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}',
+        fragmentShader:'uniform float uVis,uE;varying vec3 vP;varying float vD;void main(){float r=length(vP.xz)/uE;float radial=smoothstep(2.,5.,r)*(1.-smoothstep(7.,17.,r));gl_FragColor=vec4(.69,.61,.52,uVis*radial*exp(-vD*.022));}'});
+      grade = new THREE.LineSegments(g, mat);grade.name='grade-atmosferica';
       grade.position.y = (op.chao != null ? op.chao : -3.2 * E) + .002 * E; cena.add(grade);
     }
     const atual = { vel: 1, part: 1, x: 0 };
@@ -48,12 +52,12 @@
       const i = Math.min(EST.length - 2, Math.floor(x)), u = x - i, A = EST[i], B = EST[i + 1], m = k => A[k] + (B[k] - A[k]) * u;
       if (cena && cena.fog) cena.fog.density = m(0);
       veu.style.opacity = m(1).toFixed(3);
-      if (grade) { grade.material.opacity = m(2) * .07; grade.visible = m(2) > .01; }
+      if (grade) { grade.material.uniforms.uVis.value = m(2) * .075; grade.visible = m(2) > .01; }
       grao.style.opacity = m(3).toFixed(3);
       atual.vel = reduzido ? 0 : m(4); atual.part = m(5);
       if (op.particulas && op.particulas.intensidade) op.particulas.intensidade(atual.part);
     }
-    function remover() { veu.remove(); grao.remove(); if (grade && cena) cena.remove(grade); if (cena) cena.fog = null; }
+    function remover() { veu.remove(); grao.remove(); if (grade && cena) { cena.remove(grade); grade.geometry.dispose(); grade.material.dispose(); } if (cena) cena.fog = null; }
     estado(0);
     return { estado, velocidade: () => atual.vel, atual: () => atual.x, remover, ESTADOS: EST.length };
   }

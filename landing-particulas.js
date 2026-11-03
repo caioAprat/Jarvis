@@ -1,97 +1,82 @@
 'use strict';
-/**
- * JARVÃO · landing — ambiente vivo (técnica A).
- *
- * THREE.Points em duas camadas de profundidade (parallax), tons já usados no núcleo
- * (0xffc890, 0xffd9a0, 0xffe0b0, 0xff8a3d), sempre em movimento mesmo com o scroll parado.
- * O ponteiro/toque não deixa rastro: só empurra de leve as partículas perto dele (técnica D,
- * ver landing-ponteiro.js). Reaproveita a cena do mapa-vivo (mesma câmera/scene), então os
- * tons e a profundidade batem com o núcleo e os planetas.
- *
- * Sem build: carregado por <script> em index.html. Não guarda dados nem chaves.
+/** Quatro camadas em volume. O núcleo e a câmera não pertencem a estes grupos.
+ * Inspiração: Lusion (escala/falloff), Active Theory (atmosfera), Territory (hierarquia).
+ * D = distância ao foco do roteiro; Z negativo é a frente da câmera, em coordenadas de visão.
  */
 (function () {
-  const CORES = [0xffc890, 0xffd9a0, 0xffe0b0, 0xff8a3d];
-
-  const VERT = [
-    'attribute float aTam; attribute float aFase; attribute vec3 aCor; attribute float aCamada;',
-    'uniform float uTime; varying vec3 vCor; varying float vCamada;',
-    'void main() {',
-    '  vCor = aCor; vCamada = aCamada;',
-    '  vec3 p = position;',
-    '  p.x += sin(uTime * .06 + aFase) * (1.6 + aCamada * 1.2);',
-    '  p.y += cos(uTime * .05 + aFase * 1.3) * (1.1 + aCamada * .9);',
-    '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
-    '  gl_PointSize = min(aTam * (260.0 / -mv.z), 14.0);',          // perto da câmera não vira mancha
-    '  gl_Position = projectionMatrix * mv;',
-    '}',
-  ].join('\n');
-  const FRAG = [
-    'varying vec3 vCor; varying float vCamada; uniform sampler2D uMapa; uniform float uInt;',
-    'void main() {',
-    '  vec4 t = texture2D(uMapa, gl_PointCoord);',
-    '  float op = t.a * (vCamada < .5 ? .9 : .4);',    // camada 0 = principal/secundária; 1 = fundo, mais fraca
-    '  gl_FragColor = vec4(vCor, op * uInt);',
-    '}',
-  ].join('\n');
-
-  function texturaPonto() {
-    const c = document.createElement('canvas'); c.width = c.height = 32;
-    const x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g; x.fillRect(0, 0, 32, 32);
-    const t = new THREE.CanvasTexture(c); t.needsUpdate = true; return t;
-  }
-
-  /** Monta a nuvem de partículas dentro da cena do mapa-vivo (reaproveita THREE já carregado). */
+  const CAMADAS = [
+    { nome: 'frente', z: [.2,.45], n: 8, escala: [36,90], opacidade: .14, parallax: 1, scroll: 1 },
+    { nome: 'medio', z: [.7,1.12], n: 120, escala: [1.5,3], opacidade: .38, parallax: .25, scroll: .25 },
+    { nome: 'fundo', z: [1.12,2.2], n: 160, escala: [.6,1.3], opacidade: .16, parallax: .08, scroll: .08 },
+    { nome: 'infinito', z: [2.5,3.5], n: 220, escala: [.5,.9], opacidade: .075, parallax: .015, scroll: .02 },
+  ];
   function montar(cena, op) {
-    op = op || {};
-    if (!cena || !window.THREE) return null;
-    const leve = !!op.leve, n = leve ? 90 : 220;
-    const pos = new Float32Array(n * 3), tam = new Float32Array(n), fase = new Float32Array(n), cor = new Float32Array(n * 3), camada = new Float32Array(n);
-    const alcance = 26;
-    for (let i = 0; i < n; i++) {
-      const c2 = Math.random() < .55 ? 0 : 1;     // 55% perto (principal/secundária), 45% longe (fundo)
-      const r = c2 === 0 ? 4 + Math.random() * 10 : 12 + Math.random() * alcance;
-      const ang = Math.random() * 6.2832, alt = (Math.random() - .5) * (c2 === 0 ? 7 : 14);
-      pos[i * 3] = Math.cos(ang) * r; pos[i * 3 + 1] = alt; pos[i * 3 + 2] = Math.sin(ang) * r;
-      tam[i] = (c2 === 0 ? 1.6 : 2.6) * (.6 + Math.random() * .8);
-      fase[i] = Math.random() * 6.2832; camada[i] = c2;
-      const c = new THREE.Color(CORES[(Math.random() * CORES.length) | 0]);
-      cor[i * 3] = c.r; cor[i * 3 + 1] = c.g; cor[i * 3 + 2] = c.b;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('aTam', new THREE.BufferAttribute(tam, 1));
-    geo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
-    geo.setAttribute('aCor', new THREE.BufferAttribute(cor, 3));
-    geo.setAttribute('aCamada', new THREE.BufferAttribute(camada, 1));
-    const mat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uMapa: { value: texturaPonto() }, uInt: { value: 1 } }, vertexShader: VERT, fragmentShader: FRAG,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    });
-    const pontos = new THREE.Points(geo, mat);
-    cena.add(pontos);
-
-    // o ponteiro empurra de leve as partículas perto dele (sem rastro) — técnica D
-    const base = pos.slice(), empurro = new Float32Array(n * 3), alvo = { x: 999, y: 0, z: 999 }, dentro = { v: false };
-    function perto(px, pz) { alvo.x = px; alvo.z = pz; dentro.v = true; }
-    function longe() { dentro.v = false; }
-
-    function quadro(t, d) {
-      mat.uniforms.uTime.value = t;
-      if (dentro.v) {
-        for (let i = 0; i < n; i++) {
-          const dx = base[i * 3] + empurro[i * 3] - alvo.x, dz = base[i * 3 + 2] + empurro[i * 3 + 2] - alvo.z, dd = Math.hypot(dx, dz);
-          if (dd < 3.2 && dd > .001) { const f = (1 - dd / 3.2) * .5 * d; empurro[i * 3] += (dx / dd) * f; empurro[i * 3 + 2] += (dz / dd) * f; }
-        }
+    op = op || {}; const camera = op.camera, leve = !!op.leve, E = op.escala || 2.6;
+    if (!camera) return null;
+    const motion = matchMedia('(prefers-reduced-motion: reduce)'), grupos = [], materiais = [], geos = [];
+    const ponteiro = new THREE.Vector2(), suave = new THREE.Vector2(), foco = new THREE.Vector3();
+    const areas = Array.from({length:12}, () => new THREE.Vector4(-9,-9,-9,-9)); let proximaLeitura = 0, intensidade = 1;
+    let seed = 173; const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    CAMADAS.forEach((c,k) => {
+      const grupo = new THREE.Group(); grupo.name = 'cenario-' + c.nome; grupo.userData.camada = {...c}; cena.add(grupo); grupos.push(grupo);
+      if (leve && (k===0 || k===3)) { grupo.visible=false; return; }
+      const n = leve ? (k===1?60:100) : c.n, p = new Float32Array(n*3), size = new Float32Array(n), fase = new Float32Array(n);
+      for (let i=0;i<n;i++) {
+        const z=c.z[0]+random()*(c.z[1]-c.z[0]);
+        // Distribuição irregular em volume; primeiro plano fica nas bordas do campo visual.
+        p[i*3]=(k===0?(i%2?1:-1)*(.73+random()*.28):(random()-.5)*2.3)*z;
+        p[i*3+1]=(random()-.5)*1.8*z; p[i*3+2]=-z;
+        size[i]=c.escala[0]+random()*(c.escala[1]-c.escala[0]); fase[i]=random()*6.28318;
       }
-      let mexeu = false;
-      for (let i = 0; i < n * 3; i++) { if (Math.abs(empurro[i]) > 1e-4) mexeu = true; empurro[i] *= Math.pow(.06, d); pos[i] = base[i] + empurro[i]; }
-      if (mexeu) geo.attributes.position.needsUpdate = true;
-    }
-    return { pontos, quadro, perto, longe, intensidade: (v) => { mat.uniforms.uInt.value = v; }, destruir: () => { cena.remove(pontos); geo.dispose(); mat.dispose(); } };
-  }
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(p,3));geo.setAttribute('aSize',new THREE.BufferAttribute(size,1));geo.setAttribute('aFase',new THREE.BufferAttribute(fase,1));geos.push(geo);
+      const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:k===0?THREE.NormalBlending:THREE.AdditiveBlending,
+        uniforms:{uTime:{value:0},uOpacity:{value:c.opacidade},uScale:{value:1},uFrente:{value:k===0?1:0},uAreas:{value:areas},uViewport:{value:new THREE.Vector2()},uPix:{value:1}},
+        vertexShader:`attribute float aSize,aFase;uniform float uTime,uScale,uPix;varying float vFase,vDist;void main(){vec3 p=position;p.x+=sin(uTime*.08+aFase)*.018;p.y+=cos(uTime*.065+aFase)*.015;vec4 mv=modelViewMatrix*vec4(p,1.);vDist=-mv.z;vFase=aFase;gl_Position=projectionMatrix*mv;gl_PointSize=clamp(aSize*uPix*uScale/max(.1,-mv.z),.55,72.);}`,
+        fragmentShader:`uniform float uOpacity,uFrente,uPix;uniform vec2 uViewport;uniform vec4 uAreas[12];varying float vFase,vDist;void main(){vec2 d=gl_PointCoord-.5;float r=length(d);if(r>.5)discard;vec2 screen=vec2(gl_FragCoord.x/uPix,uViewport.y-gl_FragCoord.y/uPix);if(uFrente>.5){for(int i=0;i<12;i++){vec4 a=uAreas[i];if(screen.x>a.x&&screen.y>a.y&&screen.x<a.z&&screen.y<a.w)discard;}}float fall=exp(-dot(d,d)*22.)*(1.-smoothstep(.35,.5,r));vec3 cor=mix(vec3(.69,.61,.52),vec3(1.,.6,.3),step(3.,vFase));if(uFrente>.5)cor=vec3(.69,.42,.2);gl_FragColor=vec4(cor,fall*uOpacity*exp(-vDist*.0018));}`});materiais.push(mat);
+      const points=new THREE.Points(geo,mat);points.name='poeira-'+c.nome;points.frustumCulled=false;grupo.add(points);
+      grupo.userData.pontos=points;grupo.userData.quantidade=n;
+      if(k===2){
+        const linhas=[];
+        for(let anel=0;anel<3;anel++)for(let j=0;j<96;j++){
+          if(j%7===6)continue;
+          for(const q of[j,j+1]){const a=q/96*Math.PI*2,r=.72+anel*.19,z=1.35+anel*.23;linhas.push(Math.cos(a)*r*z,Math.sin(a)*r*z*.62-.24*z,-z+Math.sin(a)*.11);}
+        }
+        const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(linhas,3));geos.push(lg);
+        const lm=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+          uniforms:{uOpacity:{value:leve?.035:.065}},vertexShader:'varying float vD;varying vec2 vN;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;vN=gl_Position.xy/gl_Position.w;}',
+          fragmentShader:'uniform float uOpacity;varying float vD;varying vec2 vN;void main(){float fade=smoothstep(.3,.85,length(vN))*(1.-smoothstep(1.1,1.6,length(vN)));gl_FragColor=vec4(.69,.61,.52,uOpacity*fade*exp(-vD*.006));}'});materiais.push(lm);
+        const estrutura=new THREE.LineSegments(lg,lm);estrutura.name='arcos-distantes';estrutura.frustumCulled=false;points.add(estrutura);
+      }
 
-  window.LandingParticulas = { montar };
+    });
+    const mover=e=>{ponteiro.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);};
+    const sair=()=>ponteiro.set(0,0);addEventListener('pointermove',mover,{passive:true});addEventListener('blur',sair);
+    function lerAreas(t) {
+      if(t<proximaLeitura)return;proximaLeitura=t+.12;areas.forEach(a=>a.set(-9,-9,-9,-9));let i=0;
+      document.querySelectorAll('.narr-texto-camada .mom-lado,.cham-bloco,.barra,.dock,.ir-direto').forEach(el=>{
+        if(i>=areas.length || getComputedStyle(el).opacity==='0')return;
+        const camada=el.closest('.narr-texto-camada');if(camada&&Number(camada.style.opacity)<.01)return;const alvo=el;
+        const r=alvo.getBoundingClientRect();if(r.width&&r.height)areas[i++].set(r.left-24,r.top-20,r.right+24,r.bottom+20);
+      });
+    }
+    function quadro(t,d,estado) {
+      if(document.hidden)return;estado=estado||{};const red=motion.matches;
+      const dt=Math.min(.05,d),f=1-Math.exp(-dt*2.7);if(red)suave.set(0,0);else suave.lerp(ponteiro,f);
+      foco.set(estado.cx||0,estado.cy||0,estado.cz||0);const D=Math.max(4*E,Math.min(70,camera.position.distanceTo(foco))),tan=Math.tan(camera.fov*Math.PI/360);
+      lerAreas(performance.now()/1000);
+      grupos.forEach((g,k)=>{
+        if(!g.visible)return;const c=CAMADAS[k],points=g.userData.pontos,mat=points.material;
+        g.position.copy(camera.position);g.quaternion.copy(camera.quaternion);
+        // Profundidade geométrica real; só a translação lateral extra responde ao ponteiro/scroll.
+        points.scale.set(D*tan*camera.aspect,D*tan,D);
+        points.position.set(red?0:suave.x*c.parallax*D*.055,red?0:suave.y*c.parallax*D*.035+Math.sin((estado.p||0)*Math.PI*2)*c.scroll*D*.09,0);
+        mat.uniforms.uTime.value=red?0:t;mat.uniforms.uScale.value=D*(c.z[0]+c.z[1])/2;
+        const pix=op.renderer?op.renderer.getPixelRatio():1;mat.uniforms.uPix.value=pix;mat.uniforms.uViewport.value.set(innerWidth,innerHeight);
+        mat.uniforms.uOpacity.value=c.opacidade*Math.min(1.15,intensidade);
+      });
+    }
+    function destruir(){grupos.forEach(g=>cena.remove(g));materiais.forEach(m=>m.dispose());geos.forEach(g=>g.dispose());removeEventListener('pointermove',mover);removeEventListener('blur',sair);}
+    return { grupos, quadro, intensidade:v=>{intensidade=v;}, destruir, tabela:CAMADAS };
+  }
+  window.LandingParticulas={montar,CAMADAS};
 })();

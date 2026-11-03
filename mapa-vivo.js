@@ -454,10 +454,10 @@
     function quadro() {
       const agora = performance.now(), dt = Math.min(.05, (agora - ultimo) / 1000); ultimo = agora;
       if (!ativo || !el.isConnected || !w) return;
-      acum += dt; if ((baixo || limite30) && !reduzido && acum < 1 / 30) return; const d = acum; acum = 0;
+      acum += dt; if ((baixo || limite30) && !reduzido && acum + .0008 < 1 / 30) return; const d = acum; acum = 0;
       // se a máquina não dá conta, abre mão do que custa mais, em etapas: bloom, resolução, metade das partículas, 30 quadros/s
       if (!reduzido && ++quadros > 20) {
-        if (d > .03) lentos++; else lentos = Math.max(0, lentos - 1);
+        if (dt > (baixo || limite30 ? .045 : .03)) lentos++; else lentos = Math.max(0, lentos - 1);
         if (lentos > 36) {
           lentos = 0; nivel++;
           if (nivel === 1 && comp) comp = null;
@@ -607,7 +607,7 @@
     };
     const noEl = e => e.target instanceof Node && (e.target === el || el.contains(e.target));
     function mover(e) {
-      if (parado || (baixo && !FUNDO)) return;
+      if (reduzido || parado || (baixo && !FUNDO)) return;
       const r = el.getBoundingClientRect(); if (!r.width) return;
       const nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
       ptr.vel = Math.min(.05, Math.hypot(nx * 2 - 1 - ptr.mx, -(ny * 2 - 1) - ptr.my) * .5 + ptr.vel * .3);
@@ -677,6 +677,11 @@
     function deformar(v) { plasmaMat.uniforms.uDeform.value = Math.max(0, Math.min(1, v || 0)); }
     /** Mostra/esconde os planetas, as ligações e os pacotes das veias (o protótipo da landing toma o centro). */
     function orbitasVisiveis(v) { v = v !== false; orbitas.visible = v; pulsosPts.visible = v; fluxoLigacao.visible = v; }
+    /** Só a landing substitui a poeira externa pelas suas camadas. Núcleo/anatomia intactos. */
+    function ambienteEmCamadas(v) {
+      fluxoObjs.forEach(p => { p.visible = !v; });
+      if (scene.userData.estrelas) scene.userData.estrelas.visible = !v;
+    }
     /** Nível da qualidade adaptativa (0 = cheio; sobe quando os quadros caem). */
     function qualidade() { return nivel; }
     /** 0 a 1: vista explodida do núcleo (interior, casca e malha se afastam do centro). */
@@ -755,7 +760,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

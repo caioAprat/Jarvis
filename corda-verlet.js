@@ -12,6 +12,7 @@
       this.gravidade = op.gravidade == null ? .8 : op.gravidade;
       this.iteracoes = 8; this.amortecimento = .975; this.tempo = 0;
       this.ventoX = this.ventoZ = this.impulso = 0; this.reduzido = false;
+      this.guia = null; this.rigidez = 0;
       this.ponteiro = { ativo: false, x: 0, y: 0, z: 0, raio: 1 };
       const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], distancia = Math.hypot(dx, dy, dz);
       this.comprimento = Math.max(.01, distancia) * (1 + Math.max(.12, Math.min(.25, op.folga == null ? .2 : op.folga)));
@@ -40,6 +41,10 @@
       this.a[0] = ax; this.a[1] = ay; this.a[2] = az; this.b[0] = bx; this.b[1] = by; this.b[2] = bz;
       this.fixar();
     }
+    guiar(pontos, rigidez = 18) {
+      // Guia espacial opcional: os nós continuam simulados e sujeitos às restrições.
+      this.guia = pontos; this.rigidez = rigidez;
+    }
     fixar() {
       const fim = (this.n - 1) * 3;
       for (let k = 0; k < 3; k++) { this.p[k] = this.anterior[k] = this.a[k]; this.p[fim + k] = this.anterior[fim + k] = this.b[k]; }
@@ -49,7 +54,7 @@
       const dt2 = dt * dt, minimo = this.chao + this.raio, ptr = this.ponteiro;
       for (let i = 1; i < this.n - 1; i++) {
         const j = i * 3, x = this.p[j], y = this.p[j + 1], z = this.p[j + 2];
-        let fx = 0, fz = 0;
+        let fx = 0, fy = -this.gravidade, fz = 0;
         if (!this.reduzido) {
           fx = this.ventoX + Math.sin(this.tempo * .65 + i * .47) * .025;
           fz = this.ventoZ + Math.cos(this.tempo * .51 + i * .31) * .025 + this.impulso;
@@ -58,8 +63,13 @@
             if (dist > .001 && dist < ptr.raio) { const f = (1 - dist / ptr.raio) * .35 / dist; fx += dx * f; fz += dz * f; }
           }
         }
+        if (this.guia) {
+          fx += (this.guia[j] - x) * this.rigidez;
+          fy += (this.guia[j + 1] - y) * this.rigidez;
+          fz += (this.guia[j + 2] - z) * this.rigidez;
+        }
         this.p[j] = x + (x - this.anterior[j]) * this.amortecimento + fx * dt2;
-        this.p[j + 1] = y + (y - this.anterior[j + 1]) * this.amortecimento - this.gravidade * dt2;
+        this.p[j + 1] = y + (y - this.anterior[j + 1]) * this.amortecimento + fy * dt2;
         this.p[j + 2] = z + (z - this.anterior[j + 2]) * this.amortecimento + fz * dt2;
         this.anterior[j] = x; this.anterior[j + 1] = y; this.anterior[j + 2] = z;
       }

@@ -21,9 +21,9 @@
       fragmentShader: `uniform float uE; uniform vec3 uBases[16]; varying vec3 vP;
         void main(){vec2 p=vP.xz/uE;float r=length(p);float luz=exp(-r*r*.095);
           float sombra=exp(-r*r*.42)*.75;
-          for(int i=0;i<16;i++){vec2 d=(vP.xz-uBases[i].xz)/uE;sombra=max(sombra,exp(-dot(d,d)*8.)*.85);}
+          for(int i=0;i<16;i++){vec2 d=(vP.xz-uBases[i].xz)/uE;float dd=dot(d,d);if(dd<3.24)sombra=max(sombra,exp(-dd*8.)*.85);}
           float marca=pow(max(0.,cos(r*6.28318)),180.)*step(1.9,r)*(1.-smoothstep(6.,10.,r));
-          vec3 cor=vec3(.009,.007,.006)*(1.-sombra*.85)+vec3(.12,.035,.007)*luz*(1.-sombra)+vec3(.06,.025,.008)*marca;
+          vec3 cor=vec3(.009,.007,.006)*(1.-sombra*.85)+vec3(.12,.035,.007)*luz*(1.-sombra)+vec3(.026,.014,.008)*marca;
           cor=mix(cor,vec3(.03137,.02745,.02353),smoothstep(8.,20.,r));gl_FragColor=vec4(cor,1.);}` }); recursos.add(pisoMat);
     const piso = mesh(new THREE.PlaneGeometry(60 * E, 60 * E), pisoMat); piso.name = 'chao-unico'; piso.rotation.x = -Math.PI / 2; piso.position.y = CHAO;
     const eixo = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion(), giroSoquete = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI / 2);
@@ -36,12 +36,13 @@
       sincronizar.ids = ids; limparApoios();
       proto.modulos.forEach((m, i) => {
         const g = new THREE.Group(); g.name = 'apoio-' + m.id; grupo.add(g);
-        const pe = mesh(new THREE.CylinderGeometry(.32 * E, .4 * E, .09 * E, 16), escuro, g);
-        const haste = mesh(new THREE.CylinderGeometry(.035 * E, .055 * E, 1, 8), metal, g);
+        const pe = mesh(new THREE.CylinderGeometry(.24 * E, .32 * E, .065 * E, 32), escuro, g);
+        const tubo = CenarioGeometria.tubo(12, 6), centros = new Float32Array(12 * 3);
+        const haste = mesh(tubo.geo, metal, g); haste.frustumCulled = false;
         const junta = mesh(new THREE.SphereGeometry(.085 * E, 10, 8), metal, g);
         const soquete = mesh(new THREE.CylinderGeometry(.07 * E, .09 * E, .12 * E, 12), metal, g);
         const aro = mesh(new THREE.TorusGeometry(.072 * E, .01 * E, 4, 12), acento, g);
-        apoios.push({ grupo: g, id: m.id, modulo: m, pe, haste, junta, soquete, aro, ancora: new THREE.Vector3(), apoio: new THREE.Vector3() });
+        apoios.push({ grupo: g, id: m.id, modulo: m, pe, haste, tubo, centros, junta, soquete, aro, ultimaY: Infinity, ancora: new THREE.Vector3(), apoio: new THREE.Vector3() });
         const ang = i / Math.max(1, proto.modulos.length) * Math.PI * 2;
         const pos = new THREE.Vector3(Math.cos(ang) * 1.52 * E, CHAO + .26 * E, Math.sin(ang) * 1.52 * E);
         const pg = new THREE.Group(); pg.name = 'porta-hub-' + m.id; grupo.add(pg);
@@ -58,16 +59,26 @@
         const m = a.modulo.g; a.grupo.visible = proto.visivel() > .005;
         m.localToWorld(a.ancora.set(0, -.36 * E, -.08 * E));
         m.localToWorld(a.apoio.set(0, -.5 * E, -.06 * E));
-        a.pe.position.set(a.apoio.x, CHAO + .045 * E, a.apoio.z);
-        const altura = Math.max(.01 * E, a.apoio.y - CHAO - .08 * E);
-        a.haste.position.set(a.apoio.x, CHAO + .08 * E + altura / 2, a.apoio.z); a.haste.scale.y = altura;
+        a.pe.position.set(a.apoio.x, CHAO + .0325 * E, a.apoio.z);
+        const altura = Math.max(.01 * E, a.apoio.y - CHAO - .06 * E);
+        // Braço curvo ancorado na base: afasta-se para trás e volta à articulação.
+        if (Math.abs(a.ultimaY - a.apoio.y) > .001 * E) {
+          const radial = Math.hypot(a.apoio.x, a.apoio.z) || 1;
+          for (let j = 0; j < 12; j++) {
+            const u = j / 11, arco = Math.sin(Math.PI * u) * .38 * E;
+            a.centros[j*3] = a.apoio.x + a.apoio.x / radial * arco;
+            a.centros[j*3+1] = CHAO + .06 * E + altura * u;
+            a.centros[j*3+2] = a.apoio.z + a.apoio.z / radial * arco;
+          }
+          a.tubo.atualizar(a.centros, .026 * E); a.ultimaY = a.apoio.y;
+        }
         a.junta.position.copy(a.apoio); a.soquete.position.copy(a.ancora);
         m.getWorldQuaternion(q); a.soquete.quaternion.copy(q).multiply(giroSoquete);
         a.aro.position.copy(a.ancora); a.aro.quaternion.copy(q);
         if(centros[i]){if (a.grupo.visible) centros[i].copy(a.pe.position); else centros[i].set(10000, 0, 10000);}
       });
     }
-    function mostrar(v) { if(grupo.visible && !v) recursos.forEach(r=>r.dispose()); grupo.visible = !!v; }
+    function mostrar(v) { grupo.visible = !!v; }
     function destruir() { recursos.forEach(r => r.dispose()); recursos.clear(); dep.scene.remove(grupo); }
     sincronizar();
     return { grupo, CHAO, portas, apoios, sincronizar, quadro, mostrar, destruir };
