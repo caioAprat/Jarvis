@@ -1,0 +1,10 @@
+{
+  "ctrlK": "passou",
+  "conferir": "passou (simulador local)",
+  "dock": "passou",
+  "painel": "passou",
+  "saida": "passou, camadas removidas",
+  "erros": [],
+  "reducedMotion": "Transformações da cena, camadas, cabos e pulsos permanecem estáticos após mover o ponteiro",
+  "pin": "PIN incorreto recusado; PIN correto aceito pelo simulador"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "width": 1366,
+    "version": "b92a4bc",
+    "fps": 5.418719211822661,
+    "p95ms": 206.30000000074506,
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": 2,
+    "calls": 194,
+    "triangles": 28196,
+    "points": 5889,
+    "errors": []
+  },
+  {
+    "width": 1366,
+    "version": "alteracoes-locais",
+    "fps": 5.606777971592325,
+    "p95ms": 191.40000000037253,
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": 2,
+    "calls": 150,
+    "triangles": 28928,
+    "points": 1863,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "version": "b92a4bc",
+    "fps": 23.600809170602332,
+    "p95ms": 50.90000000037253,
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": 10,
+    "calls": 218,
+    "triangles": 31348,
+    "points": 1386,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "version": "alteracoes-locais",
+    "fps": 20.582765034097957,
+    "p95ms": 69.59999999962747,
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": 2,
+    "calls": 159,
+    "triangles": 31822,
+    "points": 718,
+    "errors": []
+  }
+]

@@ -1,0 +1,1058 @@
+[
+  {
+    "width": 1366,
+    "scene": "Clientes",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -7.705908298492432,
+        "finite": true,
+        "depth": [
+          14.831826624894305,
+          19.462788512144648
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -7.701061248779297,
+        "finite": true,
+        "depth": [
+          13.163832411735278,
+          17.84760293929515
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -7.70046329498291,
+        "finite": true,
+        "depth": [
+          13.425386702908522,
+          19.960045991697903
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -7.700194358825684,
+        "finite": true,
+        "depth": [
+          13.56964445395817,
+          27.528926385409502
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -7.768821716308594,
+        "finite": true,
+        "depth": [
+          14.375999069554055,
+          28.853952383456715
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -7.844874382019043,
+        "finite": true,
+        "depth": [
+          13.872939248494443,
+          25.676173551370688
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -7.6968913078308105,
+        "finite": true,
+        "depth": [
+          13.159223347469677,
+          22.941605897408873
+        ],
+        "D": 13.799252331777499,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": true,
+        "count": 8
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 120
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 160
+      },
+      {
+        "name": "cenario-infinito",
+        "active": true,
+        "count": 220
+      }
+    ],
+    "labels": [
+      {
+        "text": "GABINETE CHAMADOS\n100%\nno ar · No ar · d",
+        "overlap": 0
+      },
+      {
+        "text": "PLANILHA J HISSNAUER\n100%\nno ar · 1 exec",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "scene": "Assistente e Painel",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -7.737746715545654,
+        "finite": true,
+        "depth": [
+          16.10189260003328,
+          30.261675138857072
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -7.706082820892334,
+        "finite": true,
+        "depth": [
+          15.760025804987349,
+          25.80879447571122
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -7.70118522644043,
+        "finite": true,
+        "depth": [
+          16.663601291481932,
+          22.278328439810842
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -7.701159954071045,
+        "finite": true,
+        "depth": [
+          15.329135855950057,
+          21.096102373583097
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -7.701122760772705,
+        "finite": true,
+        "depth": [
+          15.618321427315932,
+          22.28024188093807
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -7.699462413787842,
+        "finite": true,
+        "depth": [
+          15.880898221829774,
+          29.84765725512898
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -7.701022148132324,
+        "finite": true,
+        "depth": [
+          15.97409559138703,
+          30.76916492727812
+        ],
+        "D": 15.833047628873667,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": true,
+        "count": 8
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 120
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 160
+      },
+      {
+        "name": "cenario-infinito",
+        "active": true,
+        "count": 220
+      }
+    ],
+    "labels": [
+      {
+        "text": "ASSISTENTE FINANCEIRO\n100%\nno ar · Rotin",
+        "overlap": 0
+      },
+      {
+        "text": "PAINEL MEU DINHEIRO\n100%\nno ar · No ar ·",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "scene": "Fios",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -7.701080799102783,
+        "finite": true,
+        "depth": [
+          54.08608808199059,
+          65.5353442638843
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -7.7011919021606445,
+        "finite": true,
+        "depth": [
+          54.16308745696569,
+          68.25787565174227
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -7.721404075622559,
+        "finite": true,
+        "depth": [
+          54.15021936172325,
+          64.51542005566247
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -7.727992057800293,
+        "finite": true,
+        "depth": [
+          54.33008455013505,
+          73.11148991490806
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -7.740755558013916,
+        "finite": true,
+        "depth": [
+          50.751585074121294,
+          72.57629459629587
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -7.7007737159729,
+        "finite": true,
+        "depth": [
+          52.95367003118264,
+          72.8706501291375
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -7.701084613800049,
+        "finite": true,
+        "depth": [
+          59.41376834742029,
+          72.92591263189381
+        ],
+        "D": 55.19011124379418,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": true,
+        "count": 8
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 120
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 160
+      },
+      {
+        "name": "cenario-infinito",
+        "active": true,
+        "count": 220
+      }
+    ],
+    "labels": [],
+    "overflow": false
+  },
+  {
+    "width": 1366,
+    "scene": "Planeta",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -7.700999736785889,
+        "finite": true,
+        "depth": [
+          51.06884578680206,
+          83.97967980205745
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -7.701129913330078,
+        "finite": true,
+        "depth": [
+          52.230116580417246,
+          79.72333275975312
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -7.700331687927246,
+        "finite": true,
+        "depth": [
+          51.49355475620815,
+          76.43988840891464
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -7.7007904052734375,
+        "finite": true,
+        "depth": [
+          51.32622206350007,
+          73.29465731642372
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -7.701170921325684,
+        "finite": true,
+        "depth": [
+          50.861014099210806,
+          72.62961368657521
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -7.7005767822265625,
+        "finite": true,
+        "depth": [
+          50.974954876371356,
+          78.35212937592676
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -7.720997333526611,
+        "finite": true,
+        "depth": [
+          51.18263105534695,
+          82.83759342634856
+        ],
+        "D": 24.785920115154823,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": true,
+        "count": 8
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 120
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 160
+      },
+      {
+        "name": "cenario-infinito",
+        "active": true,
+        "count": 220
+      }
+    ],
+    "labels": [
+      {
+        "text": "MUNDO DOS CLIENTES\n2/2\nclientes no ar · ",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "parallax": [
+      [
+        {
+          "name": "cenario-frente",
+          "position": [
+            -2.1450829507459126,
+            -5.017484591781036,
+            0
+          ]
+        },
+        {
+          "name": "cenario-medio",
+          "position": [
+            -0.5362707376864781,
+            -1.254371147945259,
+            0
+          ]
+        },
+        {
+          "name": "cenario-fundo",
+          "position": [
+            -0.171606636059673,
+            -0.4013987673424829,
+            0
+          ]
+        },
+        {
+          "name": "cenario-infinito",
+          "position": [
+            -0.03217624426118868,
+            -0.09994678282670934,
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "name": "cenario-frente",
+          "position": [
+            -0.0006511166299770795,
+            -5.017388398103371,
+            0
+          ]
+        },
+        {
+          "name": "cenario-medio",
+          "position": [
+            -0.00016277915749426987,
+            -1.2543470995258428,
+            0
+          ]
+        },
+        {
+          "name": "cenario-fundo",
+          "position": [
+            -0.000052089330398166355,
+            -0.40139107184826966,
+            0
+          ]
+        },
+        {
+          "name": "cenario-infinito",
+          "position": [
+            -0.000009766749449656191,
+            -0.09994533992154436,
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "name": "cenario-frente",
+          "position": [
+            2.1459445736343223,
+            -5.017388368904825,
+            0
+          ]
+        },
+        {
+          "name": "cenario-medio",
+          "position": [
+            0.5364861434085806,
+            -1.2543470922262063,
+            0
+          ]
+        },
+        {
+          "name": "cenario-fundo",
+          "position": [
+            0.17167556589074578,
+            -0.401391069512386,
+            0
+          ]
+        },
+        {
+          "name": "cenario-infinito",
+          "position": [
+            0.03218916860451483,
+            -0.09994533948356617,
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "width": 1366,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "scene": "Clientes",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -5.035342216491699,
+        "finite": true,
+        "depth": [
+          25.74861304544516,
+          33.264093880358736
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -5.033285140991211,
+        "finite": true,
+        "depth": [
+          24.8110898011225,
+          33.22778220050385
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -5.035314083099365,
+        "finite": true,
+        "depth": [
+          24.591926066543678,
+          29.325712074866626
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -5.035342216491699,
+        "finite": true,
+        "depth": [
+          24.554693667161562,
+          34.25105178489202
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -5.034979343414307,
+        "finite": true,
+        "depth": [
+          24.575456816897876,
+          34.948717660955424
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -5.035121917724609,
+        "finite": true,
+        "depth": [
+          24.602998428017198,
+          32.86665486512154
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -5.035131454467773,
+        "finite": true,
+        "depth": [
+          26.63755117917246,
+          33.378342717669
+        ],
+        "D": 25.13220457424805,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": false,
+        "count": 0
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 60
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 100
+      },
+      {
+        "name": "cenario-infinito",
+        "active": false,
+        "count": 0
+      }
+    ],
+    "labels": [
+      {
+        "text": "GABINETE CHAMADOS\n100%\nno ar · No ar · d",
+        "overlap": 0
+      },
+      {
+        "text": "PLANILHA J HISSNAUER\n100%\nno ar · 1 exec",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "scene": "Assistente e Painel",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -5.035351276397705,
+        "finite": true,
+        "depth": [
+          26.685607778871695,
+          36.51201714270461
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -5.035314083099365,
+        "finite": true,
+        "depth": [
+          26.52022311543964,
+          33.61751601337244
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -5.034573078155518,
+        "finite": true,
+        "depth": [
+          27.638188750680214,
+          35.86943264627811
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -5.0353474617004395,
+        "finite": true,
+        "depth": [
+          26.820045347817924,
+          35.86517793161532
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -5.034897804260254,
+        "finite": true,
+        "depth": [
+          26.526390917047813,
+          31.373719473682026
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -5.032635688781738,
+        "finite": true,
+        "depth": [
+          26.489052416417614,
+          36.30424938404378
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -5.0353522300720215,
+        "finite": true,
+        "depth": [
+          26.5243094259908,
+          36.839759138044144
+        ],
+        "D": 27.105643778046744,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": false,
+        "count": 0
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 60
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 100
+      },
+      {
+        "name": "cenario-infinito",
+        "active": false,
+        "count": 0
+      }
+    ],
+    "labels": [
+      {
+        "text": "ASSISTENTE FINANCEIRO\n100%\nno ar · Rotin",
+        "overlap": 0
+      },
+      {
+        "text": "PAINEL MEU DINHEIRO\n100%\nno ar · No ar ·",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "scene": "Fios",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -5.0353827476501465,
+        "finite": true,
+        "depth": [
+          68.09266170028384,
+          82.71203154755779
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -5.035387992858887,
+        "finite": true,
+        "depth": [
+          69.5580301707996,
+          83.02783336050656
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -5.035384178161621,
+        "finite": true,
+        "depth": [
+          67.77811115236739,
+          82.92589646939723
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -5.035387992858887,
+        "finite": true,
+        "depth": [
+          62.51368322746506,
+          82.95761328019293
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -5.03538703918457,
+        "finite": true,
+        "depth": [
+          60.13729959677383,
+          82.87847350670197
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -5.035381317138672,
+        "finite": true,
+        "depth": [
+          61.593721387312634,
+          83.07157911600262
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -5.035378932952881,
+        "finite": true,
+        "depth": [
+          65.83994224132655,
+          83.24559055046203
+        ],
+        "D": 63.09787279010954,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": false,
+        "count": 0
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 60
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 100
+      },
+      {
+        "name": "cenario-infinito",
+        "active": false,
+        "count": 0
+      }
+    ],
+    "labels": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "scene": "Planeta",
+    "debug": {
+      "cabos": 7,
+      "verdes": 14,
+      "vermelhas": 0
+    },
+    "cabos": [
+      {
+        "name": "cabo-gabinete",
+        "minY": -5.033990859985352,
+        "finite": true,
+        "depth": [
+          28.98740375595152,
+          66.86619771110254
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-planilha",
+        "minY": -5.034861087799072,
+        "finite": true,
+        "depth": [
+          29.878489894502554,
+          64.08484790290323
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-assistente",
+        "minY": -5.035146236419678,
+        "finite": true,
+        "depth": [
+          27.811343094115607,
+          61.92748047929678
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-painel",
+        "minY": -5.03451681137085,
+        "finite": true,
+        "depth": [
+          27.799662556268522,
+          59.86472225248081
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-pedalada",
+        "minY": -5.035360336303711,
+        "finite": true,
+        "depth": [
+          28.535454353696032,
+          59.42965949185392
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-atrasos",
+        "minY": -5.03535795211792,
+        "finite": true,
+        "depth": [
+          27.871152413573945,
+          63.185321425635046
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      },
+      {
+        "name": "cabo-cacador",
+        "minY": -5.035366058349609,
+        "finite": true,
+        "depth": [
+          27.69883114450458,
+          66.11798086472879
+        ],
+        "D": 28.12972799279595,
+        "duasCamadas": true
+      }
+    ],
+    "layers": [
+      {
+        "name": "cenario-frente",
+        "active": false,
+        "count": 0
+      },
+      {
+        "name": "cenario-medio",
+        "active": true,
+        "count": 60
+      },
+      {
+        "name": "cenario-fundo",
+        "active": true,
+        "count": 100
+      },
+      {
+        "name": "cenario-infinito",
+        "active": false,
+        "count": 0
+      }
+    ],
+    "labels": [
+      {
+        "text": "MUNDO DOS CLIENTES\n2/2\nclientes no ar · ",
+        "overlap": 0
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "errors": []
+  }
+]

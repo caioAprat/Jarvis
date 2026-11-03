@@ -1,0 +1,20 @@
+{
+  "DESIGN.md": true,
+  "BIBLIOTECAS.md": true,
+  "index.html": true,
+  "app.html": true,
+  "landing-cinema.js": true,
+  "landing-escrita.js": true,
+  "landing-acesso.js": true,
+  "landing-dados.js": true,
+  "telas-vivas.js": true,
+  "planeta.js": true,
+  "animacao": true,
+  "posicao_orientacao_monitores": true,
+  "geometria_shaders_nucleo": true,
+  "camera_chavesA": true,
+  "camera_chavesB": true,
+  "ordem_duracao_CENAS_A": true,
+  "ordem_duracao_CENAS_B": true,
+  "dados_apps_script": true
+}
