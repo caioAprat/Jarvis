@@ -71,9 +71,15 @@
     // ------------------------------------------------------------ módulos (um por projeto)
     const modulos = [];
     const W = 1.7 * E, H = 1.06 * E, D = .09 * E;
-    const resTela = leve ? [256, 160] : [512, 320];
+    const resTela = leve ? [512, 320] : [768, 480];
+    const haloCv = document.createElement('canvas'); haloCv.width = haloCv.height = 64;
+    const hc = haloCv.getContext('2d'), hg = hc.createRadialGradient(32, 32, 4, 32, 32, 32);
+    hg.addColorStop(0, 'rgba(255,138,61,.12)'); hg.addColorStop(.6, 'rgba(255,138,61,.04)'); hg.addColorStop(1, 'rgba(255,138,61,0)');
+    hc.fillStyle = hg; hc.fillRect(0, 0, 64, 64);
+    const haloMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(haloCv), transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
+    haloMat.userData.base = 1; mats.push(haloMat);
     function criarModulos(projetos) {
-      modulos.forEach(m => { raiz.remove(m.g); m.tex.dispose(); });
+      modulos.forEach(m => { raiz.remove(m.g); raiz.remove(m.luzPiso); m.luzPiso.geometry.dispose(); m.tex.dispose(); });
       modulos.length = 0;
       projetos.forEach((p, i) => {
         const g = new THREE.Group();
@@ -84,7 +90,7 @@
         const formato = CenarioGeometria.retangulo(W - .024 * E, H - .024 * E, .065 * E);
         const corpoG = new THREE.ExtrudeGeometry(formato, { depth: D - .024 * E, bevelEnabled: true, bevelThickness: .012 * E, bevelSize: .012 * E, bevelSegments: 1, steps: 1, curveSegments: 6 });
         corpoG.translate(0, 0, -D / 2 + .012 * E);
-        const corpo = solido(corpoG, ESCURO, 1);
+        const corpo = solido(corpoG, ESCURO2, 1);
         const bordaMat = new THREE.LineBasicMaterial({ color: AMBAR, transparent: true, opacity: .23, depthWrite: false }); bordaMat.userData.base = .23; mats.push(bordaMat);
         const bordaForma = CenarioGeometria.retangulo(W - .04 * E, H - .04 * E, .06 * E);
         const borda = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(bordaForma.getPoints(6)), bordaMat); borda.position.z = D / 2 + .001 * E;
@@ -97,9 +103,21 @@
         const tela = new THREE.Mesh(telaG, telaMat); tela.position.z = D / 2 + .004 * E; tela.userData.projeto = p.id;
         const ledMat = new THREE.MeshBasicMaterial({ color: COR[p.status] || COR.aguardando, transparent: true, opacity: 1 }); ledMat.userData.base = 1; mats.push(ledMat);
         const led = new THREE.Mesh(new THREE.SphereGeometry(.035 * E, 12, 8), ledMat); led.position.set(W / 2 - .1 * E, H / 2 - .1 * E, D / 2 + .02 * E);
-        g.add(corpo, borda, tela, led); raiz.add(g);
+        // Bisel interno recuado: separa o vidro da carcaça sem redesenhar o apoio.
+        const aroG = new THREE.ExtrudeGeometry(CenarioGeometria.retangulo(W * .93, H * .87, .045 * E), { depth: .016 * E, bevelEnabled: true, bevelThickness: .008 * E, bevelSize: .008 * E, bevelSegments: 2, steps: 1, curveSegments: 6 });
+        const aro = solido(aroG, ESCURO, 1); aro.position.z = D / 2 - .025 * E;
+        // Luz suave ao redor do monitor: uma textura radial compartilhada, sem luz dinâmica.
+        const halo = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.3, H * 1.4), haloMat);
+        halo.position.z = -D; halo.renderOrder = -1;
+        g.add(halo, corpo, aro, borda, tela, led); raiz.add(g);
+        // Mancha de emissão no piso existente; não altera superfície, altura ou material do cenário.
+        const luzPiso = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.5, H * 1.5), haloMat);
+        const piso = cena.getObjectByName('piso-solido');
+        luzPiso.rotation.x = -Math.PI / 2;
+        luzPiso.position.set(g.position.x, (piso ? piso.position.y : -3.2 * E) + .008 * E, g.position.z);
+        raiz.add(luzPiso);
         modulos.push({ id: p.id, g, tela, tex, cv, ctx: cv.getContext('2d', { willReadFrequently: true }),   // canvas na memória comum: subir para a GPU não trava a placa integrada
- led, ledMat, corpo, borda, ang, raio: r, y, enf: { v: 1, alvo: 1 } });
+ led, ledMat, corpo, borda, luzPiso, ang, raio: r, y, enf: { v: 1, alvo: 1 } });
       });
     }
     criarModulos(op.projetos || []);
@@ -109,7 +127,7 @@
     function aplicarOpacidade() {
       mats.forEach(m => { m.opacity = m.userData.base * vis.v; m.visible = vis.v > .005; });
       raiz.visible = vis.v > .005;
-      modulos.forEach(m => { const k = vis.v * m.enf.v; m.tela.material.opacity = k; m.borda.material.opacity = .23 * k; m.corpo.material.opacity = vis.v * (.3 + .7 * m.enf.v); m.ledMat.opacity = k; });
+      modulos.forEach(m => { const k = vis.v * m.enf.v; m.tela.material.opacity = vis.v; m.borda.material.opacity = .23 * k; m.corpo.material.opacity = vis.v; m.ledMat.opacity = k; });
     }
     function aparecer(v) { vis.v = Math.max(0, Math.min(1, v)); raiz.position.y = (1 - vis.v) * -.6 * E; aplicarOpacidade(); }
     function enfatizar(ids) {
