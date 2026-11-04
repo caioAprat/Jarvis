@@ -20,6 +20,7 @@
     const pm=new THREE.PointsMaterial({color:0xff9a4d,size:.06*E,transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending});
     const points=new THREE.Points(geo,pm);points.frustumCulled=false;grupo.add(points);
     const marcas=new THREE.InstancedMesh(new THREE.TorusGeometry(.19*E,.018*E,4,16),new THREE.MeshBasicMaterial({color:0xff9a4d,transparent:true,opacity:.45}),15);marcas.frustumCulled=false;grupo.add(marcas);const dummy=new THREE.Object3D();
+    const arquivos=FiosIcones.montar(grupo,dep.camera,[{centros,tipos:['documento','pasta','banco'],duracao:2.7}]);
     let acumulado=0;
     function quadro(t,dt) {
       grupo.visible=planeta.grupo.visible;if(!grupo.visible)return;
@@ -34,6 +35,7 @@
       b.copy(a).addScaledVector(lateral,.8*E).addScaledVector(direcao,6*E).addScaledVector(cima,1.2*E);
       c.copy(d).addScaledVector(lateral,.8*E).addScaledVector(direcao,-6*E).addScaledVector(cima,1.2*E);
       CenarioGeometria.bezier(centros,a,b,c,d);tubo.atualizar(centros,.065*E);
+      arquivos.quadro(tempo,vis,red.matches,dep.renderer);
       for(let i=0;i<total;i++){
         const fluxo=(fase[i]+tempo*(.026+(i%3)*.008))%1;
         // Halo mais denso nas duas ancoras, mantendo o trafego no duto inteiro.
@@ -45,7 +47,7 @@
       geo.attributes.position.needsUpdate=true;
       for(let i=0;i<15;i++){const j=Math.round((i+1)/16*(N-1))*3;dummy.position.fromArray(centros,j);frente.fromArray(centros,Math.min(N-1,j/3+1)*3);dummy.lookAt(frente);dummy.updateMatrix();marcas.setMatrixAt(i,dummy.matrix);}marcas.instanceMatrix.needsUpdate=true;
     }
-    function destruir(){dep.scene.remove(grupo);dep.scene.remove(ambiente);ambiente.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});tubo.geo.dispose();mat.dispose();geo.dispose();pm.dispose();marcas.geometry.dispose();marcas.material.dispose();}
+    function destruir(){arquivos.destruir();dep.scene.remove(grupo);dep.scene.remove(ambiente);ambiente.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});tubo.geo.dispose();mat.dispose();geo.dispose();pm.dispose();marcas.geometry.dispose();marcas.material.dispose();}
     return {quadro,destruir};
   }
   window.VeiasCenario={montar};

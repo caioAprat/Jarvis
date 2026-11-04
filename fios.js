@@ -15,9 +15,11 @@
       const pecas = [], corpo = new THREE.Mesh(new THREE.CylinderGeometry(.065*E,.065*E,.18*E,12)); pecas.push(corpo);
       for(let i=0;i<3;i++){const aro=new THREE.Mesh(new THREE.TorusGeometry(.067*E,.008*E,4,12));aro.rotation.x=Math.PI/2;aro.position.y=(i-1)*.055*E;pecas.push(aro);}
       const boot=new THREE.Mesh(new THREE.CylinderGeometry(raio,.052*E,.16*E,12));boot.position.y=.15*E;pecas.push(boot);
-      const mesh=new THREE.Mesh(CenarioGeometria.unir(pecas),metal);grupo.add(mesh);return mesh;
+      const mesh=new THREE.Mesh(CenarioGeometria.unir(pecas),metal);
+      const luz=new THREE.Mesh(new THREE.TorusGeometry(.082*E,.016*E,6,16),new THREE.MeshBasicMaterial({color:0xff9a4d,transparent:true,opacity:.75,depthWrite:false}));
+      luz.rotation.x=Math.PI/2;luz.name='conector-energia';mesh.add(luz);mesh.userData.luz=luz;grupo.add(mesh);return mesh;
     }
-    let poeira=null,texturaCurvas=null,dadosCurvas=null,tempoFluxo=0,enfase=0,trafego=0;
+    let poeira=null,texturaCurvas=null,dadosCurvas=null,tempoFluxo=0,enfase=0,trafego=0,arquivos=null;
     function limparPoeira(){if(poeira){grupo.remove(poeira);poeira.geometry.dispose();poeira.material.dispose();poeira=null;}if(texturaCurvas){texturaCurvas.dispose();texturaCurvas=null;}}
     function criarPoeira(){
       limparPoeira();const n=cabos.length;if(!n)return;
@@ -61,6 +63,7 @@
       const mat = materialCabo(i,fisica.comprimento);
       const mesh=new THREE.Mesh(geo,mat);mesh.name='cabo-'+b.id;mesh.frustumCulled=false;grupo.add(mesh);
       const c={id:b.id,a,b,fisica,geo,mat,mesh,centros:new Float32Array(SEG*3),guia:new Float64Array(fisica.n*3),densa:new Float64Array(96*3),distancias:new Float64Array(96),c1:new THREE.Vector3(),c2:new THREE.Vector3(),inicio:conector(),fim:conector()};
+      c.tipos=FiosIcones.tiposDoProjeto(b.id);c.duracao=2.2+(i%3)*.3;
       rotear(c,1);fisica.p.set(c.guia);fisica.anterior.set(c.guia);fisica.guiar(c.guia,28);
       cabos.push(c);atualizarTubo(c);return c;
     }
@@ -119,8 +122,8 @@
       c.inicio.position.copy(c.a.ancora);dir.set(centros[3]-centros[0],centros[4]-centros[1],centros[5]-centros[2]).normalize();c.inicio.quaternion.setFromUnitVectors(eixo,dir);
       const f=(SEG-1)*3;c.fim.position.copy(c.b.ancora);dir.set(centros[f-3]-centros[f],centros[f-2]-centros[f+1],centros[f-1]-centros[f+2]).normalize();c.fim.quaternion.setFromUnitVectors(eixo,dir);
     }
-    function limpar(){cabos.forEach(c=>{grupo.remove(c.mesh,c.inicio,c.fim);c.geo.dispose();c.mat.dispose();[c.inicio,c.fim].forEach(g=>g.traverse(o=>{if(o.geometry)o.geometry.dispose();}));});cabos.length=0;}
-    function refazer(){limparDebug();limpar();ambiente.sincronizar();ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));criarPoeira();atualizarDebug();}
+    function limpar(){if(arquivos){arquivos.destruir();arquivos=null;}cabos.forEach(c=>{grupo.remove(c.mesh,c.inicio,c.fim);c.geo.dispose();c.mat.dispose();[c.inicio,c.fim].forEach(g=>{g.userData.luz.material.dispose();g.traverse(o=>{if(o.geometry)o.geometry.dispose();});});});cabos.length=0;}
+    function refazer(){limparDebug();limpar();ambiente.sincronizar();ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));arquivos=FiosIcones.montar(grupo,dep.camera,cabos);criarPoeira();atualizarDebug();}
     let debugGrupo=null,debugGeo=null,debugVerde=null,debugVermelho=null;
     const debugAtivo=()=>location.hash.split(/[&#]/).includes('debug');
     function limparDebug(){if(debugGrupo){grupo.remove(debugGrupo);debugGeo.dispose();debugVerde.dispose();debugVermelho.dispose();debugGrupo=null;}}
@@ -153,6 +156,8 @@
       }
       cabos.forEach(atualizarTubo);
       tempoFluxo+=dt*(reduzido?0:1);
+      arquivos.quadro(tempoFluxo,Math.min(vis,proto.visivel()),reduzido,dep.renderer);
+      cabos.forEach(c=>{c.inicio.userData.luz.material.opacity=.7;c.fim.userData.luz.material.opacity=.65+c.brilho*.35;c.fim.userData.luz.scale.setScalar(1+c.brilho*.25);});
       cabos.forEach((c,i)=>{c.mat.uniforms.uTime.value=tempoFluxo;c.mat.uniforms.uEnfase.value=enfase;c.mat.uniforms.uVis.value=Math.min(vis,proto.visivel());for(let j=0;j<SEG;j++){const k=(i*SEG+j)*4;dadosCurvas[k]=c.centros[j*3];dadosCurvas[k+1]=c.centros[j*3+1];dadosCurvas[k+2]=c.centros[j*3+2];dadosCurvas[k+3]=1;}});
       moverDebug();
       if(poeira){texturaCurvas.needsUpdate=true;poeira.material.uniforms.uTime.value=tempoFluxo;poeira.material.uniforms.uVis.value=Math.min(vis,proto.visivel())*(.7+trafego*.3);poeira.geometry.setDrawRange(0,Math.max(120,Math.floor(poeira.userData.total/Math.pow(1.7,Math.max(nivelLocal,mapa.qualidade())))));}
@@ -161,6 +166,7 @@
       cabos.forEach((c,i) => {
         const v = tempos ? tempos[i] || 0 : 1;
         c.mat.uniforms.uChegada.value = tempos ? v : -1;
+        c.crescimento=v;
         c.inicio.visible = v > 0; c.fim.visible = v >= 1;
       });
       if(poeira) poeira.visible = !tempos;
