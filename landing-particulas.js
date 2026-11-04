@@ -1,14 +1,14 @@
 'use strict';
-/** Quatro camadas em volume. O núcleo e a câmera não pertencem a estes grupos.
+/** Tres camadas em volume. O núcleo e a câmera não pertencem a estes grupos.
  * Inspiração: Lusion (escala/falloff), Active Theory (atmosfera), Territory (hierarquia).
  * D = distância ao foco do roteiro; Z negativo é a frente da câmera, em coordenadas de visão.
  */
 (function () {
+  // Tres planos ativos tambem no mobile; populacao total > 5x a rodada 1.
   const CAMADAS = [
-    { nome: 'frente', z: [.2,.45], n: 8, escala: [36,90], opacidade: .14, parallax: 1, scroll: 1 },
-    { nome: 'medio', z: [.7,1.12], n: 120, escala: [1.5,3], opacidade: .38, parallax: .25, scroll: .25 },
-    { nome: 'fundo', z: [1.12,2.2], n: 160, escala: [.6,1.3], opacidade: .16, parallax: .08, scroll: .08 },
-    { nome: 'infinito', z: [2.5,3.5], n: 220, escala: [.5,.9], opacidade: .075, parallax: .015, scroll: .02 },
+    { nome: 'frente', z: [.3,.6], n: 180, escala: [2,3], opacidade: .32, parallax: 1, scroll: 1, velocidade: 1 },
+    { nome: 'medio', z: [.7,1.12], n: 1800, escala: [1,1.5], opacidade: .55, parallax: .25, scroll: .25, velocidade: .45 },
+    { nome: 'fundo', z: [1.12,2.2], n: 4200, escala: [.5,1], opacidade: .48, parallax: .08, scroll: .08, velocidade: .16 },
   ];
   function montar(cena, op) {
     op = op || {}; const camera = op.camera, leve = !!op.leve, E = op.escala || 2.6;
@@ -19,12 +19,12 @@
     let seed = 173; const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     CAMADAS.forEach((c,k) => {
       const grupo = new THREE.Group(); grupo.name = 'cenario-' + c.nome; grupo.userData.camada = {...c}; cena.add(grupo); grupos.push(grupo);
-      if (leve && (k===0 || k===3)) { grupo.visible=false; return; }
-      const n = leve ? (k===1?60:100) : c.n, p = new Float32Array(n*3), size = new Float32Array(n), fase = new Float32Array(n);
+
+      const n = leve ? Math.round(c.n*.65) : c.n, p = new Float32Array(n*3), size = new Float32Array(n), fase = new Float32Array(n);
       for (let i=0;i<n;i++) {
         const z=c.z[0]+random()*(c.z[1]-c.z[0]);
-        // Distribuição irregular em volume; primeiro plano fica nas bordas do campo visual.
-        p[i*3]=(k===0?(i%2?1:-1)*(.73+random()*.28):(random()-.5)*2.3)*z;
+        // Distribuição irregular em volume; distribuicao cobre tambem os cantos do campo visual.
+        p[i*3]=((random()-.5)*2.3)*z;
         p[i*3+1]=(random()-.5)*1.8*z; p[i*3+2]=-z;
         size[i]=c.escala[0]+random()*(c.escala[1]-c.escala[0]); fase[i]=random()*6.28318;
       }
@@ -43,7 +43,7 @@
         }
         const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(linhas,3));geos.push(lg);
         const lm=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-          uniforms:{uOpacity:{value:leve?.035:.065}},vertexShader:'varying float vD;varying vec2 vN;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;vN=gl_Position.xy/gl_Position.w;}',
+          uniforms:{uOpacity:{value:.08}},vertexShader:'varying float vD;varying vec2 vN;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;vN=gl_Position.xy/gl_Position.w;}',
           fragmentShader:'uniform float uOpacity;varying float vD;varying vec2 vN;void main(){float fade=smoothstep(.3,.85,length(vN))*(1.-smoothstep(1.1,1.6,length(vN)));gl_FragColor=vec4(.69,.61,.52,uOpacity*fade*exp(-vD*.006));}'});materiais.push(lm);
         const estrutura=new THREE.LineSegments(lg,lm);estrutura.name='arcos-distantes';estrutura.frustumCulled=false;points.add(estrutura);
       }
@@ -70,7 +70,7 @@
         // Profundidade geométrica real; só a translação lateral extra responde ao ponteiro/scroll.
         points.scale.set(D*tan*camera.aspect,D*tan,D);
         points.position.set(red?0:suave.x*c.parallax*D*.055,red?0:suave.y*c.parallax*D*.035+Math.sin((estado.p||0)*Math.PI*2)*c.scroll*D*.09,0);
-        mat.uniforms.uTime.value=red?0:t;mat.uniforms.uScale.value=D*(c.z[0]+c.z[1])/2;
+        mat.uniforms.uTime.value=red?0:t*c.velocidade;mat.uniforms.uScale.value=D*(c.z[0]+c.z[1])/2;
         const pix=op.renderer?op.renderer.getPixelRatio():1;mat.uniforms.uPix.value=pix;mat.uniforms.uViewport.value.set(innerWidth,innerHeight);
         mat.uniforms.uOpacity.value=c.opacidade*Math.min(1.15,intensidade);
       });
