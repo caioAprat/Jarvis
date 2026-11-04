@@ -36,15 +36,16 @@
         fragmentShader:'uniform float uVis;varying vec3 vCor;varying float vAlpha;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vCor,vAlpha*uVis*(1.-smoothstep(.08,.5,r)));}'});
       poeira=new THREE.Points(geo,mat);poeira.name='poeira-cabos';poeira.frustumCulled=false;poeira.userData.total=total;grupo.add(poeira);
     }
-    function materialCabo(i,comprimento){return new THREE.ShaderMaterial({uniforms:{uE:{value:E},uTime:{value:0},uVel:{value:.7+i*.11},uEnfase:{value:0},uLength:{value:comprimento},uVis:{value:1}},
+    function materialCabo(i,comprimento){return new THREE.ShaderMaterial({uniforms:{uE:{value:E},uTime:{value:0},uVel:{value:.7+i*.11},uEnfase:{value:0},uChegada:{value:-1},uLength:{value:comprimento},uVis:{value:1}},
       vertexShader:'varying vec3 vP,vN;varying vec2 vUv;varying float vDepth;void main(){vP=(modelMatrix*vec4(position,1.)).xyz;vN=normalize(mat3(modelMatrix)*normal);vUv=uv;vec4 mv=viewMatrix*vec4(vP,1.);vDepth=-mv.z;gl_Position=projectionMatrix*mv;}',
-      fragmentShader:`uniform float uE,uTime,uVel,uLength,uVis,uEnfase;varying vec3 vP,vN;varying vec2 vUv;varying float vDepth;
-        void main(){if(fract(sin(dot(gl_FragCoord.xy,vec2(12.98,78.23)))*43758.54)>uVis)discard;
+      fragmentShader:`uniform float uE,uTime,uVel,uLength,uVis,uEnfase,uChegada;varying vec3 vP,vN;varying vec2 vUv;varying float vDepth;
+        void main(){if(uChegada>=0. && vUv.x>clamp(uChegada,0.,1.))discard;if(fract(sin(dot(gl_FragCoord.xy,vec2(12.98,78.23)))*43758.54)>uVis)discard;
           vec3 n=normalize(vN),l=normalize(-vP),v=normalize(cameraPosition-vP);float perto=1./(1.+dot(vP,vP)/(uE*uE)*.16);float rim=pow(1.-abs(dot(n,v)),3.);
           float faixa=smoothstep(.79,.83,fract(vUv.x*uLength/uE*2.))*(1.-smoothstep(.95,.99,fract(vUv.x*uLength/uE*2.)))*smoothstep(.1,.4,sin(vUv.y*6.28318));
           vec3 base=mix(vec3(.025,.023,.02),vec3(.25,.22,.18),faixa*.32);
           float pulso=pow(max(0.,cos(vUv.x*19.-uTime*uVel*3.)),32.);
           vec3 cor=base*(.7+max(dot(n,l),0.)*perto*2.)+vec3(1.,.4,.12)*perto*(.035+rim*.08)+vec3(1.,.88,.72)*rim*.035+vec3(1.,.5,.2)*pulso*(.08+uEnfase*.08);
+          if(uChegada>=0.)cor+=vec3(1.,.604,.302)*2.*exp(-pow((vUv.x-uChegada)/.025,2.));
           float fog=1.-exp(-vDepth*vDepth*.000025);cor=mix(cor,vec3(.03137,.02745,.02353),fog);gl_FragColor=vec4(cor,1.);}`});}
     function criar(a, b, i) {
       const destinoNominal=b.ancora.clone();destinoNominal.y-=proto.raiz.position.y;
@@ -156,11 +157,19 @@
       moverDebug();
       if(poeira){texturaCurvas.needsUpdate=true;poeira.material.uniforms.uTime.value=tempoFluxo;poeira.material.uniforms.uVis.value=Math.min(vis,proto.visivel())*(.7+trafego*.3);poeira.geometry.setDrawRange(0,Math.max(120,Math.floor(poeira.userData.total/Math.pow(1.7,Math.max(nivelLocal,mapa.qualidade())))));}
     }
+    function crescer(tempos) {
+      cabos.forEach((c,i) => {
+        const v = tempos ? tempos[i] || 0 : 1;
+        c.mat.uniforms.uChegada.value = tempos ? v : -1;
+        c.inicio.visible = v > 0; c.fim.visible = v >= 1;
+      });
+      if(poeira) poeira.visible = !tempos;
+    }
     function mostrar(v){ativo=!!v;grupo.visible=!!v;ambiente.mostrar(v);}
     function acenderChao(v){vis=v;}
     function destruir(){if(destruir.feito)return;destruir.feito=true;limparDebug();limparPoeira();limpar();metal.dispose();dep.scene.remove(grupo);ambiente.destruir();removeEventListener('pointermove',mover);removeEventListener('pointerleave',sair);removeEventListener('hashchange',atualizarDebug);removeEventListener('pagehide',destruir);document.removeEventListener('visibilitychange',visibilidade);}
     const visibilidade=()=>{ultimo=performance.now();acumulado=0;scrollAnterior=scrollY;};document.addEventListener('visibilitychange',visibilidade);addEventListener('pagehide',destruir,{once:true});
-    refazer();return{grupo,refazer,quadro,acenderChao,acenderEsticados(v){enfase=v;},pacotes(v){trafego=v;},status(projetos){cabos.forEach(c=>{const p=projetos.find(p=>p.id===c.id);if(p)c.mesh.userData.status=p.status;});},mostrar,destruir,contagem:()=>({cabos:cabos.length})};
+    refazer();return{grupo,refazer,quadro,crescer,acenderChao,acenderEsticados(v){enfase=v;},pacotes(v){trafego=v;},status(projetos){cabos.forEach(c=>{const p=projetos.find(p=>p.id===c.id);if(p)c.mesh.userData.status=p.status;});},mostrar,destruir,contagem:()=>({cabos:cabos.length})};
   }
   window.Fios={montar};
 })();

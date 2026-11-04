@@ -131,7 +131,7 @@
       vec3 p = position + n * (b * .42 + sin(uTime * 1.3 + position.y * 3.) * .02 + dfm * uDeform * .2);
       vP = position; vVN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(p, 1.); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`;
   const FRAG_PLASMA = RUIDO + `
-    uniform float uTime; uniform vec3 uM, uTint; varying vec3 vP, vVN, vV;
+    uniform float uTime, uEnergia; uniform vec3 uM, uTint; varying vec3 vP, vVN, vV;
     void main(){ vec3 N = normalize(vVN); float fres = pow(1. - abs(dot(N, normalize(vV))), 2.3);
       vec3 q = vP * 1.7; float t = uTime * .33;
       float f = fbm(q + vec3(t, -t * .6, t * .4)); float g = fbm(q * 1.8 - vec3(t * .8, t, -t * .5) + f * 1.6);
@@ -142,7 +142,7 @@
       float cur = pow(max(dot(normalize(vP), uM), 0.), 14.); col += vec3(1., .86, .62) * cur * .55;
       col += uTint * fres * 1.05;
       float a = clamp(.14 + .62 * fres + heat * .2 + cur * .3, 0., 1.);
-      gl_FragColor = vec4(col * a, a); }`;
+      gl_FragColor = vec4(col * a * uEnergia, a * uEnergia); }`;
   const VERT_FLUXO = `
     attribute vec4 aSeed; uniform float uTime, uDir, uSize, uPix, uR0, uR1, uPush, uRad; uniform vec3 uMouse; varying float vA; varying float vQ; varying float vH;
     void main(){
@@ -231,6 +231,7 @@
     // cinema: só a landing usa (MapaVivo.cinema). Nulo = comportamento normal de pc.html/app.html.
     let cine = null; const congela = { v: 0 };
     let explosao = 0, fluxoMult = 1;     // landing: vista explodida do núcleo e intensidade das veias de dados
+    let energiaAtual = 1;
     let portalObj = null;                // landing: portal entre ambientes (ver portal())
 
     // ------------------------------------------------------------ núcleo
@@ -240,7 +241,7 @@
     const glowMat = new THREE.SpriteMaterial(Object.assign({ map: T_GLOW, color: new THREE.Color(1, .55, .2), opacity: .4 }, aditivo));
     const glow = new THREE.Sprite(glowMat); glow.scale.setScalar(7.5); nucleo.add(glow);
     const plasmaMat = new THREE.ShaderMaterial(Object.assign({ vertexShader: VERT_PLASMA, fragmentShader: FRAG_PLASMA,
-      uniforms: { uTime: { value: 0 }, uBulge: { value: 0 }, uDeform: { value: 0 }, uM: { value: mDir }, uTint: { value: tintaVetor } } }, aditivo));
+      uniforms: { uEnergia: { value: 1 }, uTime: { value: 0 }, uBulge: { value: 0 }, uDeform: { value: 0 }, uM: { value: mDir }, uTint: { value: tintaVetor } } }, aditivo));
     const plasma = new THREE.Mesh(new THREE.SphereGeometry(1.05, o.leve ? 32 : 72, o.leve ? 24 : 52), plasmaMat); plasma.renderOrder = 5; nucleo.add(plasma);
     // interior: giroscópio, poliedros e raios
     const interior = new THREE.Group(); nucleo.add(interior);
@@ -577,7 +578,17 @@
         rg.attributes.position.needsUpdate = rg.attributes.color.needsUpdate = rg.attributes.size.needsUpdate = true;
       }
       if (portalObj) portalObj.quadro(d);                             // landing: portal (render target do "outro ambiente")
+      const emissoes = [];
+      if (energiaAtual < 1) nucleo.traverse(obj => {
+        const m = obj.material;
+        if (m && m !== plasmaMat && m.transparent) { emissoes.push([m, m.opacity]); m.opacity *= energiaAtual; }
+      });
+      plasmaMat.uniforms.uEnergia.value = energiaAtual;
+      const bloomNormal = bloom && bloom.strength;
+      if (bloom) bloom.strength *= .4 + .6 * energiaAtual;
       if (comp) comp.render(); else renderer.render(scene, camera);
+      if (bloom) bloom.strength = bloomNormal;
+      emissoes.forEach(([m, v]) => { m.opacity = v; });
     }
     function ligar() { if (rodando) return; rodando = true; ultimo = performance.now(); gsap.ticker.add(quadro); }
     function desligar() { if (!rodando) return; rodando = false; gsap.ticker.remove(quadro); }
@@ -760,7 +771,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1, v)); }, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

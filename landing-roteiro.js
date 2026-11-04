@@ -142,7 +142,7 @@
     const listaInicial = api.acesso() === 'livre' && P0 ? P0.estado.projetos : Array.from({ length: P0 ? P0.estado.projetos.length : 7 }, (_, i) => ({ id: 'm' + i, status: 'aguardando' }));
     const proto = mapa && window.Prototipo ? Prototipo.montar(mapa, { projetos: listaInicial, leve }) : null;
     const fios = proto && window.Fios ? Fios.montar(mapa, proto, { leve }) : null;
-    const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => trecho === 'B' && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
+    const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => (trecho === 'B' || !!portalDados) && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
     const veias = mapa && window.VeiasCenario ? VeiasCenario.montar(mapa, planeta, { leve }) : null;
     const fundo = window.Fundo ? Fundo.montar(mapa, { particulas, chao: -3.2 * E }) : null;
@@ -159,8 +159,15 @@
       let t = 0, tp = 0, u = performance.now();
       gsap.ticker.add(quadroNarrativa = () => {
         if (!ativa || document.hidden) { u = performance.now(); return; }
-        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1);
+        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? 1+4*Math.sin(Math.PI*clamp((portalDados.tempo()-.3)/.7)) : 1);
         if (particulas) particulas.quadro(tp, d, Object.assign({ p: atual.p }, camAtual));
+        if (portalDados && !reduzido && particulas) {
+          const t = portalDados.tempo(), atrair = Math.sin(Math.PI * clamp((t-.3)/.7));
+          particulas.grupos.forEach(g => {
+            const points = g.userData.pontos;
+            if (points) { points.scale.x *= 1-.35*atrair; points.scale.y *= 1-.35*atrair; }
+          });
+        }
         if (proto) proto.quadro(t, reduzido ? 0 : d);
         if (fios) fios.quadro(t, reduzido ? 0 : d);
         if (telas) telas.quadro(t, d);
@@ -350,7 +357,7 @@
 
     // ------------------------------------------------------------ rolagem → cenas, planos, câmera
     function aplicar(p) {
-      if (!ativa) return;
+      if (!ativa || emPortal) return;
       const ativas = [];
       for (const c of cenas) {
         const v = janela(p, c.ini, c.fim);
@@ -385,8 +392,7 @@
         const c = cena('acesso');
         if (modoAcesso === 'livre' && c) {
           const pp = Math.max(0, Math.min(1, (p - (c.ini + (c.fim - c.ini) * .25)) / ((c.fim - c.ini) * .7)));
-          if (pp > 0 && !portalDados) criarPortalDados();
-          if (portalDados) { portalDados.progresso(pp); if (pp >= .999 && !emPortal) trocarParaB(); if (pp <= 0 && portalDados) { portalDados.destruir(); portalDados = null; } }
+          if (pp > 0) abrirPortalDados();
         }
       }
     }
@@ -398,6 +404,10 @@
       const atualId = cenas.reduce((m, c) => (c.jan > (m ? m.jan : 0) ? c : m), null);
       if (nav && atualId) nav.ativa(cenas.indexOf(atualId));
       if (trecho === 'A') {
+        const aguardando = p >= cena('acesso').ini;
+        if (mapa && mapa.energia) mapa.energia(aguardando ? .12 : 1);
+        if (fios) fios.crescer(aguardando && proto ? proto.modulos.map(() => 0) : null);
+        if (telas) telas.ligar(aguardando && proto ? proto.modulos.map(() => 0) : null);
         if (fios) { fios.mostrar(true); fios.acenderChao(Math.max(intro.v * .55, clamp(sub('ola', p) * 1.15))); fios.acenderEsticados(0); fios.pacotes(0); }
         if (proto) proto.aparecer(clamp(sub('prototipo', p) * 1.6));
         if (mapa) mapa.deformar(.35 * emCena('prototipo', p) + .6 * emCena('travessia', p));
@@ -480,7 +490,7 @@
       alvo.p = atual.p = 0;
       if (reduzido) {
         host.classList.add('narr-estatico');
-        if (trecho === 'A' && modoAcesso === 'livre') { setTimeout(trocarParaB, 0); return; }
+        if (trecho === 'A' && modoAcesso === 'livre') { setTimeout(abrirPortalDados, 0); return; }
         cenas.forEach(c => { if (c.id === 'constroi' || c.id === 'travessia') { c.el.style.display = 'none'; return; } c.jan = 1; c.el.style.opacity = '1'; escrever(c); if (c.tela) c.tela.ativar(true); });
         if (mapa && cine) { const v = cine.interp(trecho === 'B' ? .4 : .99); porCamera({ dist: v.d, alt: v.a, fov: v.f, orbita: v.o, cx: v.cx, cy: v.cy, cz: v.cz }); }
         if (proto) proto.aparecer(1); if (fios) { fios.acenderChao(1); fios.acenderEsticados(trecho === 'B' ? 1 : 0); } if (fundo) fundo.estado(2);
@@ -497,34 +507,98 @@
     // ------------------------------------------------------------ portal 1: núcleo → ambiente dos dados
     let portalDados = null;
     function poseB0() { const k = chavesB()[0]; return { dist: k.d, alt: k.a, orbita: k.o, fov: k.f, cx: 0, cy: 0, cz: 0 }; }
-    function criarPortalDados() {
-      if (!mapa || !mapa.portal) return null;
-      portalDados = mapa.portal({ origem: () => new THREE.Vector3(0, 0, 0), pose: poseB0() });
-      return portalDados;
-    }
     function abrirPortalDados() {
-      if (emPortal) return;
-      if (reduzido || !mapa || !mapa.portal || !window.gsap) { trocarParaB(); return; }
+      if (emPortal || trecho !== 'A' || !ativa) return;
+      if (!mapa || !window.gsap) { trocarParaB(); return; }
+      emPortal = true; voando = true;
       travarRolagem(true);
-      const ca = cena('acesso'); if (ca) gsap.to(ca.el, { opacity: 0, duration: .45, ease: 'power2.out' });   // a pergunta sai; só o portal fica
-      const pd = portalDados || criarPortalDados();
-      if (!pd) { trocarParaB(); return; }
+      if (trigger) { trigger.kill(); trigger = null; }
+      const ca = cena('acesso');
+      const de = Object.assign({ cx: 0, cy: 0, cz: 0 }, camAtual);
+      // Monta dados e geometria no mesmo palco, mantendo a pose de acesso.
+      sincronizarProjetos();
+      const para = poseB0(), distanciaInicial = de.dist * camZ(), n = proto ? proto.modulos.length : 0;
+      // cubic-bezier(.2,0,0,1), sem carregar outro plugin.
+      const suave = x => {
+        let lo=0, hi=1, t=x;
+        for(let i=0;i<14;i++) { t=(lo+hi)/2; const bx=.6*t*(1-t)*(1-t)+t*t*t; if(bx<x)lo=t;else hi=t; }
+        return x<=0?0:x>=1?1:t*t*(3-2*t);
+      };
+      const barra = document.querySelector('#raiz .barra'), opBarra = barra ? barra.style.opacity : '';
+      let fade = null, tempo = 0, trocou = false;
+      if (reduzido) {
+        fade = document.createElement('div');
+        fade.style.cssText = 'position:fixed;inset:0;z-index:1000;pointer-events:none;background:#080706;opacity:0';
+        fade.setAttribute('aria-hidden', 'true'); document.body.appendChild(fade);
+      }
+      const pd = portalDados = {
+        progresso(p) {
+          tempo = p * (reduzido ? .3 : 2.8);
+          if (reduzido) { fade.style.opacity = String(p < .5 ? p*2 : (1-p)*2); return; }
+          if (!trocou && tempo >= 1.6) { trocou = true; trocarParaB(true); }
+          if (barra && trocou) barra.style.opacity = String(clamp((tempo-1.6)/.4));
+          if (ca) { ca.el.style.opacity = String(1-clamp(tempo/.3)); ca.el.style.transform = `translateY(${-8*clamp(tempo/.3)}px)`; }
+          mapa.energia(.12 + .88 * suave(clamp((tempo-.3)/.6)));
+          if (proto) { proto.aparecer(1); proto.enfatizar([]); }
+          const crescem = Array.from({length:n}, (_,i) => clamp((tempo-.7-i*.1)/Math.max(.1,.9-Math.max(0,n-1)*.1)));
+          if (fios) { fios.mostrar(true); fios.acenderChao(1); fios.crescer(crescem); }
+          if (telas) telas.ligar(crescem.map((v,i) => clamp((tempo-(.7+i*.1+Math.max(.1,.9-Math.max(0,n-1)*.1)))/.2)));
+          Object.assign(para, poseB0());
+          de.dist = distanciaInicial / camZ();
+          const t = suave(clamp((tempo-1.6)/1.2)), pose = {};
+          for (const k of ['dist','alt','orbita','fov','cx','cy','cz']) pose[k] = de[k]+(para[k]-de[k])*t;
+          porCamera(pose);
+        },
+        destruir() {
+          if(fade) fade.remove();
+          if(barra) barra.style.opacity = opBarra;
+          mapa.energia(1);
+          if(fios) fios.crescer(null);
+          if(telas) telas.ligar(null);
+        },
+        tempo: () => tempo
+      };
+      pd.progresso(0);
       const est = { p: 0 };
-      gsap.to(est, { p: 1, duration: 1.6, ease: 'power2.inOut', onUpdate: () => pd.progresso(est.p), onComplete: () => { trocarParaB(); } });
+      gsap.to(est, { p: 1, duration: reduzido ? .3 : 2.8, ease: 'none',
+        onUpdate: () => {
+          if (!ativa) return;
+          pd.progresso(est.p);
+          if (reduzido && !trocou && est.p >= .5) { trocou = true; trocarParaB(true); porCamera(para); }
+        },
+        onComplete: () => {
+          if (!ativa) return;
+          if (!trocou) trocarParaB(true);
+          pd.destruir(); portalDados = null;
+          emPortal = false; voando = false;
+          alvo.p = atual.p = 0;
+          aplicar(0); travarRolagem(false); api.aoEntrar();
+        } });
     }
-    function trocarParaB() {
-      if (emPortal) return; emPortal = true;
-      porCamera(poseB0());                                    // a câmera assume exatamente o que a janela mostrava
-      if (portalDados) { portalDados.destruir(); portalDados = null; }
-      if (passe && window.gsap && !reduzido) gsap.fromTo(pulso, { v: .9 }, { v: 0, duration: .7, ease: 'power3.out' });   // a distorção quente cobre a troca
+    function trocarParaB(coberto = false) {
+      if (trecho === 'B' || (emPortal && !coberto)) return;
+      emPortal = true;
+      if (!coberto) porCamera(poseB0());
       montarB();
-      window.scrollTo(0, host.offsetTop);
+      // O CSS global usa smooth: a reposição do novo trilho precisa ser atômica.
+      window.scrollTo({ top: host.offsetTop, behavior: 'instant' });
       if (window.ScrollTrigger) ScrollTrigger.refresh();
-      travarRolagem(false);
-      emPortal = false;
-      api.aoEntrar();
+      alvo.p = atual.p = 0;
+      if (!coberto) { emPortal = false; aplicar(0); travarRolagem(false); api.aoEntrar(); }
     }
-    function travarRolagem(v) { document.documentElement.style.overflow = v ? 'hidden' : ''; }
+    let estiloRolagem = null;
+    function travarRolagem(v) {
+      const raiz = document.documentElement;
+      if (v && !estiloRolagem) {
+        estiloRolagem = { overflow: raiz.style.overflow, gutter: raiz.style.scrollbarGutter, mapaWidth: mapa ? mapa.el.style.width : '' };
+        if (mapa) mapa.el.style.width = mapa.el.getBoundingClientRect().width + 'px';
+        raiz.style.scrollbarGutter = 'stable'; raiz.style.overflow = 'hidden';
+      } else if (!v && estiloRolagem) {
+        raiz.style.overflow = estiloRolagem.overflow; raiz.style.scrollbarGutter = estiloRolagem.gutter;
+        if (mapa) mapa.el.style.width = estiloRolagem.mapaWidth;
+        estiloRolagem = null;
+      }
+    }
 
     // ------------------------------------------------------------ portal 2: planeta → projeto
     function entrarProjeto(id) {

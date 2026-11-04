@@ -22,6 +22,7 @@
     if (!proto) return null;
     const fr = new THREE.Frustum(), mx = new THREE.Matrix4(), cam = () => api.camera();
     let acum = 0, quadros = 0;
+    let ligadas = null;
 
     function barras(ctx, x, y, w, h, lista, corDe) {
       const n = lista.length; if (!n) return false;
@@ -32,6 +33,8 @@
     function desenhar(m, t) {
       const ctx = m.ctx, W = m.cv.width, H = m.cv.height, k = W / 256, D = api.dados() || {}, P = D.P, livre = api.liberado();
       ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+      if (ligadas && !ligadas.get(m.id)) return;
+
       ctx.strokeStyle = C.linha; ctx.lineWidth = 1; ctx.strokeRect(.5, .5, W - 1, H - 1);
       const varre = ((t * .35) % 1) * W;
       if (!livre || !P) {                                           // espera: nada de dado antes do PIN
@@ -89,6 +92,7 @@
     // nenhum fora do quadro. Subir textura para a GPU é o que pesa — medido: 12/s em todas travava a placa integrada.
     const ultimo = new Map();
     function quadro(t, d) {
+      proto.modulos.forEach(m => m.tela.material.color.setScalar(ligadas ? ligadas.get(m.id) || 0 : 1));
       if (!proto.visivel || proto.visivel() < .02) return;
       acum += d; if (acum < 1 / 6 && quadros > 0) return; acum = 0;
       if (reduzido && quadros > 2) return;
@@ -103,7 +107,18 @@
       });
       quadros++;
     }
-    return { quadro, desenharTodas: (t) => proto.modulos.forEach(m => { desenhar(m, t || 0); m.tex.needsUpdate = true; }) };
+    return { quadro, ligar(valores) {
+      const anterior = ligadas;
+      if (!anterior && !valores) return;
+      ligadas = valores ? new Map(proto.modulos.map((m,i) => [m.id, valores[i] || 0])) : null;
+      proto.modulos.forEach(m => {
+        const v = ligadas ? ligadas.get(m.id) || 0 : 1;
+        m.tela.material.color.setScalar(v);
+        if (!anterior || !ligadas || !!anterior.get(m.id) !== !!v) {
+          desenhar(m, performance.now()/1000); m.tex.needsUpdate = true;
+        }
+      });
+    }, desenharTodas: (t) => proto.modulos.forEach(m => { desenhar(m, t || 0); m.tex.needsUpdate = true; }) };
   }
 
   window.TelasVivas = { criar };
