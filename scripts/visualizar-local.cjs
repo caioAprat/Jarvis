@@ -9,7 +9,7 @@ const {ambiente}=require('../testes/simulador');
 const root=path.resolve(__dirname,'..');
 const sim=ambiente({agora:new Date().toISOString()});
 sim.run('verificar()');
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
 let port=4173;
 const server=http.createServer(async(req,res)=>{
   const send=(status,type,body)=>{res.writeHead(status,{'Content-Type':type,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(body);};
@@ -30,7 +30,7 @@ const server=http.createServer(async(req,res)=>{
     if(req.method!=='GET'&&req.method!=='HEAD')return send(405,'text/plain','Método não permitido');
     const name=decodeURIComponent(url.pathname==='/'?'/pc.html':url.pathname).slice(1);
     // Só arquivos públicos da interface; código do servidor e diretórios Git não são servidos.
-    if(!/^(?:[a-zA-Z0-9-]+\.(?:html|js|webmanifest)|icons\/[a-zA-Z0-9-]+\.(?:png|svg))$/.test(name)||name==='sw.js')return send(404,'text/plain','Arquivo não disponível na prévia');
+    if(!/^(?:camera-estado\.json|[a-zA-Z0-9-]+\.(?:html|js|webmanifest)|icons\/[a-zA-Z0-9-]+\.(?:png|svg))$/.test(name)||name==='sw.js')return send(404,'text/plain','Arquivo não disponível na prévia');
     let body=await fs.readFile(path.join(root,name));
     if(name.endsWith('.html')){
       const cfg=JSON.stringify({u:`http://127.0.0.1:${port}/__preview_api`,k:sim.props.CHAVE_PC});

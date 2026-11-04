@@ -24,6 +24,18 @@ O iPhone (`index.html`) carrega só o Three.js base: sem pós-processamento, cen
 | GSAP (`gsap.min.js`, cdnjs) | 3.12.5 | `pc.html:185`, `index.html:116`; `mapa-vivo.js` (hover, entrada, pulsos, câmera, bloom) e `pc.html` |
 | GSAP ScrollTrigger | 3.12.5 | só `pc.html:186`; uso em `pc.html:653-667` (topo some com scrub; blocos sobem em lote) |
 
+## Câmera da landing — Parte D rodada 3 (Caio aprovou em 2026-11-04)
+
+| Biblioteca | Versão fixa conferida no pacote/CDN | Uso |
+|---|---|---|
+| [Lenis](https://github.com/darkroomengineering/lenis) | **1.3.27** | `pc.html`, jsDelivr `lenis@1.3.27/dist/lenis.min.js`, com SRI; lerp .08, wheelMultiplier .9, relógio GSAP e ScrollTrigger.update. Desligado para reduced-motion e ponteiro coarse; toque nativo. |
+| [Theatre browser-bundles](https://www.npmjs.com/package/@theatre/browser-bundles) | **0.7.2** | jsDelivr `@theatre/browser-bundles@0.7.2/dist/core-only.min.js`, com SRI; estado em `camera-estado.json`, projeto `Jarvao Camera`, sheet `Camera`. |
+| Theatre Studio (mesmo pacote) | **0.7.2** | `core-and-studio.js`, com SRI, substitui core-only exclusivamente em localhost/127.0.0.1/::1 com `?editar=1`. Nunca solicitado em produção. |
+
+As versões foram verificadas pelos `package.json` dos URLs fixos e pelos bundles em 2026-11-04; evidências e hashes em `.playwright-mcp/parte-d3/`. A landing já usa GSAP/ScrollTrigger **3.13.0** em `pc.html` (as linhas antigas acima descrevem versões anteriores); nenhuma troca do GSAP nesta rodada.
+
+Referências de integração: [Lenis com GSAP](https://github.com/darkroomengineering/lenis#gsap-scrolltrigger), [API Theatre: estado salvo, objetos e sequência](https://www.theatrejs.com/docs/latest/api/core).
+
 ## Interface
 
 | Recurso | Versão | Onde |

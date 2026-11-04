@@ -80,7 +80,8 @@
     if (geracao !== el._geracao || !el.isConnected) return false;
     vis.style.opacity = '.85';
     const split = el._split = new SplitText(vis, { type: 'words,chars', charsClass: 'esc-char', aria: 'none' });
-    split.chars.forEach(ch => { ch.style.width = ch.getBoundingClientRect().width + 'px'; ch.style.letterSpacing = '0'; });
+    const larguras = split.chars.map(ch => ch.getBoundingClientRect().width);
+    split.chars.forEach((ch,i) => { ch.style.width = larguras[i] + 'px'; ch.style.letterSpacing = '0'; });
     return new Promise(resolve => {
       el._resolver = resolve; animando.add(el);
       const tl = el._tl = gsap.timeline({ onComplete: () => { animando.delete(el); el.dataset.escrito = '1'; el._resolver = null; resolve(true); } });
@@ -100,7 +101,8 @@
     if (movimento.matches || !window.gsap) { vis.style.opacity = '0'; return; }
     if (!window.SplitText || !window.ScrambleTextPlugin) { vis.style.opacity = '0'; return; }
     const split = el._split = new SplitText(vis, { type: 'words,chars', charsClass: 'esc-char', aria: 'none' });
-    split.chars.forEach(ch => { ch.style.width = ch.getBoundingClientRect().width + 'px'; ch.style.letterSpacing = '0'; });
+    const larguras = split.chars.map(ch => ch.getBoundingClientRect().width);
+    split.chars.forEach((ch,i) => { ch.style.width = larguras[i] + 'px'; ch.style.letterSpacing = '0'; });
     animando.add(el);
     el._tl = gsap.timeline({ onComplete: () => animando.delete(el) })
       .to(vis, { opacity: 0, duration: .25, ease: 'none' }, 0);

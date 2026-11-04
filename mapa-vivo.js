@@ -455,7 +455,9 @@
     function quadro() {
       const agora = performance.now(), dt = Math.min(.05, (agora - ultimo) / 1000); ultimo = agora;
       if (!ativo || !el.isConnected || !w) return;
-      acum += dt; if ((baixo || limite30) && !reduzido && acum + .0008 < 1 / 30) return; const d = acum; acum = 0;
+      // A trilha narrativa já tem um relógio suavizado: limitar só sua câmera a
+      // 30Hz duplica poses alternadas. O modo normal conserva o limite existente.
+      acum += dt; if (!cine && (baixo || limite30) && !reduzido && acum + .0008 < 1 / 30) return; const d = acum; acum = 0;
       // se a máquina não dá conta, abre mão do que custa mais, em etapas: bloom, resolução, metade das partículas, 30 quadros/s
       if (!reduzido && ++quadros > 20) {
         if (dt > (baixo || limite30 ? .045 : .03)) lentos++; else lentos = Math.max(0, lentos - 1);
@@ -501,14 +503,14 @@
       semente.rotation.y += d * 1.4 * vel; semente.scale.setScalar(1 + Math.sin(t * 3) * .1 + ptr.hoverNucleo.v * .25); semGlow.material.opacity = .8 + Math.sin(t * 2.4) * .15;
       gAneis.forEach(x => { x.a += d * x.v * vel * s; x.bola.position.set(Math.cos(x.a) * x.r, 0, Math.sin(x.a) * x.r); x.g.rotation.y += d * .15 * vel * x.v; });
       if (cine) {                                                      // landing: a rolagem conduz a câmera (distância, altura, FOV, giro)
-        const dz = Math.max(.6, (cam.z - chute.v * 1.6) * cine.dist), a = cine.orbita;
-        camera.position.set(cine.cx + Math.sin(a) * dz + off.x * .4, cine.cy + dz * cine.alt + off.y * .4, cine.cz + Math.cos(a) * dz);
+        const dz = Math.max(.6, cam.z * cine.dist), a = cine.orbita;
+        camera.position.set(cine.cx + Math.sin(a) * dz, cine.cy + dz * cine.alt, cine.cz + Math.cos(a) * dz);
         if (camera.fov !== cine.fov) { camera.fov = cine.fov; camera.updateProjectionMatrix(); }
       } else camera.position.set(cam.x + off.x, cam.y + off.y + scr.v * cam.z * .1, (cam.z - chute.v * 1.6) * (1 + scr.v * 1.1));
       if (cine) camera.lookAt(cine.cx, cine.cy, cine.cz); else camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
 
-      nos.forEach((n, i) => {
+      if (orbitas.visible) nos.forEach((n, i) => {
         n.ang += d * n.vel * vel;
         posOrbita(n, n.ang, n.P0);
         n.grupo.position.copy(n.P0);
@@ -541,10 +543,14 @@
         const visivel = tmp.z < 1, x = (tmp.x * .5 + .5) * w, y = (-tmp.y * .5 + .5) * h;
         const dentro = Math.min(1, Math.max(.3, 1.1 - (tmp.z - .93) * 9));
         const topoL = FUNDO ? Math.round(Math.min(280, h * .3)) : 6, botL = FUNDO ? 130 : 50;      // no PC, os rótulos não entram sob os números do topo nem sob a dock
-        const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
-        n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
-        n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * vis) : '0';
-        n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
+        // Rótulos dos planetas não participam das paradas da narrativa. Ler
+        // offsetWidth após cada escrita forçava sete layouts invisíveis/quadro.
+        if (!cine || orbitas.visible) {
+          const lw = n.pos.offsetWidth || 120, lado = x + 14 + lw > w - 8 ? -(lw + 14) : 14;
+          n.pos.style.transform = `translate3d(${Math.max(6, Math.min(w - lw - 6, x + lado)).toFixed(1)}px,${Math.max(topoL, Math.min(h - botL, y - 18)).toFixed(1)}px,0)`;
+          n.pos.style.opacity = visivel ? String((.55 + .45 * dentro) * vis) : '0';
+          n.pos.style.zIndex = String(Math.round((1 - tmp.z) * 1000));
+        }
         n.halo.material.opacity = .65 + Math.sin(t * 2 + i) * .15 + hov(n) * .3;
       });
       sg.attributes.position.needsUpdate = sg.attributes.color.needsUpdate = sg.attributes.size.needsUpdate = true;

@@ -223,7 +223,16 @@
 <script src="veias-cenario.js?v=2"></script>
 <script src="fundo.js?v=3"></script>
 <script src="nav-cenas.js?v=1"></script>
-<script src="landing-roteiro.js?v=17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.min.js" integrity="sha384-R18XzqnxvVLEF+BYfhpmDx30v7eP83fAckyfoRzK7/Uf6nGqufcmsk0eAKo7S3RU" crossorigin="anonymous"></script>
+<script>
+// O bundle com Studio nunca é solicitado fora da edição explicitamente local.
+window.editarCamera = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).get('editar') === '1';
+document.write('<script src="https://cdn.jsdelivr.net/npm/@theatre/browser-bundles@0.7.2/dist/' + (window.editarCamera ? 'core-and-studio.js' : 'core-only.min.js') + '" integrity="' + (window.editarCamera ? 'sha384-hPWjc6anqYmnC+HZ5GxLu8K3pVP0UpLJk8u1iOWrRbX53rJjMOL6N4oDnBK8Qtgm' : 'sha384-evf7kp9S/13v+LS55P0Ca8ki40gaq2fkUT6jC6J9l0XvT3iIsXM35dH7gGNRtDVz') + '" crossorigin="anonymous"><\/script>');
+window.cameraEstadoPronto = fetch('camera-estado.json', {cache: 'no-cache'}).then(r => { if (!r.ok) throw new Error('camera-estado.json: HTTP ' + r.status); return r.json(); });
+// Erro tratado também pelo roteiro; não deixa rejeição sem observador durante a carga.
+window.cameraEstadoPronto.catch(e => console.warn('Câmera: usando poses da rodada 2.', e));
+</script>
+<script src="landing-roteiro.js?v=18"></script>
 <script>
 'use strict';
 // ---------------------------------------------------------------- utilidades
