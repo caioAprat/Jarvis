@@ -88,7 +88,7 @@
     const v = new THREE.Vector3();
     function ancora() { return v.set(R * .72, R * .62, R * .3).add(grupo.position).clone(); }
     mostrar(0);
-    return { grupo, posicao: grupo.position, raio: R, mostrar, quadro, ancora };
+    return { grupo, posicao: grupo.position, raio: R, mostrar, quadro, ancora, visivel: () => vis.v };
   }
 
   window.Planeta = { montar };
