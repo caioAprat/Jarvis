@@ -7,7 +7,7 @@
     const grupo=new THREE.Group();grupo.name='veia-clientes';dep.scene.add(grupo);
     const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),d=new THREE.Vector3(),lateral=new THREE.Vector3(),direcao=new THREE.Vector3();
     const cima=new THREE.Vector3(0,1,0),frente=new THREE.Vector3(0,0,1);
-    const ambiente=CenarioGeometria.ambiente(E);dep.scene.add(ambiente);
+    const ambiente=CenarioGeometria.ambiente(E);dep.scene.add(ambiente);const salaNucleo=CenarioGeometria.sala?CenarioGeometria.sala(E):null;if(salaNucleo)dep.scene.add(salaNucleo);
     const N=leve?48:80,centros=new Float32Array(N*3),tubo=CenarioGeometria.tubo(N,6);
     const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uTime:{value:0},uVis:{value:0}},

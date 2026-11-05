@@ -93,13 +93,69 @@
     }
     return grupo;
   }
+
+  // G1 (Claude, 05/11): a sala do núcleo — deck em volta da base, borda com guarda-corpo, paredes de painéis em 3 camadas
+  // e luzes de serviço no piso. Tudo em linhas/planos leves, no laranja da marca, com fade por distância (mesmo shader do piso).
+  // Refs: Control Room isométrico (Roman Klčo, Dribbble) e painéis HUD em camadas. Nada encosta abaixo do piso (cota -3,2E).
+  function linhasSala(nome, pts, alpha, E, longe) {
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { uAlpha: { value: alpha }, uE: { value: E }, uLonge: { value: longe || 80 } },
+      vertexShader: 'varying float vD;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}',
+      fragmentShader: 'uniform float uAlpha,uE,uLonge;varying float vD;void main(){float fade=1.-smoothstep(16.*uE,uLonge*uE,vD);gl_FragColor=vec4(1.,.667,.392,uAlpha*fade);}' });
+    const l = new THREE.LineSegments(geo, mat); l.name = nome; return l;
+  }
+  function sala(E) {
+    const g = new THREE.Group(); g.name = 'sala-nucleo';
+    const chao = -3.2 * E, R_DECK = 5.4 * E, R_BORDA = 5.9 * E;
+    const circulo = (pts, r, y, n, a0, a1) => { a0 = a0 || 0; a1 = a1 == null ? Math.PI * 2 : a1; for (let i = 0; i < n; i++) { const t0 = a0 + (a1 - a0) * i / n, t1 = a0 + (a1 - a0) * (i + 1) / n; pts.push(Math.cos(t0) * r, y, Math.sin(t0) * r, Math.cos(t1) * r, y, Math.sin(t1) * r); } };
+    // Deck: disco escuro (metal fosco) rente ao piso, com juntas radiais e anéis de chapa.
+    const deck = new THREE.Mesh(new THREE.CircleGeometry(R_DECK, 96), new THREE.MeshBasicMaterial({ color: 0x0d0a08, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    deck.rotation.x = -Math.PI / 2; deck.position.y = chao + .004 * E; deck.name = 'deck'; g.add(deck);
+    const juntas = [];
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; juntas.push(Math.cos(a) * 1.6 * E, chao + .006 * E, Math.sin(a) * 1.6 * E, Math.cos(a) * R_DECK, chao + .006 * E, Math.sin(a) * R_DECK); }
+    for (const r of [1.6, 2.6, 4.2]) circulo(juntas, r * E, chao + .006 * E, 96);
+    g.add(linhasSala('deck-juntas', juntas, .11, E, 60));
+    // Borda do deck: faixa de luz + mureta baixa (degrau) + guarda-corpo fino com postes.
+    const faixa = new THREE.Mesh(new THREE.RingGeometry(R_DECK - .03 * E, R_DECK, 128), new THREE.MeshBasicMaterial({ color: 0xff9a4d, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    faixa.rotation.x = -Math.PI / 2; faixa.position.y = chao + .008 * E; faixa.name = 'deck-faixa'; g.add(faixa);
+    const mureta = new THREE.Mesh(new THREE.CylinderGeometry(R_BORDA, R_BORDA, .28 * E, 128, 1, true), new THREE.MeshBasicMaterial({ color: 0x120e0b, side: THREE.DoubleSide }));
+    mureta.position.y = chao + .14 * E; mureta.name = 'mureta'; g.add(mureta);
+    const corrimao = [];
+    circulo(corrimao, R_BORDA, chao + .28 * E, 128); circulo(corrimao, R_BORDA, chao + 1.05 * E, 128);
+    for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; corrimao.push(Math.cos(a) * R_BORDA, chao + .28 * E, Math.sin(a) * R_BORDA, Math.cos(a) * R_BORDA, chao + 1.05 * E, Math.sin(a) * R_BORDA); }
+    g.add(linhasSala('guarda-corpo', corrimao, .14, E, 70));
+    // Paredes: 3 camadas de painéis (arcos parciais) cada vez mais altas e fracas; cada painel com moldura e frestas de luz.
+    const camadas = [[17, 7, .1, 34], [27, 12, .065, 44], [40, 18, .04, 56]];
+    for (const [r, alt, alpha, n] of camadas) {
+      const pts = [], frestas = [];
+      for (let i = 0; i < n; i++) {
+        const a0 = i / n * Math.PI * 2, a1 = (i + .86) / n * Math.PI * 2, x0 = Math.cos(a0) * r * E, z0 = Math.sin(a0) * r * E, x1 = Math.cos(a1) * r * E, z1 = Math.sin(a1) * r * E;
+        const h = alt * E * (.72 + .28 * Math.abs(Math.sin(i * 1.7))), y0 = chao, y1 = chao + h;
+        pts.push(x0, y0, z0, x0, y1, z0, x1, y0, z1, x1, y1, z1, x0, y1, z0, x1, y1, z1);
+        const ym = chao + h * (.35 + .3 * ((i * 7) % 5) / 5);
+        pts.push(x0, ym, z0, x1, ym, z1);
+        if (i % 3 === 0) { const ys = chao + h * .82; frestas.push(x0 + (x1 - x0) * .2, ys, z0 + (z1 - z0) * .2, x0 + (x1 - x0) * .8, ys, z0 + (z1 - z0) * .8); }
+      }
+      g.add(linhasSala('parede-' + r, pts, alpha, E, r + 40));
+      g.add(linhasSala('frestas-' + r, frestas, alpha * 4.5, E, r + 40));
+    }
+    // Luzes de serviço: pontilhado radial no piso saindo do deck até a 1ª parede, e pontos na borda.
+    const pontos = [];
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2 + .13; for (let d = 6.6; d < 16.5; d += .9) pontos.push(Math.cos(a) * d * E, chao + .01 * E, Math.sin(a) * d * E); }
+    for (let i = 0; i < 72; i++) { const a = i / 72 * Math.PI * 2; pontos.push(Math.cos(a) * (R_BORDA + .25 * E), chao + .01 * E, Math.sin(a) * (R_BORDA + .25 * E)); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pontos, 3));
+    const pm = new THREE.PointsMaterial({ color: 0xff9a4d, size: .09 * E, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false });
+    const luzes = new THREE.Points(pg, pm); luzes.name = 'luzes-servico'; g.add(luzes);
+    return g;
+  }
   function ondaPiso(scene,E){
     const mat=new THREE.MeshBasicMaterial({color:0xff9a4d,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
     const geo=new THREE.RingGeometry(.97,1,128),anel=new THREE.Mesh(geo,mat);
     anel.name='ignicao-piso';anel.rotation.x=-Math.PI/2;anel.position.y=-3.2*E+.025*E;scene.add(anel);
     return {progresso(p){anel.scale.setScalar((1+32*p)*E);mat.opacity=.55*Math.sin(Math.PI*p);},destruir(){scene.remove(anel);geo.dispose();mat.dispose();}};
   }
-  const api = { tubo, bezier, uniformizar, unir, retangulo, ambiente, ondaPiso };
+  const api = { tubo, bezier, uniformizar, unir, retangulo, ambiente, ondaPiso, sala };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else window.CenarioGeometria = api;
 })();

@@ -226,6 +226,7 @@
   .mom-g,.mom-g.medio{font:500 clamp(40px,5.271vw,72px)/1.08 'JetBrains Mono',var(--mono);letter-spacing:-.02em;text-transform:none;font-variant-numeric:tabular-nums;color:var(--tx);white-space:normal;overflow-wrap:normal;word-break:normal;hyphens:none;text-wrap:balance;text-shadow:0 0 8px #000;margin:12px 0 18px;overflow:hidden}
   .mom-p{font:400 14px/1.55 'JetBrains Mono',var(--mono);color:var(--mu);text-shadow:0 0 8px #000;margin:0;min-height:1.55em}
   .mom-rotulo{font:400 11px/1.5 'JetBrains Mono',var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
+  .narr-cena[data-cena="prototipo"] .mom-bloco{display:none}   /* protótipo virou só passagem: sem rótulo solto */
   .mom-bloco{position:absolute;width:min(400px,34vw);left:32px;top:42%;text-align:left}
   .mom-bloco .mom-p{max-width:52ch}
   .mom-g .esc-vis{opacity:1}
