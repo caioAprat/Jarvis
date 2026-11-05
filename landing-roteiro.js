@@ -111,7 +111,7 @@
       const forcar = localStorage.getItem('jarvis.saudacao.forcar') === '1';   // teste: força a pergunta
       if (forcar || (ult !== hoje && Math.random() < .25)) { pergunta = sorteio(PERGUNTAS); localStorage.setItem('jarvis.saudacao.pergunta', hoje); }
     } catch (e) {}
-    const corpo = data.charAt(0).toUpperCase() + data.slice(1) + ' · ' + sorteio(frases) + (pergunta ? ' ' + pergunta.q : '');
+    const corpo = data.charAt(0).toUpperCase() + data.slice(1) + ' · ' + sorteio(frases);   // a pergunta vai para a conversa, em linha própria
     return saudacaoFeita = { g: sorteio(titulos[periodo]), p: corpo, pergunta };
   }
   // Resposta do Caio: ele só digita (sem caixa, sem cursor). Cada letra entra decodificando; Enter envia e o estagiário responde.
@@ -133,7 +133,7 @@
     // A réplica aumenta o bloco ancorado embaixo no mobile; isso não é rolagem do usuário.
     ola.style.overflowAnchor = 'none';
     const caixa = document.createElement('div'); caixa.className = 'conversa';
-    caixa.innerHTML = '<p class="conv-caio" aria-live="polite"></p><p class="conv-jarvis" aria-live="polite"></p>';
+    caixa.innerHTML = '<p class="conv-linha conv-pergunta" aria-live="polite"></p><p class="conv-linha conv-caio" aria-live="polite"></p><p class="conv-linha conv-jarvis" aria-live="polite"></p>';
     const alvo = ola.querySelector('.mom-bloco') || ola; alvo.appendChild(caixa);
     const linha = caixa.querySelector('.conv-caio'), resposta = caixa.querySelector('.conv-jarvis');
     let texto = '', respondido = false;
@@ -142,7 +142,8 @@
       if (window.gsap && window.ScrambleTextPlugin && ch.trim() && !matchMedia('(prefers-reduced-motion: reduce)').matches)
         gsap.fromTo(sp, { scrambleText: { text: GLIFOS_C[Math.floor(Math.random() * GLIFOS_C.length)], chars: GLIFOS_C } }, { duration: dur, scrambleText: { text: ch, chars: GLIFOS_C, speed: 1 }, ease: 'none' });
     };
-    const falar = (frase) => { resposta.textContent = ''; [...frase].forEach((ch, i) => setTimeout(() => decodificar(resposta, ch, .12), i * 12)); };
+    const falar = (frase, el) => { el = el || resposta; el.textContent = ''; [...frase].forEach((ch, i) => setTimeout(() => decodificar(el, ch, .12), i * 12)); };
+    falar(sd.pergunta.q, caixa.querySelector('.conv-pergunta'));   // o estagiário pergunta numa fala própria
     function tecla(ev) {
       if (respondido || !ehAtiva() || ev.ctrlKey || ev.metaKey || ev.altKey) return;
       const foco = document.activeElement, cenaFoco = foco && foco.closest && foco.closest('.narr-cena');
@@ -160,8 +161,10 @@
 
   const CSS_CONVERSA = `
   .conversa{margin-top:14px;font:400 14px/1.6 var(--mono);max-width:min(440px,34vw)}
-  .conv-caio{margin:0;color:var(--tx);min-height:0}
-  .conv-caio:not(:empty)::before{content:'— ';color:var(--pri)}
+  .conv-caio{color:var(--tx)}
+  .conv-linha:not(:empty)::before{content:'— ';color:var(--pri);opacity:.7}
+  .conv-pergunta{margin:0;color:var(--pri)}
+  .conv-caio{margin:6px 0 0}
   .conversa.enviada .conv-caio{color:var(--mu)}
   .conv-jarvis{margin:6px 0 0;color:var(--pri)}
   .conv-jarvis:empty{display:none}
