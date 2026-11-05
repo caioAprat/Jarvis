@@ -136,6 +136,7 @@
       const k = campo.value.length;
       [...orbes.children].forEach((o, i) => { o.className = erro ? 'erro' : i < k ? 'aceso' : i === k ? 'prox' : ''; });
       segs.forEach((sg, i) => sg.setAttribute('class', 'anel-seg' + (erro ? ' erro' : i < k ? ' aceso' : '')));
+      if (op.aoDigitos) op.aoDigitos(erro ? 0 : k);
     }
     function errar(msg) {
       aviso.textContent = msg; aviso.classList.add('erro');

@@ -89,5 +89,28 @@
       destruir() { if (desliga) desliga(); try { sistema.destroy(); } catch (e) {} tex.dispose(); },
     };
   }
-  window.Ignicao = { criar };
+  // Linhas de campo em volta do núcleo (ref: loader do activetheory.net). r(θ) = L·sen²θ num plano vertical girado em φ.
+  function campo(mapa, op) {
+    if (!window.THREE || !mapa || !mapa.depurar || !mapa.aoQuadro) return null;
+    const { scene } = mapa.depurar(), E = op.E || 1, g = new THREE.Group(); g.name = 'campo-nucleo'; scene.add(g);
+    const mats = [], N = 18, PTS = 90;
+    for (let i = 0; i < N; i++) {
+      const phi = i / N * Math.PI * 2 + (i % 2) * .09, L = (1.9 + (i % 3) * .55 + Math.sin(i * 2.3) * .2) * E, pos = [], u = [];
+      for (let j = 0; j <= PTS; j++) {
+        const th = .16 * Math.PI + (.68 * Math.PI) * j / PTS, r = L * Math.pow(Math.sin(th), 2);
+        const x = r * Math.sin(th), y = r * Math.cos(th);
+        pos.push(Math.cos(phi) * x, y, Math.sin(phi) * x); u.push(j / PTS);
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('aU', new THREE.Float32BufferAttribute(u, 1));
+      const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        uniforms: { uP: { value: 0 }, uT: { value: 0 }, uFase: { value: i * .37 }, uA: { value: .5 + .3 * (i % 2) } },
+        vertexShader: 'attribute float aU;varying float vU;void main(){vU=aU;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+        fragmentShader: 'uniform float uP,uT,uFase,uA;varying float vU;void main(){float m=abs(vU-.5)*2.;float desenho=step(m,uP);float pulso=.35+.65*smoothstep(.12,0.,abs(fract(vU-uT*.25-uFase)-.5)-.38);float borda=smoothstep(0.,.08,1.-m);gl_FragColor=vec4(1.,.62,.3,uA*desenho*borda*pulso*(.25+.75*uP));}' });
+      mats.push(mat); g.add(new THREE.Line(geo, mat));
+    }
+    let p = 0, t = 0;
+    const tirar = mapa.aoQuadro(d => { t += d; g.rotation.y += d * .06 * (.2 + p); mats.forEach(m => { m.uniforms.uT.value = t; m.uniforms.uP.value = p; }); g.visible = p > .001; });
+    return { progresso(v) { p = Math.max(0, Math.min(1, v)); }, destruir() { tirar(); scene.remove(g); g.children.forEach(l => { l.geometry.dispose(); l.material.dispose(); }); } };
+  }
+  window.Ignicao = { criar, campo };
 })();

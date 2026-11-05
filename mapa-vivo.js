@@ -245,6 +245,7 @@
       comp.insertPass(passeIgn, 1);
     }
     const aoQuadroFns = [];
+    let vidaV = 1;   // landing: 0 = núcleo parado (desligado), 1 = vivo
 
     // ------------------------------------------------------------ cursor (o núcleo reage)
     const ptr = { x: 0, y: 0, dentro: false, mx: 0, my: 0, presenca: { v: 0 }, hoverNucleo: { v: 0 }, vel: 0 };
@@ -493,7 +494,7 @@
           else limite30 = true;
         }
       }
-      const vel = (reduzido ? 0 : 1) * (1 - congela.v); t += d * vel;
+      const vel = (reduzido ? 0 : 1) * (1 - congela.v) * vidaV; t += d * vel;
       const s = giro.v, vis = Math.max(0, 1 - scr.v * 1.7);          // vis: os projetos e as ligações somem conforme a página desce
       fluxos.forEach(m => { m.uniforms.uTime.value = t; });
       plasmaMat.uniforms.uTime.value = t; cascaUni.uTime.value = t; estrelasUni.uTime.value = t;
@@ -809,7 +810,7 @@
       (o.centro ? centroTmp.copy(o.centro) : nucleo.getWorldPosition(centroTmp)).project(camera); u.uCentro.value.set(centroTmp.x * .5 + .5, centroTmp.y * .5 + .5); u.uAspecto.value = w && h ? w / h : 1;
       passeIgn.enabled = u.uOnda.value > .001 || u.uRaios.value > .001; return true;
     }
-    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1.3, v)); }, ignicaoTela, aoQuadro: fn => { aoQuadroFns.push(fn); return () => { const i = aoQuadroFns.indexOf(fn); if (i >= 0) aoQuadroFns.splice(i, 1); }; }, nucleoMundo: alvo => nucleo.getWorldPosition(alvo || new THREE.Vector3()), ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, vida: v => { vidaV = Math.max(0, Math.min(1, v)); }, energia: v => { energiaAtual = Math.max(0, Math.min(1.3, v)); }, ignicaoTela, aoQuadro: fn => { aoQuadroFns.push(fn); return () => { const i = aoQuadroFns.indexOf(fn); if (i >= 0) aoQuadroFns.splice(i, 1); }; }, nucleoMundo: alvo => nucleo.getWorldPosition(alvo || new THREE.Vector3()), ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

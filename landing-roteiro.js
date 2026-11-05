@@ -326,12 +326,15 @@
     const MORTO = .16;
     const ign = !reduzido && mapa && window.Ignicao ? Ignicao.criar(mapa, { E, pisoY: -3.2 * E, centro: () => new THREE.Vector3(0, 0, 0) }) : null;
     if (window.JarvisPreviewLocal) window.__ign = ign;
-    let tMorto = 0;
+    let campo = null;   // linhas de campo de energia (nascem na ignição e ficam)
+    // G2 (Caio, 05/11): depois da saudação o núcleo está TOTALMENTE desligado (quase sem luz, parado). Cada dígito do PIN
+    // acende um pouco (luz e giro); só a ignição o deixa 100% vivo.
+    let digitos = 0, acesoSuave = 0;
     const tirarMorto = mapa && mapa.aoQuadro ? mapa.aoQuadro(d => {
-      if (!ativa || trecho !== 'A' || portalDados) return;
-      tMorto += d;
-      const falha = Math.sin(tMorto * 1.7) * Math.sin(tMorto * 4.3 + 1.2) > .82 ? .45 : 1;   // de vez em quando, uma queda
-      mapa.energia(reduzido ? MORTO : MORTO * falha * (.9 + .1 * Math.sin(tMorto * 9.1)));
+      if (!ativa || trecho !== 'A' || portalDados) { if (mapa.vida && trecho === 'B' && !portalDados) mapa.vida(1); return; }
+      acesoSuave += ((digitos / 8) - acesoSuave) * Math.min(1, d * 6);
+      mapa.energia(.03 + .2 * acesoSuave);
+      if (mapa.vida) mapa.vida(reduzido ? 0 : .02 + .3 * acesoSuave);
     }) : null;
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
     const veias = mapa && window.VeiasCenario ? VeiasCenario.montar(mapa, planeta, { leve }) : null;
@@ -356,7 +359,7 @@
           const t = portalDados.tempo(), sopro = t < 1.6 ? 0 : Math.exp(-(t - 1.6) * 1.4) * (1 - Math.exp(-(t - 1.6) * 14));
           particulas.grupos.forEach(g => { const points = g.userData.pontos; if (points) { points.scale.x *= 1 + .22 * sopro; points.scale.y *= 1 + .22 * sopro; points.scale.z *= 1 + .22 * sopro; } });
         }
-        if (proto) proto.quadro(t, reduzido ? 0 : d);
+        if (proto) proto.quadro(t, reduzido ? 0 : d * (trecho === 'A' && !portalDados ? .05 + .35 * acesoSuave : 1));
         if (fios) fios.quadro(t, reduzido ? 0 : d);
         if (telas) telas.quadro(t, d);
         if (planeta) planeta.quadro(t, reduzido ? 0 : d);
@@ -653,6 +656,7 @@
           return { x, y, r: Math.max(40, Math.abs(x2 - x)) };
         },
         aoLink: (t) => { const ok = api.aoLink(t); if (ok) setTimeout(() => { montarAcesso(); if (acesso) { acesso.escrever(); acesso.focar(); } }, 450); return ok; },
+        aoDigitos: (k) => { digitos = k; },
         aoPin: (v) => { const ok = api.aoPin(v); if (ok) requestAnimationFrame(abrirPortalDados); return ok; } });
       // Reunir a apresentação do acesso sem alterar formulário ou validação.
       const esq=c.el.querySelector('.mom-esq'),dir=c.el.querySelector('.mom-dir');
@@ -816,7 +820,7 @@
       if (nav && atualId) nav.ativa(cenas.indexOf(atualId));
       if (trecho === 'A') {
         const aguardando = p >= cena('acesso').ini;
-        if (mapa && mapa.energia) mapa.energia(aguardando ? .35 : 1);
+        // energia/vida do trecho A ficam com o laço do núcleo desligado (tirarMorto)
         if (fios) fios.crescer(null);
         if(fios&&fios.energizar)fios.energizar(aguardando && proto ? proto.modulos.map(()=>0):null);
         if (telas) telas.ligar(aguardando && proto ? proto.modulos.map(() => 0) : null);
@@ -935,11 +939,14 @@
         return 1;
       };
       const pos=new THREE.Vector3(),CENTRO=new THREE.Vector3(0,0,0);
+      if(!campo&&window.Ignicao&&Ignicao.campo&&mapa)campo=Ignicao.campo(mapa,{E});
       const ligado=new Array(n).fill(false);
       let tempo=0,animacao=null,rolagem=null;
       const pd=portalDados={tempo:()=>tempo,progresso(p){
         tempo=p*T;
         if(mapa)mapa.energia(reduzido?1:energiaEm(tempo));
+        if(mapa&&mapa.vida)mapa.vida(reduzido?1:tempo<1.6?.08+.15*clamp(tempo/1.6):Math.min(1,.25+.75*clamp((tempo-1.6)/1.4)));
+        if(campo)campo.progresso(reduzido?1:clamp((tempo-1.55)/1.5));
         if(onda)onda.progresso(clamp((tempo-1.6)/1.3));
         if(mapa&&mapa.ignicaoTela&&!reduzido){
           const k=clamp((tempo-1.6)/.9);
