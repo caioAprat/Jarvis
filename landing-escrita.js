@@ -66,7 +66,7 @@
     // ScrambleText revela da esquerda para a direita sem dividir/medir cada letra.
     return new Promise(resolve=>{
       el._resolver=resolve;animando.add(el);
-      const duracao=Math.max(.8,el._texto.length*.03);
+      const duracao=Math.min(1.4,Math.max(.45,el._texto.length*.011));   // mais rápido: texto grande não pode demorar
       el._tl=gsap.to(vis,{duration:duracao,scrambleText:{text:el._texto,chars:GLIFOS,speed:.6,tweenLength:false},ease:'none',onComplete:()=>{animando.delete(el);el.dataset.escrito='1';el._resolver=null;resolve(true);}});
     });
   }

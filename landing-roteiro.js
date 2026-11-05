@@ -60,13 +60,112 @@
     { p: .7,   d: .9,   a: .13, f: 36, o: .05,  g: 0, x: 0 },
     { p: 1,    d: .86,  a: .12, f: 36, o: 0,    g: 0, x: 0 },
   ];
-  const CENAS_A = [['ola', 1], ['prototipo', 1], ['acesso', 1]];
+  const CENAS_A = [['ola', 1], ['prototipo', .35], ['acesso', 1.2]];   // protótipo virou só passagem: depois da saudação vem o PIN
   const PROJETOS_CAMERA = ['gabinete', 'planilha', 'assistente', 'painel', 'pedalada', 'atrasos', 'cacador'];
   const CENAS_B = ['situacao', ...PROJETOS_CAMERA, 'ponte', 'planeta', 'retorno', 'fecho'].map(id => [id, 1]);
   const ROTULO = { ola: 'Abertura', prototipo: 'Protótipo', acesso: 'Acesso', situacao: 'Situação', planeta: 'Clientes', fecho: 'Visão geral',
     gabinete:'Gabinete',planilha:'Planilha J Hissnauer',assistente:'Assistente financeiro',painel:'Painel Meu dinheiro',pedalada:'Pedalada do Delei',atrasos:'Bot de atrasos',cacador:'Caçador de clientes',ponte:'Até os clientes',retorno:'De volta ao núcleo' };
   const ESTADO_TXT = { ok: 'no ar', atencao: 'atenção', erro: 'problema', pausado: 'pausado', config: 'configurar', aguardando: 'aguardando' };
 
+
+  // Saudação do "estagiário" (pedido do Caio, 05/11): informal, com apelido e zoeira, mas sempre lembrando que ele é o dono e o chefe.
+  // Sem números de dados antes do PIN. A pergunta é esporádica (≈1 em 4 visitas, nunca 2× no mesmo dia) e ele responde só digitando.
+  let saudacaoFeita = null;
+  const PERGUNTAS = [
+    { q: 'Dormiu bem, chefe?', sim: ['Boa! Patrão descansado é empresa no lucro.', 'Show. Então hoje o senhor tá liberado pra cobrar resultado de mim.'], nao: ['Xii. Vou segurar as pontas hoje, chefe. Só me cobra o essencial.', 'Anotado. Café reforçado e eu não te encho a paciência hoje.'], meio: ['Dormiu meia-boca, então. Hoje eu faço o trabalho pesado, combinado?'] },
+    { q: 'Já tomou um café hoje?', sim: ['Aí sim. Agora dá pra encarar o dia, big boss.', 'Cafeína em dia, CEO operante. Bora.'], nao: ['Sem café? Chefe, assim não dá. Vai lá que eu espero.', 'Primeiro o café, depois a empresa. Regra da casa.'], meio: ['Meio café conta. Mas não conta pro RH, hein.'] },
+    { q: 'Como tá a faculdade, Caio?', sim: ['Mandando bem, hein. Dono de empresa e ainda estudante exemplar.', 'Orgulho do estagiário aqui, chefe.'], nao: ['Puxado, né? Respira. Os projetos eu seguro por aqui.', 'Calma, patrão. Um dia de cada vez, a faculdade passa.'], meio: ['Vai indo, né? Normal. Qualquer coisa eu te lembro dos prazos.'] },
+    { q: 'Qual é a meta de hoje, chefe?', sim: ['Meta registrada. Vou cobrar do senhor no fim do dia, com todo respeito.', 'Gostei. Bora fazer acontecer, chefe.'], nao: ['Sem meta também é meta: dia de manutenção. Eu confiro tudo pra você.'], meio: ['Anotado, chefe. Eu fico de olho pra isso sair do papel.'] },
+    { q: 'Muito container rodando na Nautilus hoje?', sim: ['Dia corrido, então. A Planilha da J Hissnauer tá firme aqui, pode ficar tranquilo.', 'Haja container. Aqui no núcleo tá tudo sob controle, chefe.'], nao: ['Dia calmo na Nautilus? Aproveita, patrão, que é raro.'], meio: ['Ritmo normal, então. Melhor assim.'] },
+    { q: 'Algum projeto novo na cabeça, chefe?', sim: ['Opa! Quando quiser, a gente transforma isso em ficha e bota a equipe pra rodar.', 'Esse é o meu chefe. Me conta mais depois, que eu já separo um cantinho no núcleo.'], nao: ['Justo. Foco no que já tá rodando, que dá dinheiro.'], meio: ['Ideia meio pronta já é ideia. Guarda que a gente lapida.'] },
+    { q: 'Tirou um tempo pra você essa semana?', sim: ['Muito bem. Dono descansado toma decisão melhor.', 'Aprovado pelo estagiário. Continua assim, chefe.'], nao: ['Chefe, assim o senhor quebra. Tira uma tarde, eu seguro tudo aqui.', 'Anotado na sua agenda: descansar. Ordem do estagiário (com todo respeito).'], meio: ['Um pouquinho já ajuda. Mas dá pra mais, hein.'] },
+  ];
+  function saudacao() {
+    if (saudacaoFeita) return saudacaoFeita;
+    const d = new Date(), h = d.getHours(), dia = d.getDay();
+    const sorteio = (lista) => lista[Math.floor(Math.random() * lista.length)];
+    const periodo = h < 5 ? 'madrugada' : h < 12 ? 'manha' : h < 18 ? 'tarde' : 'noite';
+    const titulos = {
+      madrugada: ['Ainda acordado, chefe?', 'Madrugada, patrão?', 'Insônia, CEO?'],
+      manha: ['Bom dia, chefe.', 'Bom dia, patrão.', 'Fala, big boss.', 'Bom dia, Caio.', 'Opa, CEO.'],
+      tarde: ['Boa tarde, chefe.', 'Fala, Caio.', 'E aí, patrão.', 'Boa tarde, big boss.'],
+      noite: ['Boa noite, chefe.', 'Boa noite, patrão.', 'Fala, Caio.', 'Opa, CEO.'],
+    };
+    const data = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const frases = [
+      'Deixei tudo arrumado por aqui. Só falta o seu PIN pra eu ligar o núcleo.',
+      'A Planilha da J Hissnauer e o Gabinete ficaram de olho comigo. Passa o PIN que eu te mostro.',
+      'O núcleo tá em espera, aguardando o dono. Digita o PIN e eu acendo tudo.',
+      'Tudo desligado e no lugar, do jeito que o senhor deixou. É só o PIN.',
+      'Seu estagiário favorito no aguardo. Também sou o único, mas isso é detalhe.',
+      'Café passado, sistemas conferidos, chefe. Falta só o senhor dar o ok.',
+    ];
+    if (h >= 5 && h < 8) frases.push('Chegou cedo hoje, hein? Vou anotar no RH como ponto positivo.');
+    if (dia === 1) frases.push('Segunda-feira, chefe. Bora começar a semana com tudo conferido.');
+    if (dia === 5) frases.push('Sexta, patrão. Confere os projetos e depois descansa, que o senhor merece.');
+    if (dia === 0 || dia === 6) frases.push('Trabalhando no fim de semana? Dono de empresa é assim mesmo, né.');
+    if (periodo === 'madrugada') frases.push('Trabalhando até essa hora? Eu seguro as pontas, mas vai dormir, chefe.');
+    let pergunta = null;
+    try {
+      const hoje = d.toISOString().slice(0, 10), ult = localStorage.getItem('jarvis.saudacao.pergunta');
+      const forcar = localStorage.getItem('jarvis.saudacao.forcar') === '1';   // teste: força a pergunta
+      if (forcar || (ult !== hoje && Math.random() < .25)) { pergunta = sorteio(PERGUNTAS); localStorage.setItem('jarvis.saudacao.pergunta', hoje); }
+    } catch (e) {}
+    const corpo = data.charAt(0).toUpperCase() + data.slice(1) + ' · ' + sorteio(frases) + (pergunta ? ' ' + pergunta.q : '');
+    return saudacaoFeita = { g: sorteio(titulos[periodo]), p: corpo, pergunta };
+  }
+  // Resposta do Caio: ele só digita (sem caixa, sem cursor). Cada letra entra decodificando; Enter envia e o estagiário responde.
+  function responderComo(perg, texto) {
+    const t = ' ' + texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') + ' ';
+    const tem = (l) => l.some(w => t.includes(' ' + w) || t.includes(w + ' '));
+    const NAO = ['nao', 'nem', 'nada', 'mal', 'ruim', 'pessim', 'cansad', 'pouco', 'nunca', 'zero', 'puxad', 'corrid'];
+    const MEIO = ['mais ou menos', 'meio', 'medio', 'normal', 'razoavel', 'ok', 'vai indo', 'tanto faz'];
+    const SIM = ['sim', 'bem', 'otim', 'top', 'bora', 'claro', 'tranquil', 'de boa', 'ja', 'show', 'demais', 'muito', 'massa', 'bom', 'boa', 'aham', 'uhum', 'isso'];
+    const sorteio = (l) => l[Math.floor(Math.random() * l.length)];
+    if (tem(MEIO)) return sorteio(perg.meio || perg.sim);
+    if (tem(NAO)) return sorteio(perg.nao);
+    if (tem(SIM)) return sorteio(perg.sim);
+    return sorteio(['Anotado, chefe. Fica entre a gente.', 'Entendido, patrão. Guardei aqui.', 'Justo. O senhor manda.']);
+  }
+  const GLIFOS_C = '01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function montarConversa(ola, ehAtiva) {
+    const sd = saudacao(); if (!sd.pergunta || !ola) return null;
+    const caixa = document.createElement('div'); caixa.className = 'conversa';
+    caixa.innerHTML = '<p class="conv-caio" aria-live="polite"></p><p class="conv-jarvis" aria-live="polite"></p>';
+    const alvo = ola.querySelector('.mom-bloco') || ola; alvo.appendChild(caixa);
+    const linha = caixa.querySelector('.conv-caio'), resposta = caixa.querySelector('.conv-jarvis');
+    let texto = '', respondido = false;
+    const decodificar = (el, ch, dur) => {
+      const sp = document.createElement('span'); sp.textContent = ch; el.appendChild(sp);
+      if (window.gsap && window.ScrambleTextPlugin && ch.trim() && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+        gsap.fromTo(sp, { scrambleText: { text: GLIFOS_C[Math.floor(Math.random() * GLIFOS_C.length)], chars: GLIFOS_C } }, { duration: dur, scrambleText: { text: ch, chars: GLIFOS_C, speed: 1 }, ease: 'none' });
+    };
+    const falar = (frase) => { resposta.textContent = ''; [...frase].forEach((ch, i) => setTimeout(() => decodificar(resposta, ch, .12), i * 12)); };
+    function tecla(ev) {
+      if (respondido || !ehAtiva() || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      const foco = document.activeElement, cenaFoco = foco && foco.closest && foco.closest('.narr-cena');
+      if (foco && /INPUT|TEXTAREA|SELECT/.test(foco.tagName) && !(cenaFoco && +getComputedStyle(cenaFoco).opacity < .5)) return;   // campo escondido (PIN de outra cena) não conta
+      if (foco && /INPUT/.test(foco.tagName)) foco.blur();
+      if (ev.key === 'Enter') { if (!texto.trim()) return; ev.preventDefault(); respondido = true; caixa.classList.add('enviada'); setTimeout(() => falar(responderComo(sd.pergunta, texto)), 350); return; }
+      if (ev.key === 'Backspace') { if (!texto) return; ev.preventDefault(); texto = texto.slice(0, -1); if (linha.lastChild) linha.lastChild.remove(); return; }
+      if (ev.key.length !== 1 || texto.length >= 90) return;
+      if (ev.key === ' ' ) ev.preventDefault();       // espaço não rola a página enquanto ele responde
+      texto += ev.key; caixa.classList.add('digitando'); decodificar(linha, ev.key, .16);
+    }
+    addEventListener('keydown', tecla);
+    return { ativa: () => !respondido && ehAtiva(), destruir() { removeEventListener('keydown', tecla); caixa.remove(); } };
+  }
+
+  const CSS_CONVERSA = `
+  .conversa{margin-top:14px;font:400 14px/1.6 var(--mono);max-width:min(440px,34vw)}
+  .conv-caio{margin:0;color:var(--tx);min-height:0}
+  .conv-caio:not(:empty)::before{content:'— ';color:var(--pri)}
+  .conversa.enviada .conv-caio{color:var(--mu)}
+  .conv-jarvis{margin:6px 0 0;color:var(--pri)}
+  .conv-jarvis:empty{display:none}
+  .conversa span{white-space:pre}
+  @media(max-width:700px){.conversa{max-width:none;font-size:13px}}
+  `;
   const CSS = `
   html.lenis,html.lenis body{height:auto}
   .lenis.lenis-smooth{scroll-behavior:auto!important}
@@ -157,7 +256,7 @@
    *        ha(iso)->'há X min', abrirPainel(id), aoEntrar(), aoTerminar() } }
    */
   function montar(op) {
-    if (document.getElementById('narr-css') == null) { const s = document.createElement('style'); s.id = 'narr-css'; s.textContent = CSS; document.head.appendChild(s); }
+    if (document.getElementById('narr-css') == null) { const s = document.createElement('style'); s.id = 'narr-css'; s.textContent = CSS + CSS_CONVERSA; document.head.appendChild(s); }
     const host = op.host, mapa = op.mapa, api = op.api;
     const cine = window.LandingCinema && mapa ? LandingCinema.criar(mapa, reduzido, CAM_A) : null;   // as chaves de verdade vêm de chavesA()/chavesB(), montadas sobre o protótipo
     const passe = cine ? cine.passe() : null;
@@ -229,7 +328,7 @@
 
     let cenas = [], trigger = null, emPortal = false, projeto = null, voando = false, pulso = { v: 0 };
     const alvo = { p: 0 }, atual = { p: 0 }; let girando = false;
-    let acesso = null, modoAcesso = '';
+    let acesso = null, modoAcesso = '', conversa = null;
     let camAtual = { dist: 1, alt: .34, fov: 40, orbita: 0 };
     const porCamera = (c) => { camAtual = c; if (mapa) mapa.cinema(c); };
     // D3: um único relógio de rolagem; toque conserva a rolagem nativa.
@@ -546,8 +645,8 @@
     // ------------------------------------------------------------ textos reais de cada momento (calculados na hora de escrever)
     function textos(id) {
       const D = api.dados() || {}, P = D.P, fin = D.fin;
-      if (id === 'ola') return { g: 'Olá, Caio', p: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) };
-      if (id === 'prototipo') return {g:'Seu núcleo',p:'Projetos e serviços reunidos em uma central. Role para abrir seus dados.'};
+      if (id === 'ola') { const sd = saudacao(); return { g: sd.g, p: sd.p }; }
+      if (id === 'prototipo') return { g: '', p: '' };
       if (id === 'constroi') return { p: 'Núcleo de controle' };
       if (id === 'fecho') return {g:'Tudo à mão',p:'Ctrl K busca projetos. Use Conferir tudo para atualizar e o dock para navegar.'};
       if (!P) return { g: '—', p: api.erro && api.erro() ? 'sem dados agora · sem conexão com o Jarvão' : 'carregando os dados reais…' };
@@ -625,9 +724,10 @@
       const ativas = [];
       for (const c of cenas) {
         const ch=cine&&cine.chaves(),hold=ch&&ch.find(k=>k.id===c.id&&!k.passagem);
-        const inicio=hold?hold.p:c.ini;
+        const inicio=c.id==='ola'?0:hold?hold.p:c.ini;   // a saudação aparece já ao abrir o app
         const v=!(trecho==='B'&&c.id==='acesso')&&!['ponte','retorno'].includes(c.id)&&p>=inicio&&p<=c.fim?1:0;
         if(v){ativas.push(c.id);if(!c.escrito){if(window.gsap)gsap.killTweensOf(c.el);c.el.style.opacity='1';c.el.setAttribute('aria-hidden','false');escrever(c);}}
+        if(v&&c.id==='ola'&&conversa===null){conversa=false;setTimeout(()=>{conversa=montarConversa(c._textoCamada||c.el,()=>trecho==='A'&&+getComputedStyle(c.el).opacity>.5)||false;},1800);}   // depois da escrita, para não atrapalhar a decodificação
         else if(c.escrito){
           c.escrito=false;c.rodada=(c.rodada||0)+1;c.el.setAttribute('aria-hidden','true');
           const limpar=()=>{if(c.escrito)return;if(c.id==='acesso'){if(acesso)acesso.zerar();}else {if(c.partes.g)Escrita.zerar(c.partes.g);if(c.partes.p)Escrita.zerar(c.partes.p);}};
@@ -701,7 +801,7 @@
     /** O que cada parte do protótipo explica — sempre dado real (ou "sem dados", nunca inventado). */
     function listaChamadas(id) {
       if (!proto) return [];
-      if (trecho === 'A') return id === 'prototipo' ? [{ id: 'micro', ancora: () => proto.ancora('nucleo'), rotulo: 'Núcleo', grande: '', explica: '', marcador: 'circulo', micro: 'ROLE PARA ENTRAR' }] : [];
+      if (trecho === 'A') return false ? [{ id: 'micro', ancora: () => proto.ancora('nucleo'), rotulo: 'Núcleo', grande: '', explica: '', marcador: 'circulo', micro: 'ROLE PARA ENTRAR' }] : [];
       const D = api.dados() || {}, P = D.P; if (!P) return [];
       const ps = P.estado.projetos, det = P.detalhes || {}, fin = D.fin && D.fin.ok !== false && D.fin.livre != null ? LandingDados.financeiro(D.fin) : null;
       const pct = (x) => x == null ? null : (Math.round(x * 10) / 10).toLocaleString('pt-BR') + '%';
@@ -964,6 +1064,7 @@
     addEventListener('keydown', (ev) => {
       if (!ativa || ev.ctrlKey || ev.metaKey || ev.altKey) return;
       if (/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '')) return;
+      if ((conversa === false && saudacaoFeita && saudacaoFeita.pergunta && trecho === 'A') || (conversa && conversa.ativa())) return;   // respondendo a pergunta da saudação: a tecla D é letra, não atalho
       if (ev.key === 'd' || ev.key === 'D') { ev.preventDefault(); irDireto(); }
     });
 
