@@ -1,73 +1,89 @@
 'use strict';
 /**
- * JARVÃO · planeta tech (R3, sem rocha nem lava) — o mundo dos clientes (Gabinete Chamados e Planilha J Hissnauer).
+ * JARVÃO · planeta dos clientes (R4, Claude, 05/11/2026) — Gabinete Chamados e Planilha J Hissnauer.
  *
- * Placas escuras (as faces de um icosaedro encolhidas, deixando fendas) sobre um miolo cujas fendas emitem laranja
- * (shader com ruído em faixas), uma malha wireframe por fora e fragmentos (InstancedMesh) que se soltam e orbitam
- * como blocos de dados. Fica longe do protótipo, numa cena própria do roteiro; não compete com o núcleo.
- * montar(mapa, { posicao, raio, leve }) → { grupo, posicao, mostrar(0..1), quadro(t,d), ancora() }
+ * Repaginado para o nível novo do Jarvis (pedido do Caio). Ref: planeta wireframe com anéis de mira (mike murdock, Dribbble).
+ * Sem polígonos soltos nem fragmentos voando: esfera escura de metal com borda acesa (fresnel), grade de latitude/longitude
+ * fina, faixa de varredura subindo e descendo, dois anéis de órbita inclinados — um por cliente — cada um com seu marcador,
+ * e anéis de mira em volta (arcos com marcações) girando devagar.
+ * montar(mapa, { posicao, raio, leve }) → { grupo, posicao, raio, mostrar(0..1), quadro(t,d), ancora() }
  */
 (function () {
-  const RUIDO = `
-    float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
-    float rn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
-      return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
-                 mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }`;
-
   function montar(mapa, op) {
     op = op || {};
     if (!mapa || !window.THREE) return null;
     const dep = mapa.depurar(), cena = dep.scene, R = op.raio || 6, leve = !!op.leve;
     const grupo = new THREE.Group(); grupo.position.copy(op.posicao || new THREE.Vector3()); grupo.visible = false; cena.add(grupo);
+    const giro = new THREE.Group(); grupo.add(giro);
     const vis = { v: 0 }, mats = [];
+    const aditivo = { transparent: true, blending: THREE.AdditiveBlending, depthWrite: false };
 
-    // miolo com fendas que emitem laranja
-    const mioloMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uVis: { value: 0 } },
-      vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
-      fragmentShader: RUIDO + `
-        uniform float uTime, uVis; varying vec3 vP;
-        void main(){ vec3 q = normalize(vP) * 3.2; float n = rn(q + vec3(0., uTime * .08, 0.)) * .65 + rn(q * 2.3 - uTime * .05) * .35;
-          float fenda = 1. - smoothstep(.0, .06, abs(n - .5));
-          vec3 cor = mix(vec3(1., .54, .24), vec3(1., .88, .72), fenda * fenda) * (.25 + fenda * 1.6);
-          gl_FragColor = vec4(cor * uVis, 1.); }`,
+    // Esfera: metal escuro, borda acesa e uma faixa de varredura que sobe e desce.
+    const esferaMat = new THREE.ShaderMaterial({
+      uniforms: { uT: { value: 0 }, uVis: { value: 0 } },
+      vertexShader: 'varying vec3 vN,vP,vV;void main(){vP=position;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+      fragmentShader: `uniform float uT,uVis;varying vec3 vN,vP,vV;
+        void main(){float fr=pow(1.-max(0.,dot(normalize(vN),vV)),2.6);
+          float y=normalize(vP).y;float scan=smoothstep(.06,0.,abs(y-sin(uT*.45)*.92));
+          vec3 cor=vec3(.035,.028,.024)+vec3(1.,.55,.25)*(fr*1.1+scan*.35)+vec3(1.,.85,.65)*fr*fr*.6;
+          gl_FragColor=vec4(cor*uVis,1.);}`,
     });
-    grupo.add(new THREE.Mesh(new THREE.SphereGeometry(R * .97, leve ? 32 : 64, leve ? 24 : 48), mioloMat));
+    giro.add(new THREE.Mesh(new THREE.SphereGeometry(R, leve ? 40 : 72, leve ? 28 : 48), esferaMat));
 
-    // placas: faces do icosaedro encolhidas para o próprio centro (sobram as fendas entre elas)
-    const ico = new THREE.IcosahedronGeometry(R, leve ? 2 : 3), pos = ico.attributes.position, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), m = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i += 3) {
-      a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
-      m.copy(a).add(b).add(c).multiplyScalar(1 / 3); const k = .86 + ((i / 3) % 5) * .012, sobe = 1 + ((i / 3) % 7) * .006;
-      [a, b, c].forEach((v, j) => { v.sub(m).multiplyScalar(k).add(m).multiplyScalar(sobe); pos.setXYZ(i + j, v.x, v.y, v.z); });
+    // Grade: latitudes e longitudes finas, um pouco acima da superfície; o equador mais forte.
+    const linhas = (pts, opacidade, cor) => {
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      const m = new THREE.LineBasicMaterial(Object.assign({ color: cor || 0xff9a4d, opacity: 0 }, aditivo)); mats.push([m, opacidade]);
+      return new THREE.LineSegments(g, m);
+    };
+    const rg = R * 1.004, grade = [], equador = [], SEG = 96;
+    for (let i = 1; i < 12; i++) {
+      const fi = -Math.PI / 2 + i * Math.PI / 12, y = Math.sin(fi) * rg, r = Math.cos(fi) * rg, alvo = i === 6 ? equador : grade;
+      for (let j = 0; j < SEG; j++) { const a = j / SEG * Math.PI * 2, b = (j + 1) / SEG * Math.PI * 2; alvo.push(Math.cos(a) * r, y, Math.sin(a) * r, Math.cos(b) * r, y, Math.sin(b) * r); }
     }
-    ico.computeVertexNormals();
-    const placaMat = new THREE.MeshBasicMaterial({ color: 0xff8a3d, wireframe: true, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([placaMat, .12]);
-    grupo.add(new THREE.Mesh(ico, placaMat));
-    const bordaMat = new THREE.LineBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([bordaMat, .35]);
-    grupo.add(new THREE.LineSegments(new THREE.EdgesGeometry(ico, 1), bordaMat));
-    const malhaMat = new THREE.MeshBasicMaterial({ color: 0xffe0b8, wireframe: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([malhaMat, .12]);
-    grupo.add(new THREE.Mesh(new THREE.IcosahedronGeometry(R * 1.12, 1), malhaMat));
+    for (let i = 0; i < 18; i++) {
+      const th = i / 18 * Math.PI * 2;
+      for (let j = 0; j < 48; j++) { const a = -Math.PI / 2 + j / 48 * Math.PI, b = -Math.PI / 2 + (j + 1) / 48 * Math.PI; grade.push(Math.cos(a) * Math.cos(th) * rg, Math.sin(a) * rg, Math.cos(a) * Math.sin(th) * rg, Math.cos(b) * Math.cos(th) * rg, Math.sin(b) * rg, Math.cos(b) * Math.sin(th) * rg); }
+    }
+    giro.add(linhas(grade, .16)); giro.add(linhas(equador, .5));
 
-    // Projeção de dados: triângulos de energia, sem blocos sólidos no espaço.
-    const NF = leve ? 18 : 42, fragMat = new THREE.MeshBasicMaterial({ color: 0xffe0b8, wireframe: true, side: THREE.DoubleSide, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }); mats.push([fragMat, .6]);
-    const fragGeo = new THREE.BufferGeometry();
-    fragGeo.setAttribute('position', new THREE.Float32BufferAttribute([-.035*R,-.03*R,0,.035*R,-.03*R,0,0,.045*R,0],3));fragGeo.computeVertexNormals();
-    const frags = new THREE.InstancedMesh(fragGeo, fragMat, NF); grupo.add(frags);
-    const fi = []; for (let i = 0; i < NF; i++) fi.push({ th: Math.random() * 6.28, ph: Math.acos(2 * Math.random() - 1), r: 1.02 + Math.random() * .1, v: .1 + Math.random() * .25, sai: Math.random() * 1.4, inc: (Math.random() - .5) * .8 });
-    const dm = new THREE.Object3D();
+    // Órbitas dos clientes: dois anéis inclinados, cada um com um marcador que percorre o anel.
+    const orbitas = [];
+    [[1.55, .42, .3], [1.85, -.55, 1.9]].forEach(([k, incl, fase]) => {
+      const pts = []; for (let j = 0; j < 160; j++) { const a = j / 160 * Math.PI * 2, b = (j + 1) / 160 * Math.PI * 2; pts.push(Math.cos(a) * R * k, 0, Math.sin(a) * R * k, Math.cos(b) * R * k, 0, Math.sin(b) * R * k); }
+      const anel = new THREE.Group(); anel.rotation.x = incl; anel.rotation.z = incl * .5; grupo.add(anel);
+      anel.add(linhas(pts, .32));
+      const mm = new THREE.MeshBasicMaterial(Object.assign({ color: 0xffd2a0, opacity: 0 }, aditivo)); mats.push([mm, 1]);
+      const marcador = new THREE.Mesh(new THREE.SphereGeometry(R * .045, 16, 12), mm); anel.add(marcador);
+      const hm = new THREE.MeshBasicMaterial(Object.assign({ color: 0xff9a4d, opacity: 0, side: THREE.DoubleSide }, aditivo)); mats.push([hm, .55]);
+      const halo = new THREE.Mesh(new THREE.RingGeometry(R * .08, R * .095, 32), hm); anel.add(halo);
+      orbitas.push({ anel, marcador, halo, k, fase });
+    });
 
-    function mostrar(v) { vis.v = Math.max(0, Math.min(1, v)); grupo.visible = vis.v > .005; mioloMat.uniforms.uVis.value = vis.v; mats.forEach(([mt, o]) => { mt.opacity = o * vis.v; }); }
+    // Anéis de mira: arcos com marcações em volta do planeta, virados para a câmera, girando em sentidos opostos.
+    const mira = new THREE.Group(); grupo.add(mira);
+    const miras = [];
+    [[1.3, .28, 6, .7], [1.42, .18, 3, -.45], [2.15, .12, 9, .2]].forEach(([k, op_, n, vel]) => {
+      const pts = [], r = R * k;
+      for (let s = 0; s < n; s++) {
+        const a0 = s / n * Math.PI * 2, a1 = a0 + Math.PI * 2 / n * .62;
+        for (let j = 0; j < 24; j++) { const a = a0 + (a1 - a0) * j / 24, b = a0 + (a1 - a0) * (j + 1) / 24; pts.push(Math.cos(a) * r, Math.sin(a) * r, 0, Math.cos(b) * r, Math.sin(b) * r, 0); }
+        for (let t = 0; t < 6; t++) { const a = a0 + (a1 - a0) * t / 5; pts.push(Math.cos(a) * r, Math.sin(a) * r, 0, Math.cos(a) * (r - R * .05), Math.sin(a) * (r - R * .05), 0); }
+      }
+      const l = linhas(pts, op_); mira.add(l); miras.push({ l, vel });
+    });
+
+    function mostrar(v) { vis.v = Math.max(0, Math.min(1, v)); grupo.visible = vis.v > .005; esferaMat.uniforms.uVis.value = vis.v; mats.forEach(([mt, o]) => { mt.opacity = o * vis.v; }); }
     function quadro(t, d) {
       if (!grupo.visible) return;
-      mioloMat.uniforms.uTime.value = t; grupo.rotation.y += d * .06;
-      fi.forEach((f, i) => {
-        f.sai += d * .08; if (f.sai > 1.5) f.sai = 0;                  // solta, afasta, volta a nascer na superfície
-        const rr = R * (f.r + Math.max(0, f.sai - .3) * .7); f.th += d * f.v;
-        dm.position.set(Math.sin(f.ph) * Math.cos(f.th) * rr, Math.cos(f.ph) * rr + Math.sin(f.th + f.inc) * R * .08, Math.sin(f.ph) * Math.sin(f.th) * rr);
-        dm.rotation.set(t * f.v * 3, t * f.v * 2, 0); dm.scale.setScalar(1 - Math.max(0, f.sai - 1.1) * 2.2 + .001); dm.updateMatrix(); frags.setMatrixAt(i, dm.matrix);
+      esferaMat.uniforms.uT.value = t; giro.rotation.y += d * .05;
+      orbitas.forEach((o, i) => {
+        const a = t * (.22 + i * .07) + o.fase, r = R * o.k;
+        o.marcador.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); o.halo.position.copy(o.marcador.position);
+        o.halo.lookAt(dep.camera.position); o.halo.scale.setScalar(1 + .25 * Math.sin(t * 3 + i));
       });
-      frags.instanceMatrix.needsUpdate = true;
+      mira.quaternion.copy(dep.camera.quaternion);
+      miras.forEach(m => { m.l.rotation.z += d * m.vel * .3; });
     }
     const v = new THREE.Vector3();
     function ancora() { return v.set(R * .72, R * .62, R * .3).add(grupo.position).clone(); }

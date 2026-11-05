@@ -54,6 +54,9 @@
       quadro();
     }
     function quadro() {
+      // Monitores montados em hastes n?o flutuam: a oscila??o decorativa do
+      // prot?tipo deslocava o soquete e obrigava os cabos a se refazer a cada frame.
+      proto.modulos.forEach(m => { m.g.position.y = m.y; });
       proto.raiz.updateMatrixWorld(true);
       apoios.forEach((a, i) => {
         const m = a.modulo.g; a.grupo.visible = proto.visivel() > .005;

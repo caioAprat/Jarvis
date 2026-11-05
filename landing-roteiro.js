@@ -327,6 +327,8 @@
     const ign = !reduzido && mapa && window.Ignicao ? Ignicao.criar(mapa, { E, pisoY: -3.2 * E, centro: () => new THREE.Vector3(0, 0, 0) }) : null;
     if (window.JarvisPreviewLocal) window.__ign = ign;
     let campo = null;   // linhas de campo de energia (nascem na ignição e ficam)
+    const malhaVeias = mapa && window.Veias ? Veias.criar(mapa.depurar().scene, { E, pisoY: -3.2 * E }) : null;
+    if (malhaVeias && mapa.aoQuadro) mapa.aoQuadro(() => { malhaVeias.quadro(); if (trecho === 'B' && !portalDados) { malhaVeias.acender(1.08); malhaVeias.pulso(.35); malhaVeias.carga(-1); } });
     // G2 (Caio, 05/11): depois da saudação o núcleo está TOTALMENTE desligado (quase sem luz, parado). Cada dígito do PIN
     // acende um pouco (luz e giro); só a ignição o deixa 100% vivo.
     let digitos = 0, acesoSuave = 0;
@@ -352,11 +354,11 @@
       let t = 0, tp = 0, u = performance.now();
       gsap.ticker.add(quadroNarrativa = () => {
         if (!ativa || document.hidden) { u = performance.now(); return; }
-        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? (portalDados.tempo()<1.6?.6:1+2.5*Math.exp(-(portalDados.tempo()-1.6)*1.2)) : trecho==='A'&&atual.p>=cena('acesso').ini?.2:1);
+        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? (portalDados.tempo()<2.8?.35:1+1.2*Math.exp(-(portalDados.tempo()-2.8)*1.2)) : trecho==='A'&&atual.p>=cena('acesso').ini?.2:1);
         if (particulas) particulas.quadro(tp, d, Object.assign({ p: atual.p }, camAtual));
         if (portalDados && !reduzido && particulas) {
           // Na ignição a poeira é empurrada para FORA (sopro do núcleo ligando) e volta devagar; nada é sugado para dentro.
-          const t = portalDados.tempo(), sopro = t < 1.6 ? 0 : Math.exp(-(t - 1.6) * 1.4) * (1 - Math.exp(-(t - 1.6) * 14));
+          const t = portalDados.tempo(), sopro = t < 2.8 ? 0 : Math.exp(-(t - 2.8) * 1.4) * (1 - Math.exp(-(t - 2.8) * 14));
           particulas.grupos.forEach(g => { const points = g.userData.pontos; if (points) { points.scale.x *= 1 + .22 * sopro; points.scale.y *= 1 + .22 * sopro; points.scale.z *= 1 + .22 * sopro; } });
         }
         if (proto) proto.quadro(t, reduzido ? 0 : d * (trecho === 'A' && !portalDados ? .05 + .35 * acesoSuave : 1));
@@ -930,14 +932,22 @@
       const onda=!reduzido&&mapa&&window.CenarioGeometria?CenarioGeometria.ondaPiso(mapa.depurar().scene,E):null;
       // Ignição (Caio, 05/11): núcleo quase morto → tropeça 3–4 vezes com faíscas → acende de vez (clarão, onda de choque,
       // raios, explosão de faíscas) → o fluxo corre pelos fios e cada painel liga soltando faísca → só então a câmera segue.
-      const T=reduzido?.3:5.2, T_CAM=4.3;
-      const tropeco=[[.55,.62],[.8,.3],[1.0,.78],[1.22,.4],[1.42,.95]];   // [tempo, energia] dos picos do arranque
+      // Ignição v4 (Claude, 05/11 — refs: circuito em veias de Horacio Velozo, cabos ArtStation, loader Active Theory):
+      // 1 CARGA 0,4–1,7 s: luz entra pelas veias de fora para dentro e sobe pela base · 2 TRAVAMENTO 1,7–2,3 s: anéis aceleram e
+      // param de uma vez (clique de faíscas) · 3 CONTRAÇÃO 2,3–2,8 s: o núcleo apaga quase todo (silêncio) · 4 DISPARO 2,8 s: clarão,
+      // onda de choque, raios, explosão de faíscas e as veias acendem do centro para fora · 5 BATIMENTO 4,4–5,6 s: duas batidas,
+      // as veias seguem o pulso · a câmera só sai em 5,6 s.
+      const T=reduzido?.3:6.4, T_CAM=5.6, DISPARO=2.8;
+      const bate=t=>Math.exp(-Math.pow((t-4.5)/.09,2))*.22+Math.exp(-Math.pow((t-5.05)/.09,2))*.16;
       const energiaEm=t=>{
-        if(t<.4)return MORTO;
-        if(t<1.6){let e=MORTO;for(const [tp,v] of tropeco){const d=t-tp;if(d>=0&&d<.16)e=Math.max(e,v*(1-d/.16)+MORTO*(d/.16));}return e;}
-        if(t<2.4)return 1+.3*Math.exp(-(t-1.6)*4.5);
-        return 1;
+        if(t<.4)return .03+.2*acesoSuave;
+        if(t<1.7)return .23+.12*clamp((t-.4)/1.3);
+        // a energia chega pelas veias e o núcleo bate como coração (3 batidas) — sem partículas subindo
+        if(t<2.3)return .35+.32*Math.exp(-Math.pow((t-1.78)/.05,2))+.24*Math.exp(-Math.pow((t-1.98)/.05,2))+.4*Math.exp(-Math.pow((t-2.2)/.06,2));
+        if(t<DISPARO)return .35*(1-clamp((t-2.3)/.25))+.015;
+        return 1+.3*Math.exp(-(t-DISPARO)*4)+bate(t);
       };
+      const vidaEm=t=>t<1.7?.3:t<2.25?1:t<DISPARO?0:Math.min(1,.4+.6*clamp((t-DISPARO)/1.2));
       const pos=new THREE.Vector3(),CENTRO=new THREE.Vector3(0,0,0);
       if(!campo&&window.Ignicao&&Ignicao.campo&&mapa)campo=Ignicao.campo(mapa,{E});
       const ligado=new Array(n).fill(false);
@@ -945,16 +955,17 @@
       const pd=portalDados={tempo:()=>tempo,progresso(p){
         tempo=p*T;
         if(mapa)mapa.energia(reduzido?1:energiaEm(tempo));
-        if(mapa&&mapa.vida)mapa.vida(reduzido?1:tempo<1.6?.08+.15*clamp(tempo/1.6):Math.min(1,.25+.75*clamp((tempo-1.6)/1.4)));
-        if(campo)campo.progresso(reduzido?1:clamp((tempo-1.55)/1.5));
-        if(onda)onda.progresso(clamp((tempo-1.6)/1.3));
+        if(mapa&&mapa.vida)mapa.vida(reduzido?1:vidaEm(tempo));
+        if(campo)campo.progresso(reduzido?1:clamp((tempo-DISPARO)/1.4));
+        if(onda)onda.progresso(clamp((tempo-DISPARO)/1.3));
+        if(malhaVeias){malhaVeias.carga(reduzido?-1:tempo>=.4&&tempo<1.75?1-clamp((tempo-.4)/1.3):-1);malhaVeias.acender(reduzido?1:clamp((tempo-DISPARO)/1.7)*1.08);malhaVeias.pulso(reduzido?0:Math.min(1,bate(tempo)*5));}
         if(mapa&&mapa.ignicaoTela&&!reduzido){
-          const k=clamp((tempo-1.6)/.9);
-          mapa.ignicaoTela({centro:CENTRO,raio:.05+k*1.1,onda:tempo<1.6?0:(1-k)*1.2,raios:tempo<1.55?0:Math.max(0,1.4*Math.exp(-(tempo-1.6)*1.6))});
+          const k=clamp((tempo-DISPARO)/.9);
+          mapa.ignicaoTela({centro:CENTRO,raio:.05+k*1.1,onda:tempo<DISPARO?0:(1-k)*1.2,raios:tempo<DISPARO-.05?0:Math.max(0,1.4*Math.exp(-(tempo-DISPARO)*1.6))});
         }
-        const fluxo=Array.from({length:n},(_,i)=>reduzido?1:clamp((tempo-2.3-i*.15)/.6));
+        const fluxo=Array.from({length:n},(_,i)=>reduzido?1:clamp((tempo-(DISPARO+.25)-i*.12)/.5));
         if(fios&&fios.energizar)fios.energizar(fluxo);
-        const telasV=fluxo.map((v,i)=>reduzido?1:clamp((tempo-(2.9+i*.15))/.3));
+        const telasV=fluxo.map((v,i)=>reduzido?1:clamp((tempo-(DISPARO+.6+i*.12))/.25));
         if(telas)telas.ligar(telasV);
         if(ign&&proto)telasV.forEach((v,i)=>{if(v>0&&!ligado[i]){ligado[i]=true;const m=proto.modulos[i];if(m&&m.g)ign.conector(m.g.getWorldPosition(pos.set(0,0,0)).clone());}});
       },destruir(){
@@ -993,9 +1004,9 @@
       animacao.to(est,{p:1,duration:T,ease:'none',onUpdate:()=>pd.progresso(est.p)},0);
       if(!reduzido){
         if(ign){
-          tropeco.forEach(([tp,v])=>animacao.call(()=>ign.arranque(null,1+v*2),null,tp));
-          animacao.call(()=>ign.explosao(null),null,1.6);
-          animacao.call(()=>ign.explosao(null),null,1.78);
+          animacao.call(()=>ign.explosao(null),null,DISPARO);
+          animacao.call(()=>ign.explosao(null),null,DISPARO+.16);
+          animacao.call(()=>ign.arranque(null,1),null,4.5);animacao.call(()=>ign.arranque(null,1),null,5.05);
         }
         animacao.call(()=>{
           passeioAutomatico=true;
