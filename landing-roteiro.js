@@ -130,6 +130,8 @@
   const GLIFOS_C = '01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   function montarConversa(ola, ehAtiva) {
     const sd = saudacao(); if (!sd.pergunta || !ola) return null;
+    // A réplica aumenta o bloco ancorado embaixo no mobile; isso não é rolagem do usuário.
+    ola.style.overflowAnchor = 'none';
     const caixa = document.createElement('div'); caixa.className = 'conversa';
     caixa.innerHTML = '<p class="conv-caio" aria-live="polite"></p><p class="conv-jarvis" aria-live="polite"></p>';
     const alvo = ola.querySelector('.mom-bloco') || ola; alvo.appendChild(caixa);
@@ -256,6 +258,11 @@
    *        ha(iso)->'há X min', abrirPainel(id), aoEntrar(), aoTerminar() } }
    */
   function montar(op) {
+    // Cada abertura começa pela saudação, inclusive após recarregar no PIN.
+    history.scrollRestoration = 'manual';
+    // ScrollTrigger também guarda esse modo e o restaura nos refreshes.
+    if (window.ScrollTrigger) ScrollTrigger.clearScrollMemory('manual');
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (document.getElementById('narr-css') == null) { const s = document.createElement('style'); s.id = 'narr-css'; s.textContent = CSS + CSS_CONVERSA; document.head.appendChild(s); }
     const host = op.host, mapa = op.mapa, api = op.api;
     const cine = window.LandingCinema && mapa ? LandingCinema.criar(mapa, reduzido, CAM_A) : null;   // as chaves de verdade vêm de chavesA()/chavesB(), montadas sobre o protótipo
@@ -686,11 +693,9 @@
         if (c.temTela === 'disp') c.tela.dados(P ? LandingTelas.dispTotal(P) : null);
       });
     }
-    let primeira = true;
     async function escrever(c) {
       if (c.escrito) return; c.escrito = true;
       const rodada = c.rodada = (c.rodada || 0) + 1;
-      if (primeira && c.ini === 0 && !reduzido) { primeira = false; await new Promise(r => setTimeout(r, 900)); }   // o núcleo entra e se firma; só então a palavra se escreve
       if (!c.escrito || c.rodada !== rodada || !c.el.isConnected) return;
       if (c.id === 'acesso') { if (acesso) { await acesso.escrever(); if (!('ontouchstart' in window)) acesso.focar(); } return; }
       const T = textos(c.id); c.vers = JSON.stringify(T);
@@ -727,12 +732,13 @@
         const inicio=c.id==='ola'?0:hold?hold.p:c.ini;   // a saudação aparece já ao abrir o app
         const v=!(trecho==='B'&&c.id==='acesso')&&!['ponte','retorno'].includes(c.id)&&p>=inicio&&p<=c.fim?1:0;
         if(v){ativas.push(c.id);if(!c.escrito){if(window.gsap)gsap.killTweensOf(c.el);c.el.style.opacity='1';c.el.setAttribute('aria-hidden','false');escrever(c);}}
-        if(v&&c.id==='ola'&&conversa===null){conversa=false;setTimeout(()=>{conversa=montarConversa(c._textoCamada||c.el,()=>trecho==='A'&&+getComputedStyle(c.el).opacity>.5)||false;},1800);}   // depois da escrita, para não atrapalhar a decodificação
-        else if(c.escrito){
+        // Atualizações do intro/ScrollTrigger não são uma saída da cena.
+        if(!v&&c.escrito){
           c.escrito=false;c.rodada=(c.rodada||0)+1;c.el.setAttribute('aria-hidden','true');
           const limpar=()=>{if(c.escrito)return;if(c.id==='acesso'){if(acesso)acesso.zerar();}else {if(c.partes.g)Escrita.zerar(c.partes.g);if(c.partes.p)Escrita.zerar(c.partes.p);}};
           if(window.gsap)gsap.to(c.el,{opacity:0,duration:reduzido?.2:.25,overwrite:true,onComplete:limpar});else {c.el.style.opacity='0';limpar();}
         }
+        if(v&&c.id==='ola'&&conversa===null){conversa=false;setTimeout(()=>{if(ativa&&c.el.isConnected)conversa=montarConversa(c._textoCamada||c.el,()=>trecho==='A'&&+getComputedStyle(c.el).opacity>.5)||false;},1800);}   // depois da escrita, para não atrapalhar a decodificação
         c.jan=v;
         if (c.tela) c.tela.ativar(v > .5 && c.escrito);
       }
