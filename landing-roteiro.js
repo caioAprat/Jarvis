@@ -137,26 +137,61 @@
     const alvo = ola.querySelector('.mom-bloco') || ola; alvo.appendChild(caixa);
     const linha = caixa.querySelector('.conv-caio'), resposta = caixa.querySelector('.conv-jarvis');
     let texto = '', respondido = false;
+    // Teclados virtuais/IME entregam input, não necessariamente keydown com uma letra.
+    const entrada = document.createElement('input'); entrada.type = 'text';
+    entrada.setAttribute('aria-label', 'Resposta à pergunta'); entrada.autocomplete = 'off';
+    entrada.setAttribute('autocapitalize', 'off'); entrada.spellcheck = false; entrada.maxLength = 90;
+    entrada.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;caret-color:transparent;pointer-events:none;font-size:16px;border:0';
+    caixa.appendChild(entrada);
     const decodificar = (el, ch, dur) => {
       const sp = document.createElement('span'); sp.textContent = ch; el.appendChild(sp);
       if (window.gsap && window.ScrambleTextPlugin && ch.trim() && !matchMedia('(prefers-reduced-motion: reduce)').matches)
         gsap.fromTo(sp, { scrambleText: { text: GLIFOS_C[Math.floor(Math.random() * GLIFOS_C.length)], chars: GLIFOS_C } }, { duration: dur, scrambleText: { text: ch, chars: GLIFOS_C, speed: 1 }, ease: 'none' });
+      // A digitação não pode ficar esperando o ticker do 3D para resolver o glifo.
+      if (dur === .08) setTimeout(() => { if (!sp.isConnected) return; if (window.gsap) gsap.killTweensOf(sp); sp.textContent = ch; }, 80);
     };
     const falar = (frase, el) => { el = el || resposta; el.textContent = ''; [...frase].forEach((ch, i) => setTimeout(() => decodificar(el, ch, .12), i * 12)); };
     falar(sd.pergunta.q, caixa.querySelector('.conv-pergunta'));   // o estagiário pergunta numa fala própria
-    function tecla(ev) {
-      if (respondido || !ehAtiva() || ev.ctrlKey || ev.metaKey || ev.altKey) return;
-      const foco = document.activeElement, cenaFoco = foco && foco.closest && foco.closest('.narr-cena');
-      if (foco && /INPUT|TEXTAREA|SELECT/.test(foco.tagName) && !(cenaFoco && +getComputedStyle(cenaFoco).opacity < .5)) return;   // campo escondido (PIN de outra cena) não conta
-      if (foco && /INPUT/.test(foco.tagName)) foco.blur();
-      if (ev.key === 'Enter') { if (!texto.trim()) return; ev.preventDefault(); respondido = true; caixa.classList.add('enviada'); setTimeout(() => falar(responderComo(sd.pergunta, texto)), 350); return; }
-      if (ev.key === 'Backspace') { if (!texto) return; ev.preventDefault(); texto = texto.slice(0, -1); if (linha.lastChild) linha.lastChild.remove(); return; }
-      if (ev.key.length !== 1 || texto.length >= 90) return;
-      if (ev.key === ' ' ) ev.preventDefault();       // espaço não rola a página enquanto ele responde
-      texto += ev.key; caixa.classList.add('digitando'); decodificar(linha, ev.key, .16);
+    function campoVisivel(foco) {
+      if (!foco || foco === entrada || !foco.matches('input,textarea,select,[contenteditable="true"]')) return false;
+      const cenaFoco = foco.closest('.narr-cena,.narr-texto-camada');
+      return !(cenaFoco && (+getComputedStyle(cenaFoco).opacity < .5 || cenaFoco.getAttribute('aria-hidden') === 'true'));
     }
-    addEventListener('keydown', tecla);
-    return { ativa: () => !respondido && ehAtiva(), destruir() { removeEventListener('keydown', tecla); caixa.remove(); } };
+    function atualizarTexto(valor) {
+      valor = valor.slice(0, 90);
+      let iguais = 0; while (iguais < texto.length && iguais < valor.length && texto[iguais] === valor[iguais]) iguais++;
+      while (linha.childNodes.length > iguais) { const sp = linha.lastChild; if (window.gsap) gsap.killTweensOf(sp); sp.remove(); }
+      for (const ch of valor.slice(iguais)) decodificar(linha, ch, .08);
+      texto = valor; entrada.value = texto; caixa.classList.toggle('digitando', !!texto);
+    }
+    function enviarResposta() {
+      if (!texto.trim()) return;
+      respondido = true; entrada.blur(); caixa.classList.add('enviada');
+      setTimeout(() => falar(responderComo(sd.pergunta, texto)), 350);
+    }
+    function receberEntrada() {
+      if (respondido || !ehAtiva()) { entrada.value = texto; entrada.blur(); return; }
+      atualizarTexto(entrada.value);
+    }
+    function tocar(ev) {
+      if (respondido || !ehAtiva() || campoVisivel(ev.target) || ev.target.closest('button,a')) return;
+      entrada.focus({ preventScroll: true });
+    }
+    entrada.addEventListener('input', receberEntrada);
+    entrada.addEventListener('keydown', ev => { if (ev.key === 'Enter' && !ev.isComposing) ev.preventDefault(); });
+    addEventListener('pointerup', tocar);
+    function tecla(ev) {
+      if (respondido || !ehAtiva() || ev.ctrlKey || ev.metaKey || ev.altKey || ev.isComposing) return;
+      const foco = document.activeElement;
+      if (campoVisivel(foco)) return;
+      if (foco !== entrada && foco && foco.matches('input')) foco.blur();
+      if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); enviarResposta(); return; }
+      if (ev.key === 'Backspace') { ev.preventDefault(); atualizarTexto(texto.slice(0, -1)); return; }
+      if (ev.key.length !== 1 || texto.length >= 90) return;
+      ev.preventDefault(); atualizarTexto(texto + ev.key);
+    }
+    addEventListener('keydown', tecla, true);
+    return { ativa: () => !respondido && ehAtiva(), destruir() { removeEventListener('keydown', tecla, true); removeEventListener('pointerup', tocar); caixa.remove(); } };
   }
 
   const CSS_CONVERSA = `
