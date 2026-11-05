@@ -48,3 +48,8 @@ Sem React/Vue/Tailwind/UI kit, sem biblioteca de gráficos (as barras de histór
 ## Fora da interface (para referência)
 
 `sw.js` (service worker próprio, sem Workbox), Apps Script no servidor (`apps-script/`), `clasp` e GitHub Actions só para publicar.
+
+## three-nebula 13.3.0 (aprovada pelo Caio em 05/11/2026)
+- Motor de partículas para Three.js, compatível com o r128 do projeto (peer `three >=0.122`). UMD via jsdelivr com SRI em `pc.html`.
+- Uso: `ignicao.js` (faíscas da ignição do PIN, com gravidade e quique no piso).
+- Avaliadas e descartadas por exigirem Three novo: three.quarks (>=0.182) e postprocessing/pmndrs (>=0.168). Onda de choque e raios de luz foram feitos como passe próprio no EffectComposer r128 (`mapa-vivo.js`).

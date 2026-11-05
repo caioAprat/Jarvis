@@ -173,6 +173,17 @@
     const proto = mapa && window.Prototipo ? Prototipo.montar(mapa, { projetos: listaInicial, leve }) : null;
     const fios = proto && window.Fios ? Fios.montar(mapa, proto, { leve }) : null;
     const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => (trecho === 'B' || !!portalDados) && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
+    // Antes do PIN o núcleo fica quase morto: brilho baixo e um tremor irregular, como lâmpada fraca. Só a ignição o acende.
+    const MORTO = .16;
+    const ign = !reduzido && mapa && window.Ignicao ? Ignicao.criar(mapa, { E, pisoY: -3.2 * E, centro: () => new THREE.Vector3(0, 0, 0) }) : null;
+    if (window.JarvisPreviewLocal) window.__ign = ign;
+    let tMorto = 0;
+    const tirarMorto = mapa && mapa.aoQuadro ? mapa.aoQuadro(d => {
+      if (!ativa || trecho !== 'A' || portalDados) return;
+      tMorto += d;
+      const falha = Math.sin(tMorto * 1.7) * Math.sin(tMorto * 4.3 + 1.2) > .82 ? .45 : 1;   // de vez em quando, uma queda
+      mapa.energia(reduzido ? MORTO : MORTO * falha * (.9 + .1 * Math.sin(tMorto * 9.1)));
+    }) : null;
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
     const veias = mapa && window.VeiasCenario ? VeiasCenario.montar(mapa, planeta, { leve }) : null;
     const fundo = window.Fundo ? Fundo.montar(mapa, { particulas, chao: -3.2 * E }) : null;
@@ -189,14 +200,12 @@
       let t = 0, tp = 0, u = performance.now();
       gsap.ticker.add(quadroNarrativa = () => {
         if (!ativa || document.hidden) { u = performance.now(); return; }
-        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? 1+4*Math.sin(Math.PI*clamp(portalDados.tempo()/1.2)) : trecho==='A'&&atual.p>=cena('acesso').ini?.2:1);
+        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? (portalDados.tempo()<1.6?.6:1+2.5*Math.exp(-(portalDados.tempo()-1.6)*1.2)) : trecho==='A'&&atual.p>=cena('acesso').ini?.2:1);
         if (particulas) particulas.quadro(tp, d, Object.assign({ p: atual.p }, camAtual));
         if (portalDados && !reduzido && particulas) {
-          const t = portalDados.tempo(), atrair = Math.sin(Math.PI * clamp(t/1.2));
-          particulas.grupos.forEach(g => {
-            const points = g.userData.pontos;
-            if (points) { points.scale.x *= 1-.35*atrair; points.scale.y *= 1-.35*atrair; }
-          });
+          // Na ignição a poeira é empurrada para FORA (sopro do núcleo ligando) e volta devagar; nada é sugado para dentro.
+          const t = portalDados.tempo(), sopro = t < 1.6 ? 0 : Math.exp(-(t - 1.6) * 1.4) * (1 - Math.exp(-(t - 1.6) * 14));
+          particulas.grupos.forEach(g => { const points = g.userData.pontos; if (points) { points.scale.x *= 1 + .22 * sopro; points.scale.y *= 1 + .22 * sopro; points.scale.z *= 1 + .22 * sopro; } });
         }
         if (proto) proto.quadro(t, reduzido ? 0 : d);
         if (fios) fios.quadro(t, reduzido ? 0 : d);
@@ -482,7 +491,18 @@
       Escrita.liberar(c.el);
       modoAcesso = api.acesso();
       if (modoAcesso === 'livre') { c.el.innerHTML = ''; acesso = null; return; }
+      const anelV = new THREE.Vector3(), anelD = new THREE.Vector3();
       acesso = LandingAcesso.montar(c.el, { modo: modoAcesso,
+        // Posição do núcleo na tela, para o anel do PIN abraçar a esfera (raio ≈ 1,35E projetado).
+        anel: () => {
+          const cam = dep && dep.camera, el = mapa && mapa.el; if (!cam || !el) return null;
+          const r = el.getBoundingClientRect(); if (!r.width) return null;
+          anelV.set(0, 0, 0).project(cam); if (anelV.z > 1) return null;
+          anelD.setFromMatrixColumn(cam.matrixWorld, 0).multiplyScalar(2.1 * E).project(cam);
+          const x = r.left + (anelV.x * .5 + .5) * r.width, y = r.top + (-anelV.y * .5 + .5) * r.height;
+          const x2 = r.left + (anelD.x * .5 + .5) * r.width;
+          return { x, y, r: Math.max(40, Math.abs(x2 - x)) };
+        },
         aoLink: (t) => { const ok = api.aoLink(t); if (ok) setTimeout(() => { montarAcesso(); if (acesso) { acesso.escrever(); acesso.focar(); } }, 450); return ok; },
         aoPin: (v) => { const ok = api.aoPin(v); if (ok) requestAnimationFrame(abrirPortalDados); return ok; } });
       // Reunir a apresentação do acesso sem alterar formulário ou validação.
@@ -493,7 +513,7 @@
         Escrita.grande(g,g._texto);
         await new Promise(r=>setTimeout(r,reduzido?0:250));
         if(c.el.getAttribute('aria-hidden')==='true')return;
-        await Escrita.pequeno(p,p._texto);c.el.classList.add('pronto');
+        await Escrita.pequeno(p,p._texto);c.el.classList.add('pronto');if(acesso&&acesso.logar)acesso.logar();
       };
       c.escrito = false;
     }
@@ -749,23 +769,42 @@
         saida.setAttribute('aria-hidden','true');saida.inert=true;
         saida.style.pointerEvents='none';saida.style.position='fixed';saida.style.zIndex='30';document.body.append(saida);
         const box=pin.getBoundingClientRect();saida.style.left=box.left+'px';saida.style.top=box.top+'px';saida.style.width=box.width+'px';
+        pin.style.visibility='hidden';
         gsap.to(saida,{clipPath:'inset(100% 0 0 0)',y:12,opacity:0,duration:.4,ease:'power2.in',onComplete:()=>saida.remove()});
       }
       const n=proto?proto.modulos.length:0;
       const onda=!reduzido&&mapa&&window.CenarioGeometria?CenarioGeometria.ondaPiso(mapa.depurar().scene,E):null;
+      // Ignição (Caio, 05/11): núcleo quase morto → tropeça 3–4 vezes com faíscas → acende de vez (clarão, onda de choque,
+      // raios, explosão de faíscas) → o fluxo corre pelos fios e cada painel liga soltando faísca → só então a câmera segue.
+      const T=reduzido?.3:5.2, T_CAM=4.3;
+      const tropeco=[[.55,.62],[.8,.3],[1.0,.78],[1.22,.4],[1.42,.95]];   // [tempo, energia] dos picos do arranque
+      const energiaEm=t=>{
+        if(t<.4)return MORTO;
+        if(t<1.6){let e=MORTO;for(const [tp,v] of tropeco){const d=t-tp;if(d>=0&&d<.16)e=Math.max(e,v*(1-d/.16)+MORTO*(d/.16));}return e;}
+        if(t<2.4)return 1+.3*Math.exp(-(t-1.6)*4.5);
+        return 1;
+      };
+      const pos=new THREE.Vector3(),CENTRO=new THREE.Vector3(0,0,0);
+      const ligado=new Array(n).fill(false);
       let tempo=0,animacao=null,rolagem=null;
       const pd=portalDados={tempo:()=>tempo,progresso(p){
-        tempo=p*(reduzido?.3:2);
-        if(mapa)mapa.energia(reduzido?1:tempo<.45?.35+.85*Math.sin(tempo/.45*Math.PI/2):tempo<.9?1+.2*(1-(tempo-.45)/.45):1);
-        if(onda)onda.progresso(clamp(tempo/1.2));
-        const fluxo=Array.from({length:n},(_,i)=>reduzido?1:clamp((tempo-.25-i*.1)/.5));
+        tempo=p*T;
+        if(mapa)mapa.energia(reduzido?1:energiaEm(tempo));
+        if(onda)onda.progresso(clamp((tempo-1.6)/1.3));
+        if(mapa&&mapa.ignicaoTela&&!reduzido){
+          const k=clamp((tempo-1.6)/.9);
+          mapa.ignicaoTela({centro:CENTRO,raio:.05+k*1.1,onda:tempo<1.6?0:(1-k)*1.2,raios:tempo<1.55?0:Math.max(0,1.4*Math.exp(-(tempo-1.6)*1.6))});
+        }
+        const fluxo=Array.from({length:n},(_,i)=>reduzido?1:clamp((tempo-2.3-i*.15)/.6));
         if(fios&&fios.energizar)fios.energizar(fluxo);
-        if(telas)telas.ligar(fluxo.map((v,i)=>reduzido?1:clamp((tempo-(.75+i*.1))/.25)));
+        const telasV=fluxo.map((v,i)=>reduzido?1:clamp((tempo-(2.9+i*.15))/.3));
+        if(telas)telas.ligar(telasV);
+        if(ign&&proto)telasV.forEach((v,i)=>{if(v>0&&!ligado[i]){ligado[i]=true;const m=proto.modulos[i];if(m&&m.g)ign.conector(m.g.getWorldPosition(pos.set(0,0,0)).clone());}});
       },destruir(){
         if(animacao)animacao.kill();if(rolagem)rolagem.kill();
-        removeEventListener('wheel',interromperPasseio);removeEventListener('touchstart',interromperPasseio);
         if(saida)saida.remove();if(onda)onda.destruir();
-        if(mapa)mapa.energia(1);if(fios&&fios.energizar)fios.energizar(null);if(telas)telas.ligar(null);
+        if(mapa)mapa.energia(1);if(mapa&&mapa.ignicaoTela)mapa.ignicaoTela({onda:0,raios:0});
+        if(fios&&fios.energizar)fios.energizar(null);if(telas)telas.ligar(null);
       }};
       trocarParaB();
       const destino=cine.chaves().find(k=>k.id==='situacao'&&!k.passagem).p;
@@ -775,29 +814,38 @@
       if(lenis)lenis.scrollTo(inicio,{immediate:true,force:true});else window.scrollTo({top:inicio,behavior:'instant'});
       movimento.progress(fracaoA);alvo.p=atual.p=fracaoA;aplicar(fracaoA);
       pd.progresso(0);
-      const interromperPasseio=()=>{if(rolagem)rolagem.kill();passeioAutomatico=false;if(trigger)trigger.scrubDuration(reduzido?0:1);};
-      addEventListener('wheel',interromperPasseio,{once:true,passive:true});
-      addEventListener('touchstart',interromperPasseio,{once:true,passive:true});
+      // A rolagem fica presa durante a ignição: ninguém pula o momento sem querer.
+      const segurar=e=>{if(e.cancelable)e.preventDefault();};
+      if(!reduzido){if(lenis)lenis.stop();addEventListener('wheel',segurar,{passive:false});addEventListener('touchmove',segurar,{passive:false});}
+      const soltar=()=>{removeEventListener('wheel',segurar);removeEventListener('touchmove',segurar);if(lenis)lenis.start();};
       const concluir=()=>{
-        removeEventListener('wheel',interromperPasseio);removeEventListener('touchstart',interromperPasseio);
+        soltar();
         if(!ativa)return;pd.destruir();portalDados=null;
         passeioAutomatico=false;
         if(trigger)trigger.scrubDuration(reduzido?0:1);
+        if(ign)ign.viva(true);
         api.aoEntrar();
       };
       if(reduzido){
         // Fade da própria cena, sem movimento de câmera nem onda/partículas.
         const el=mapa&&mapa.el;if(el)gsap.fromTo(el,{opacity:0},{opacity:1,duration:.3});
         window.scrollTo({top:fim,behavior:'instant'});movimento.progress(destino);aplicar(destino);
-      }else if(lenis){
-        passeioAutomatico=true;
-        lenis.scrollTo(Math.ceil(fim),{duration:2,easing:t=>t,force:true});
       }
-      else if(!reduzido){
-        passeioAutomatico=true;
-        const pos={y:inicio};rolagem=gsap.to(pos,{y:fim,duration:2,ease:'none',onUpdate:()=>{window.scrollTo({top:pos.y,behavior:'instant'});ScrollTrigger.update();alvo.p=atual.p=(pos.y-trigger.start)/(trigger.end-trigger.start);aplicar(atual.p);}});
+      const est={p:0};
+      animacao=gsap.timeline({onComplete:concluir});
+      animacao.to(est,{p:1,duration:T,ease:'none',onUpdate:()=>pd.progresso(est.p)},0);
+      if(!reduzido){
+        if(ign){
+          tropeco.forEach(([tp,v])=>animacao.call(()=>ign.arranque(null,1+v*2),null,tp));
+          animacao.call(()=>ign.explosao(null),null,1.6);
+          animacao.call(()=>ign.explosao(null),null,1.78);
+        }
+        animacao.call(()=>{
+          passeioAutomatico=true;
+          if(lenis)lenis.scrollTo(Math.ceil(fim),{duration:T-T_CAM+.6,easing:t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,force:true,lock:true});
+          else{const pz={y:inicio};rolagem=gsap.to(pz,{y:fim,duration:T-T_CAM+.6,ease:'power2.inOut',onUpdate:()=>{window.scrollTo({top:pz.y,behavior:'instant'});ScrollTrigger.update();alvo.p=atual.p=(pz.y-trigger.start)/(trigger.end-trigger.start);aplicar(atual.p);}});}
+        },null,T_CAM);
       }
-      const est={p:0};animacao=gsap.to(est,{p:1,duration:reduzido?.3:2,ease:'none',onUpdate:()=>pd.progresso(est.p),onComplete:concluir});
     }
     function trocarParaB() {
       if(trecho==='B')return;

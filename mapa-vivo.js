@@ -221,6 +221,30 @@
       comp = new THREE.EffectComposer(renderer); comp.addPass(new THREE.RenderPass(scene, camera));
       bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), .5, .55, .32); bloom.renderToScreen = true; comp.addPass(bloom);
     }
+    // landing: passe da ignição (onda de choque + raios de luz a partir do núcleo). Desligado quando não há ignição.
+    let passeIgn = null;
+    if (comp && THREE.ShaderPass) {
+      passeIgn = new THREE.ShaderPass({
+        uniforms: { tDiffuse: { value: null }, uCentro: { value: new THREE.Vector2(.5, .5) }, uAspecto: { value: 1 }, uRaio: { value: 0 }, uOnda: { value: 0 }, uRaios: { value: 0 } },
+        vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+        fragmentShader: `uniform sampler2D tDiffuse;uniform vec2 uCentro;uniform float uAspecto,uRaio,uOnda,uRaios;varying vec2 vUv;
+          void main(){
+            vec2 uv=vUv;vec2 d=uv-uCentro;d.x*=uAspecto;float r=length(d);
+            float anel=uOnda*exp(-pow((r-uRaio)/.035,2.));                       // frente da onda de choque
+            uv-=normalize(d+1e-5)*anel*.028/vec2(uAspecto,1.);
+            vec4 c=texture2D(tDiffuse,uv);
+            if(uRaios>.001){                                                      // raios de luz: espalhamento radial a partir do núcleo
+              vec2 passo=(uv-uCentro)/28.;vec2 q=uv;float dec=1.;vec3 acc=vec3(0.);
+              for(int i=0;i<28;i++){q-=passo;vec3 s=texture2D(tDiffuse,q).rgb;acc+=max(s-.55,0.)*dec;dec*=.94;}
+              c.rgb+=acc*uRaios*.09*vec3(1.,.72,.42);
+            }
+            c.rgb+=vec3(1.,.7,.4)*anel*.18;
+            gl_FragColor=c;}`
+      });
+      passeIgn.enabled = false;
+      comp.insertPass(passeIgn, 1);
+    }
+    const aoQuadroFns = [];
 
     // ------------------------------------------------------------ cursor (o núcleo reage)
     const ptr = { x: 0, y: 0, dentro: false, mx: 0, my: 0, presenca: { v: 0 }, hoverNucleo: { v: 0 }, vel: 0 };
@@ -583,7 +607,8 @@
         }
         rg.attributes.position.needsUpdate = rg.attributes.color.needsUpdate = rg.attributes.size.needsUpdate = true;
       }
-      if (portalObj) portalObj.quadro(d);                             // landing: portal (render target do "outro ambiente")
+      if (portalObj) portalObj.quadro(d);
+      for (let i = 0; i < aoQuadroFns.length; i++) aoQuadroFns[i](d);                             // landing: portal (render target do "outro ambiente")
       const emissoes = [];
       if (energiaAtual !== 1) nucleo.traverse(obj => {
         const m = obj.material;
@@ -777,7 +802,14 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1.2, v)); }, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    const centroTmp = new THREE.Vector3();
+    function ignicaoTela(o) {
+      if (!passeIgn) return false;
+      const u = passeIgn.uniforms; if (o.raio != null) u.uRaio.value = o.raio; if (o.onda != null) u.uOnda.value = o.onda; if (o.raios != null) u.uRaios.value = o.raios;
+      (o.centro ? centroTmp.copy(o.centro) : nucleo.getWorldPosition(centroTmp)).project(camera); u.uCentro.value.set(centroTmp.x * .5 + .5, centroTmp.y * .5 + .5); u.uAspecto.value = w && h ? w / h : 1;
+      passeIgn.enabled = u.uOnda.value > .001 || u.uRaios.value > .001; return true;
+    }
+    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1.3, v)); }, ignicaoTela, aoQuadro: fn => { aoQuadroFns.push(fn); return () => { const i = aoQuadroFns.indexOf(fn); if (i >= 0) aoQuadroFns.splice(i, 1); }; }, nucleoMundo: alvo => nucleo.getWorldPosition(alvo || new THREE.Vector3()), ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

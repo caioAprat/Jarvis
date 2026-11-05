@@ -33,8 +33,8 @@ const server=http.createServer(async(req,res)=>{
     if(!/^(?:camera-estado\.json|[a-zA-Z0-9-]+\.(?:html|js|webmanifest)|icons\/[a-zA-Z0-9-]+\.(?:png|svg))$/.test(name)||name==='sw.js')return send(404,'text/plain','Arquivo não disponível na prévia');
     let body=await fs.readFile(path.join(root,name));
     if(name.endsWith('.html')){
-      const cfg=JSON.stringify({u:`http://127.0.0.1:${port}/__preview_api`,k:sim.props.CHAVE_PC});
-      const bootstrap=`<script>window.JarvisPreviewLocal=true;localStorage.setItem('jarvis.pc.cfg',JSON.stringify(${cfg}));localStorage.setItem('jarvis.pin.ate',String(Date.now()+43200000));</script>`;
+      const cfg=JSON.stringify({u:'__ORIGEM__',k:sim.props.CHAVE_PC});
+      const bootstrap=`<script>window.JarvisPreviewLocal=true;localStorage.setItem('jarvis.pc.cfg',JSON.stringify(${cfg}).replace('__ORIGEM__',location.origin+'/__preview_api'));localStorage.removeItem('jarvis.pin.ate');</script>`;
       body=body.toString().replace('<head>','<head>'+bootstrap);
       // APIs somente locais. Scripts/fontes CDN continuam sendo os mesmos da branch.
       res.setHeader('Content-Security-Policy',"connect-src 'self'; worker-src 'none'");

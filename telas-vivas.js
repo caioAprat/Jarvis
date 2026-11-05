@@ -10,7 +10,7 @@
  *   gabinete     % no ar em 7 dias + histórico de disponibilidade
  *   assistente/painel   livre até + saldo projetado (até 30 pontos); fallback de disponibilidade
  *   rodapé       o detalhe atual do projeto (estado.projetos[].detalhe)
- * Antes do PIN: só espera, sem nome nem número. Reduced-motion mantém dados/relógio, sem varredura.
+ * Antes do PIN: tela morta (só o vidro escuro), sem nome nem número. Reduced-motion mantém dados/relógio, sem varredura.
  */
 (function () {
   const reduzido = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -125,16 +125,9 @@
       ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
       if (ligadas && !ligadas.get(m.id)) return;
 
+      if (!livre || !P) return;
       ctx.strokeStyle = C.linha; ctx.lineWidth = 1; ctx.strokeRect(.5, .5, W - 1, H - 1);
       const varre = ((t * .35) % 1) * W;
-      if (!livre || !P) {                                           // espera: nada de dado antes do PIN
-        ctx.fillStyle = C.di; ctx.font = `500 ${10 * k}px "JetBrains Mono", monospace`; ctx.fillText('AGUARDANDO', 12 * k, 22 * k);
-        if (!reduzido) {
-          if (Math.floor(t * 2) % 2) ctx.fillRect(12 * k + ctx.measureText('AGUARDANDO').width + 4 * k, 13 * k, 6 * k, 11 * k);
-          ctx.globalAlpha = .18; ctx.fillStyle = C.amb; ctx.fillRect(varre, 0, 2 * k, H); ctx.globalAlpha = 1;
-        }
-        return;
-      }
       const p = P.estado.projetos.find(x => x.id === m.id); if (!p) return;
       const det = (P.detalhes || {})[m.id] || {};
       desenharPainel(m, p, det, D.fin, t, k);
