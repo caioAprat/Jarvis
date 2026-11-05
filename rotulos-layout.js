@@ -64,17 +64,24 @@
       if(guia){guia.style.display='';guia.setAttribute('transform',`translate(${a.x},${a.y})`);}
       return true;
     }
+    let ultimoTexto=-Infinity;
     function quadro(host){
+      if(performance.now()-ultimoTexto<100)return;ultimoTexto=performance.now();
       obstaculos();
-      host.querySelectorAll('.narr-texto-camada').forEach(c=>{
-        if(Number(c.style.opacity)<.08)return;
-        c.querySelectorAll('.mom-lado').forEach(el=>{
-          const texto=el.querySelector('.esc-vis');if(!texto||Number(getComputedStyle(texto).opacity)<.05)return;
-          // Campos e botões continuam na camada original; aqui só existem cópias invisíveis deles.
-          el.querySelectorAll('form,button,canvas').forEach(n=>n.style.display='none');
-          if(!el.dataset.layout){const b=tamanho(el);el.style.width=Math.min(b.width,W-24)+'px';el.style.position='fixed';el.style.left='0';el.style.top='0';el.style.margin='0';el.dataset.layout='1';}
-          colocar(el,centro.set(0,0,0));
-        });
+      host.querySelectorAll('.narr-cena').forEach(c=>{
+        if(c.getAttribute('aria-hidden')==='true'||Number(c.style.opacity)<.08)return;
+        const el=c.querySelector('.mom-bloco');if(!el)return;
+        // A geometria da D continua intocada. Somente o texto procura espaço livre.
+        const b=tamanho(el),w=b.width,h=b.height;
+        const minY=W<700?H*.57:Math.max(120,H*.2),maxY=H-h-116;
+        const xs=W<700?[18]:[32,W-w-32];
+        let best=null,cost=Infinity;
+        for(const x of xs)for(let y=minY;y<=maxY;y+=8){
+          const box=rect(x,y,w,h);let overlap=0;for(const o of fixos)overlap+=area(box,o);
+          const score=overlap*10000+Math.abs(y-(W<700?maxY:H*.42));
+          if(score<cost){cost=score;best=box;}
+        }
+        if(best){el.style.left=Math.round(best.x)+'px';el.style.top=Math.round(best.y)+'px';el.style.bottom='auto';el.dataset.sobreposicao=String(Math.round(fixos.reduce((a,o)=>a+area(best,o),0)));}
       });
     }
     return{quadro,colocar,destruir(){observar.disconnect();removeEventListener('resize',redimensionar);}};

@@ -79,9 +79,13 @@
   :is(.narr-cena,.narr-texto-camada) .mom-dir{grid-column:3;grid-row:1;justify-self:end;max-width:360px;min-width:0}
   :is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:3;justify-self:end;text-align:right}
   :is(.narr-cena,.narr-texto-camada).inv .mom-dir{grid-column:1;justify-self:start}
-  .mom-g{font:300 clamp(32px,4vw,62px)/1.15 'Unbounded',var(--disp);letter-spacing:.055em;text-transform:uppercase;font-variant-numeric:tabular-nums;color:var(--tx);white-space:nowrap;text-shadow:0 0 8px #000}
-  .mom-g.medio{font-size:clamp(28px,3.5vw,54px)}
-  .mom-p{font:400 13px/1.75 'Manrope',sans-serif;letter-spacing:.02em;color:var(--mu);text-shadow:0 0 8px #000;min-height:1.75em}
+  .mom-g,.mom-g.medio{font:500 clamp(40px,5.271vw,72px)/1.08 'JetBrains Mono',var(--mono);letter-spacing:-.02em;text-transform:none;font-variant-numeric:tabular-nums;color:var(--tx);white-space:normal;overflow-wrap:anywhere;text-wrap:balance;text-shadow:0 0 8px #000;margin:12px 0 18px;overflow:hidden}
+  .mom-p{font:400 14px/1.55 'JetBrains Mono',var(--mono);color:var(--mu);text-shadow:0 0 8px #000;margin:0;min-height:1.55em}
+  .mom-rotulo{font:400 11px/1.5 'JetBrains Mono',var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
+  .mom-bloco{position:absolute;width:min(400px,34vw);left:32px;top:42%;text-align:left}
+  .mom-bloco .mom-p{max-width:52ch}
+  .mom-g .esc-vis{opacity:1}
+  @media(max-width:700px){.mom-bloco{left:18px!important;top:auto;bottom:116px;width:calc(100% - 36px)}.mom-g,.mom-g.medio{font-size:40px;margin:10px 0 14px}.mom-p{font-size:13px;line-height:1.5}}
   .mom-tela{display:block;width:min(220px,100%);height:58px;margin-top:16px;opacity:0;transition:opacity .4s}
   :is(.narr-cena,.narr-texto-camada).pronto .mom-tela{opacity:1}
   .acesso-campo{pointer-events:auto;position:relative;margin-top:22px;width:max-content;max-width:100%}
@@ -94,6 +98,7 @@
   .link-real{display:block;width:min(360px,80vw);background:none;border:0;border-bottom:1px solid rgba(255,170,100,.4);color:var(--tx);font:500 13px var(--mono);padding:9px 0;outline:none}
   .link-real:focus{border-bottom-color:var(--pri)}
   .acesso-aviso{min-height:1.5em;margin-top:12px;font:500 11.5px var(--mono);letter-spacing:.08em;color:var(--di)}
+  .acesso-aviso:empty{display:none}
   .acesso-aviso.erro{color:var(--er)}
   .treme .acesso-campo{animation:treme .4s}
   @keyframes treme{20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
@@ -435,7 +440,7 @@
       const fix = host.querySelector('.narr-fix');
       cenas = ints.map((c, i) => {
         const el = document.createElement('section'); el.className = 'narr-cena' + (i % 2 ? ' inv' : ''); el.dataset.cena = c.id;
-        el.style.opacity = '0'; fix.appendChild(el);
+        el.style.opacity = '0'; el.setAttribute('aria-hidden','true');fix.appendChild(el);
         return Object.assign(c, { el, escrito: false, tela: null, partes: {}, plano: 0, pl: { op: 1 }, jan: 0 });
       });
       return soma;
@@ -446,7 +451,7 @@
       trecho = 'A'; document.body.classList.remove('narr-b', 'momentos-vistos');
       const ks=chavesA(); construir(CENAS_A);
       cenaTexto(cena('ola'), '', '');
-      cena('prototipo').el.innerHTML = '';
+      cenaTexto(cena('prototipo'));
       if (cine) cine.trocar(ks);
       definirNav();
       montarAcesso();
@@ -460,10 +465,20 @@
       acesso = LandingAcesso.montar(c.el, { modo: modoAcesso,
         aoLink: (t) => { const ok = api.aoLink(t); if (ok) setTimeout(() => { montarAcesso(); if (acesso) { acesso.escrever(); acesso.focar(); } }, 450); return ok; },
         aoPin: (v) => { const ok = api.aoPin(v); if (ok) setTimeout(abrirPortalDados, 380); return ok; } });
+      // Reunir a apresentação do acesso sem alterar formulário ou validação.
+      const esq=c.el.querySelector('.mom-esq'),dir=c.el.querySelector('.mom-dir');
+      if(esq&&dir){esq.className='mom-bloco';esq.insertAdjacentHTML('afterbegin','<div class="mom-rotulo">Acesso</div>');while(dir.firstChild)esq.append(dir.firstChild);dir.remove();}
+      acesso.escrever=async()=>{
+        const g=c.el.querySelector('[data-g]'),p=c.el.querySelector('[data-p]');
+        Escrita.grande(g,g._texto);
+        await new Promise(r=>setTimeout(r,reduzido?0:250));
+        if(c.el.getAttribute('aria-hidden')==='true')return;
+        await Escrita.pequeno(p,p._texto);c.el.classList.add('pronto');
+      };
       c.escrito = false;
     }
     function cenaTexto(c, g, p) {
-      c.el.innerHTML = `<div class="mom-lado mom-esq"><div class="mom-g" data-g></div></div><div class="mom-lado mom-dir"><p class="mom-p" data-p></p>${c.temTela ? '<canvas class="mom-tela" aria-hidden="true"></canvas>' : ''}</div>`;
+      c.el.innerHTML = `<div class="mom-bloco"><div class="mom-rotulo"></div><h2 class="mom-g" data-g></h2><p class="mom-p" data-p></p></div>`;
       c.partes = { g: c.el.querySelector('[data-g]'), p: c.el.querySelector('[data-p]') };
       if (c.temTela) c.tela = LandingTelas.criar(c.el.querySelector('.mom-tela'), c.temTela);
     }
@@ -471,13 +486,10 @@
     function montarB() {
       trecho = 'B'; document.body.classList.add('narr-b'); document.body.classList.remove('momentos-vistos');
       const ks=chavesB(); construir(CENAS_B);
-      const telasMom = {}, soChamadas = [...PROJETOS_CAMERA,'ponte','planeta','retorno'];
-      cenas.forEach(c => {
-        c.temTela = telasMom[c.id] && window.LandingTelas ? telasMom[c.id] : '';
-        if (soChamadas.includes(c.id)) { c.el.innerHTML = ''; c.partes = {}; }
-        else if (c.id === 'fecho') { c.el.classList.add('inv'); c.el.style.alignItems = 'end'; c.el.style.paddingBottom = '120px'; c.el.innerHTML = '<div class="mom-lado mom-dir"><p class="mom-p" data-p></p></div>'; c.partes = { p: c.el.querySelector('[data-p]') }; }
+      for (const c of cenas) {
+        if (['ponte','retorno'].includes(c.id)) { c.el.innerHTML=''; c.partes={}; }
         else cenaTexto(c);
-      });
+      }
       sincronizarProjetos();
       if (cine) cine.trocar(ks);
       definirNav();
@@ -489,10 +501,31 @@
     function textos(id) {
       const D = api.dados() || {}, P = D.P, fin = D.fin;
       if (id === 'ola') return { g: 'Olá, Caio', p: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) };
+      if (id === 'prototipo') return {g:'Seu núcleo',p:'Projetos e serviços reunidos em uma central. Role para abrir seus dados.'};
       if (id === 'constroi') return { p: 'Núcleo de controle' };
-      if (id === 'fecho') return { p: 'Buscar (Ctrl K), Conferir tudo e o dock ficam sempre à mão. Role para a visão geral.' };
+      if (id === 'fecho') return {g:'Tudo à mão',p:'Ctrl K busca projetos. Use Conferir tudo para atualizar e o dock para navegar.'};
       if (!P) return { g: '—', p: api.erro && api.erro() ? 'sem dados agora · sem conexão com o Jarvão' : 'carregando os dados reais…' };
       const m = LandingDados.metricas(P), ps = P.estado.projetos;
+      if(PROJETOS_CAMERA.includes(id)){
+        const pr=ps.find(x=>x.id===id),d=(P.detalhes||{})[id]||{};
+        if(!pr)return {g:'Sem dados',p:'Este projeto ainda não enviou uma leitura. Use Conferir tudo.'};
+        const status=ESTADO_TXT[pr.status]||pr.status;
+        let g=pr.disp7==null?status:(Math.round(pr.disp7*10)/10).toLocaleString('pt-BR')+'% no ar';
+        let p='Disponibilidade em 7 dias · '+status+'. Clique na tela para abrir.';
+        if(id==='planilha'&&d.planilha?.dias?.length){const u=d.planilha.dias.at(-1);g=(u.total||0)+' execuções';p=dm(u.d)+' · '+((u.falhas||0)+(u.travadas||0))+' com problema. Clique na tela para abrir.';}
+        if(id==='planilha'){
+          const detalhe=MapaVivo.limpar(pr.detalhe||''),normal=detalhe.match(/(\d+) execuç(?:ão|ões) na última hora/),falha=detalhe.match(/(\d+) de (\d+) execuções falharam/);
+          const total=normal?Number(normal[1]):falha?Number(falha[2]):/Sem uso na última hora/.test(detalhe)?0:null,problemas=detalhe.match(/(\d+) com problema/);
+          if(total!=null){g=total+' '+(total===1?'execução':'execuções');p='Na última hora · '+(problemas?problemas[1]+' com problema':falha?falha[1]+' com problema':status)+'. Clique na tela para abrir.';}
+        }
+        if(id==='assistente'||id==='painel'){
+          const livre=fin&&fin.ok!==false&&fin.livre!=null?fin.livre:pr.extra?.livre;
+          const ate=fin&&fin.ok!==false&&fin.diaMenor||pr.extra?.ate;
+          if(livre!=null){g=real(livre);p=(ate?'Livre até '+dm(ate):'Saldo livre informado')+'. Clique na tela para ver as contas.';}
+        }
+        return {g,p};
+      }
+      if(id==='planeta'){const cl=ps.filter(x=>x.cliente);return {g:cl.filter(x=>x.status==='ok').length+'/'+cl.length+' no ar',p:'Projetos de clientes disponíveis agora. Acesse Clientes pelo dock para conferir.'};}
       switch (id) {
         case 'situacao': return { g: m.situacao[0] === 'erro' && /parado/i.test(m.situacao[1]) ? 'Parado' : ESTADO_PALAVRA[m.situacao[0]], cor: COR_STATUS[m.situacao[0]], p: m.situacao[1] + ' · conferido ' + api.ha(P.estado.verificadoEm) };
         case 'noar': return { g: m.projetosNoAr, p: 'projetos no ar · os pausados não contam' };
@@ -521,9 +554,11 @@
         const tempoAnterior = reduzido ? 0 : 1.05 + Math.max(0, String(T.g || '').length - 1) * .055 + Math.min(1.1, .45 + String(T.p || '').length * .012);
         setTimeout(() => { if (c.escrito && c.rodada === rodada) c.el.classList.add('pronto'); }, tempoAnterior * 1000);
       }
-      if (c.partes.g && T.g !== undefined) { c.partes.g.classList.toggle('medio', !!T.medio); if (!await Escrita.grande(c.partes.g, T.g, { cor: T.cor })) return; }
+      const rotulo=c.el.querySelector('.mom-rotulo');if(rotulo)rotulo.textContent=ROTULO[c.id]||c.id;
+      if(c.partes.g&&T.g!==undefined)Escrita.grande(c.partes.g,T.g,{cor:T.cor});
+      await new Promise(r=>setTimeout(r,reduzido?0:250));
       if (!c.escrito || c.rodada !== rodada) return;
-      if (c.partes.p) await Escrita.decodificar(c.partes.p, T.p);
+      if(c.partes.p)await Escrita.decodificar(c.partes.p,T.p);
       if (!c.tela) c.el.classList.add('pronto');
     }
     function zerar(c) {
@@ -538,20 +573,15 @@
       const ativas = [];
       for (const c of cenas) {
         const ch=cine&&cine.chaves(),hold=ch&&ch.find(k=>k.id===c.id&&!k.passagem);
-        const inicio=hold?hold.p:c.ini, v=['ponte','retorno'].includes(c.id)?0:janela(p,inicio,c.fim,Math.min(.007,(c.fim-inicio)*.12));
-        c.jan = v;const opacity=String(v*c.pl.op);if(c.el.style.opacity!==opacity)c.el.style.opacity=opacity;
-        const s = (p - c.ini) / (c.fim - c.ini);
-        if (v > 0) ativas.push(c.id);
-        if (v > .6 && s >= (c.ini === 0 ? 0 : .28) && s < .97) escrever(c);
-        else if (v === 0 && (s < -.05 || s > 1.05)) zerar(c);
-        // conjunto sai para o plano secundário antes da próxima cena entrar (um elemento por vez)
-        if(v>0)aplicarPlano(c,s>.84?1:0);
-        // Mesma janela da cena: só os caracteres saem, sem transformar a camada das letras.
-        if (c.escrito && (s > .97 || s < 0)) {
-          c.el.querySelectorAll('.mom-g,.mom-p').forEach(Escrita.sair);
-        } else if (c.escrito && s >= 0 && s < .97 && c.el.querySelector('[data-saindo="1"]')) {
-          zerar(c); escrever(c);
+        const inicio=hold?hold.p:c.ini;
+        const v=!['ponte','retorno'].includes(c.id)&&p>=inicio&&p<=c.fim?1:0;
+        if(v){ativas.push(c.id);if(!c.escrito){if(window.gsap)gsap.killTweensOf(c.el);c.el.style.opacity='1';c.el.setAttribute('aria-hidden','false');escrever(c);}}
+        else if(c.escrito){
+          c.escrito=false;c.rodada=(c.rodada||0)+1;c.el.setAttribute('aria-hidden','true');
+          const limpar=()=>{if(c.escrito)return;if(c.id==='acesso'){if(acesso)acesso.zerar();}else {if(c.partes.g)Escrita.zerar(c.partes.g);if(c.partes.p)Escrita.zerar(c.partes.p);}};
+          if(window.gsap)gsap.to(c.el,{opacity:0,duration:reduzido?.2:.25,overwrite:true,onComplete:limpar});else {c.el.style.opacity='0';limpar();}
         }
+        c.jan=v;
         if (c.tela) c.tela.ativar(v > .5 && c.escrito);
       }
       if (!voando && !projeto && cine) {
@@ -610,10 +640,7 @@
     function chamadasDaCena(id, p) {
       if (!chamadas) return;
       if (projeto) { if (cenaChamadas !== '#proj') { chamadas.limpar(); cenaChamadas = '#proj'; } return; }
-      const c=cena(id),k=cine&&cine.chaves().find(k=>k.id===id&&!k.passagem);
-      const pousou=c && k && p>=k.p && p<c.fim-(c.fim-c.ini)*.03;
-      const lista = pousou?listaChamadas(id):[];
-      chamadas.definir(lista);
+      chamadas.definir([]);
       cenaChamadas = id;
     }
     /** O que cada parte do protótipo explica — sempre dado real (ou "sem dados", nunca inventado). */
