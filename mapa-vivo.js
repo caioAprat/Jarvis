@@ -585,7 +585,7 @@
       }
       if (portalObj) portalObj.quadro(d);                             // landing: portal (render target do "outro ambiente")
       const emissoes = [];
-      if (energiaAtual < 1) nucleo.traverse(obj => {
+      if (energiaAtual !== 1) nucleo.traverse(obj => {
         const m = obj.material;
         if (m && m !== plasmaMat && m.transparent) { emissoes.push([m, m.opacity]); m.opacity *= energiaAtual; }
       });
@@ -777,7 +777,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
-    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1, v)); }, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, energia: v => { energiaAtual = Math.max(0, Math.min(1.2, v)); }, ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

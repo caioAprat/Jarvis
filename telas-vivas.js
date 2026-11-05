@@ -22,7 +22,7 @@
     if (!proto) return null;
     const fr = new THREE.Frustum(), mx = new THREE.Matrix4(), cam = () => api.camera();
     let acum = 0, quadros = 0;
-    let ligadas = null;
+    let ligadas = null, tempoQuadro = 0;
 
     function barras(ctx, x, y, w, h, lista, corDe) {
       const n = lista.length; if (!n) return false;
@@ -113,7 +113,7 @@
       const grad = ctx.createLinearGradient(0, 0, 180, 160);
       grad.addColorStop(0, 'rgba(255,224,184,.055)'); grad.addColorStop(.5, 'rgba(255,224,184,0)');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, 256, 160);
-      const fase = (t - m.scanTela) / .65;
+      const fase = m.ignicaoTela!=null && t-m.ignicaoTela<.25 ? (t-m.ignicaoTela)/.25 : (t-m.scanTela)/.65;
       if (!reduzido && fase >= 0 && fase < 1) { ctx.fillStyle = 'rgba(255,138,61,.12)'; ctx.fillRect(fase * 256, 0, 3, 160); }
       ctx.restore();
     }
@@ -145,6 +145,7 @@
     // nenhum fora do quadro. Subir textura para a GPU é o que pesa — medido: 12/s em todas travava a placa integrada.
     const ultimo = new Map();
     function quadro(t, d) {
+      tempoQuadro=t;
       proto.modulos.forEach(m => m.tela.material.color.setScalar((ligadas ? ligadas.get(m.id) || 0 : 1) * (.6 + .4 * m.enf.v)));
       if (!proto.visivel || proto.visivel() < .02) return;
       acum += d; if (acum < 1 / 6 && quadros > 0) return; acum = 0;
@@ -167,8 +168,9 @@
       proto.modulos.forEach(m => {
         const v = ligadas ? ligadas.get(m.id) || 0 : 1;
         m.tela.material.color.setScalar(v * (.6 + .4 * m.enf.v));
+        if(v>0 && anterior && !anterior.get(m.id))m.ignicaoTela=tempoQuadro;
         if (!anterior || !ligadas || !!anterior.get(m.id) !== !!v) {
-          if (desenhar(m, performance.now()/1000) !== false) m.tex.needsUpdate = true;
+          if (desenhar(m, tempoQuadro) !== false) m.tex.needsUpdate = true;
         }
       });
     }, desenharTodas: (t) => proto.modulos.forEach(m => { if (desenhar(m, t || 0) !== false) m.tex.needsUpdate = true; }) };

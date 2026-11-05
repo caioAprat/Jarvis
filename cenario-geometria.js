@@ -93,7 +93,13 @@
     }
     return grupo;
   }
-  const api = { tubo, bezier, uniformizar, unir, retangulo, ambiente };
+  function ondaPiso(scene,E){
+    const mat=new THREE.MeshBasicMaterial({color:0xff9a4d,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+    const geo=new THREE.RingGeometry(.97,1,128),anel=new THREE.Mesh(geo,mat);
+    anel.name='ignicao-piso';anel.rotation.x=-Math.PI/2;anel.position.y=-3.2*E+.025*E;scene.add(anel);
+    return {progresso(p){anel.scale.setScalar((1+32*p)*E);mat.opacity=.55*Math.sin(Math.PI*p);},destruir(){scene.remove(anel);geo.dispose();mat.dispose();}};
+  }
+  const api = { tubo, bezier, uniformizar, unir, retangulo, ambiente, ondaPiso };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else window.CenarioGeometria = api;
 })();

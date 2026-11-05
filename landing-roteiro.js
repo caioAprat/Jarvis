@@ -18,7 +18,8 @@
  * Câmera: rampa cosseno C1, cruzeiro, pouso (o ease assimétrico .2,0,0,1
  * concentraria a aceleração espacial). Lenis .08 + scrub 1s amortecem o scroll.
  * Reverter o progresso refaz o mesmo arco. Sem filtro XYZ dependente do tempo.
- * B0 da transição F preservada: 7E desktop / 12,95E mobile, fov36, órbita .05.
+ * F: B0 é a pose corrente do acesso (17E desktop / 22E mobile no platô).
+ * Ao liberar, A permanece no mesmo trilho e é reversível; só o resto do platô é encurtado.
  *
  * | Cena | Alvo / texto existente | 1366 dist/alt/órbita/fov | 390 | parada/viagem |
  * | A ola | núcleo / Olá, Caio + data | 20/.12/-.5/36 | 22/.12/-.5/36 | >=60/<=40 |
@@ -79,7 +80,7 @@
   :is(.narr-cena,.narr-texto-camada) .mom-dir{grid-column:3;grid-row:1;justify-self:end;max-width:360px;min-width:0}
   :is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:3;justify-self:end;text-align:right}
   :is(.narr-cena,.narr-texto-camada).inv .mom-dir{grid-column:1;justify-self:start}
-  .mom-g,.mom-g.medio{font:500 clamp(40px,5.271vw,72px)/1.08 'JetBrains Mono',var(--mono);letter-spacing:-.02em;text-transform:none;font-variant-numeric:tabular-nums;color:var(--tx);white-space:normal;overflow-wrap:anywhere;text-wrap:balance;text-shadow:0 0 8px #000;margin:12px 0 18px;overflow:hidden}
+  .mom-g,.mom-g.medio{font:500 clamp(40px,5.271vw,72px)/1.08 'JetBrains Mono',var(--mono);letter-spacing:-.02em;text-transform:none;font-variant-numeric:tabular-nums;color:var(--tx);white-space:normal;overflow-wrap:normal;word-break:normal;hyphens:none;text-wrap:balance;text-shadow:0 0 8px #000;margin:12px 0 18px;overflow:hidden}
   .mom-p{font:400 14px/1.55 'JetBrains Mono',var(--mono);color:var(--mu);text-shadow:0 0 8px #000;margin:0;min-height:1.55em}
   .mom-rotulo{font:400 11px/1.5 'JetBrains Mono',var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
   .mom-bloco{position:absolute;width:min(400px,34vw);left:32px;top:42%;text-align:left}
@@ -188,10 +189,10 @@
       let t = 0, tp = 0, u = performance.now();
       gsap.ticker.add(quadroNarrativa = () => {
         if (!ativa || document.hidden) { u = performance.now(); return; }
-        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? 1+4*Math.sin(Math.PI*clamp((portalDados.tempo()-.3)/.7)) : 1);
+        const n = performance.now(), d = Math.min(.05, (n - u) / 1000); u = n; t += reduzido ? 0 : d; tp += reduzido ? 0 : d * (fundo ? fundo.velocidade() : 1) * (portalDados ? 1+4*Math.sin(Math.PI*clamp(portalDados.tempo()/1.2)) : trecho==='A'&&atual.p>=cena('acesso').ini?.2:1);
         if (particulas) particulas.quadro(tp, d, Object.assign({ p: atual.p }, camAtual));
         if (portalDados && !reduzido && particulas) {
-          const t = portalDados.tempo(), atrair = Math.sin(Math.PI * clamp((t-.3)/.7));
+          const t = portalDados.tempo(), atrair = Math.sin(Math.PI * clamp(t/1.2));
           particulas.grupos.forEach(g => {
             const points = g.userData.pontos;
             if (points) { points.scale.x *= 1-.35*atrair; points.scale.y *= 1-.35*atrair; }
@@ -227,8 +228,16 @@
       ? new Lenis({lerp: .08, wheelMultiplier: .9, syncTouch: false,
         prevent: el => !!el.closest('.painel-sel,.pal,#theatrejs-studio-root')}) : null;
     const quadroLenis = t => lenis.raf(t * 1000);
-    if (lenis) { lenis.on('scroll', ScrollTrigger.update); gsap.ticker.add(quadroLenis); }
-    let movimento = null, sheetCamera = null;
+    if (lenis) {
+      lenis.on('scroll', l=>{
+        ScrollTrigger.update();
+        // Utiliza a posição fracionária do Lenis: o scroll DOM arredonda pixels.
+        if(passeioAutomatico && trigger){alvo.p=atual.p=(l.animatedScroll-trigger.start)/(trigger.end-trigger.start);aplicar(atual.p);}
+      });
+      // O scroll atualiza a pose antes do render, evitando um quadro de atraso.
+      gsap.ticker.add(quadroLenis,false,true);
+    }
+    let movimento = null, sheetCamera = null, passeioAutomatico = false;
     const objetosCamera = new Map(), desinscreverCamera = [];
     const perfilCamera = leve ? 'Mobile' : 'Desktop';
     const posicaoPose = v => {
@@ -356,17 +365,18 @@
     }
     function chavesA() { const ps=paradasA();return trilha(CENAS_A,ps,pose(leve?28:26,.24,-.65,{x:0,y:leve?-1.7*E:0,z:0},40)); }
     function chavesB() {
-      // B0 provisória preservada para a Parte F: 7E desktop / 12,95E móvel.
-      return trilha(CENAS_B,paradasB(),K(0,7*E,.1,36,.05,null));
+      // F: a chegada é a própria pose do acesso; as demais poses da D permanecem.
+      return trilha(CENAS_B,paradasB(),chegadaB || paradasA()[2]);
     }
     // Curvas espaciais únicas por trecho; platôs mantêm os 60% de parada da D2.
     // A curva centrípeta evita laços nas chaves de passagem e nos closes.
-    let cacheCurva = null;
+    let cacheCurva = null, curvaA = null, curvaB = null, chavesOriginaisA = null, chavesOriginaisB = null;
+    let fracaoA = 0, corteA = 1, chegadaB = null;
     function prepararCurva(ks, parte) {
       const pontos=[];
       ks.forEach((v,i)=>{
         if(i && ks[i-1].id===v.id){pontos[pontos.length-1].fim=v.p;return;}
-        const obj=objetoCamera(parte+'/'+v.id,v),valor=obj&&obj.value;
+        const obj=objetoCamera(parte+'/'+v.id,v),valor=parte==='B'&&v.id==='Chegada'&&chegadaB?null:obj&&obj.value;
         pontos.push({ini:v.p,fim:v.p,v,position:valor?new THREE.Vector3(valor.position.x,valor.position.y,valor.position.z).multiplyScalar(E):posicaoPose(v),
           target:valor?new THREE.Vector3(valor.target.x,valor.target.y,valor.target.z).multiplyScalar(E):new THREE.Vector3(v.cx,v.cy,v.cz),fov:valor?valor.fov:v.f});
       });
@@ -383,8 +393,13 @@
       return {ks,pontos,position,target,arcos};
     }
     function cameraEm(p) {
-      const ks=cine.chaves();
-      if(!cacheCurva || cacheCurva.ks!==ks)cacheCurva=prepararCurva(ks,trecho);
+      let ks=cine.chaves(), parte=trecho;
+      if(trecho==='B' && fracaoA){
+        if(p<=fracaoA){p=p/fracaoA*corteA;ks=chavesOriginaisA;parte='A';cacheCurva=curvaA;}
+        else {p=(p-fracaoA)/(1-fracaoA);ks=chavesOriginaisB;cacheCurva=curvaB;}
+      }
+      if(!cacheCurva || cacheCurva.ks!==ks)cacheCurva=prepararCurva(ks,parte);
+      if(trecho==='B' && fracaoA){if(parte==='A')curvaA=cacheCurva;else curvaB=cacheCurva;}
       const {pontos,position,target,arcos}=cacheCurva;
       // Sequência Theatre é relógio/editor; leitura de poses só ao invalidar o cache.
       if(window.editarCamera && sheetCamera)sheetCamera.sequence.position=p*100;
@@ -412,7 +427,12 @@
       const fov=pontos[i-1].fov+(pontos[i].fov-pontos[i-1].fov)*(lo+f)/128;
       return {d:d/camZ(),a:delta.y/d,o:Math.atan2(delta.x,delta.z),f:fov,cx:alvo.x,cy:alvo.y,cz:alvo.z,g:0,x:0};
     }
-    addEventListener('resize', () => { if (cine && ativa) cine.trocar(trecho === 'A' ? chavesA() : chavesB()); });
+    addEventListener('resize', () => {
+      if(!cine||!ativa)return;
+      if(trecho==='A')cine.trocar(chavesA());
+      // Em B o trilho inclui o prefixo A; não substituí-lo pela tabela B isolada.
+      cacheCurva=curvaA=curvaB=null;
+    });
     function definirNav() {
       if (!nav) return;
       nav.definir(cenas.map((c, i) => ({ n: (trecho === 'B' ? CENAS_A.length : 0) + i + 1, rotulo: ROTULO[c.id] || c.id, ir: () => irCena(c) })));
@@ -429,7 +449,7 @@
       const antes = proto.modulos.map(m => m.id).join('|');
       proto.atualizarStatus(P.estado.projetos);
       if (fios) { if (antes !== proto.modulos.map(m => m.id).join('|')) fios.refazer(); fios.status(P.estado.projetos); }
-      if (cine && trecho === 'B') cine.trocar(chavesB());
+      // As poses já registradas não são reconstruídas durante a passagem de ignição.
     }
 
     // ------------------------------------------------------------ montagem dos trechos
@@ -464,7 +484,7 @@
       if (modoAcesso === 'livre') { c.el.innerHTML = ''; acesso = null; return; }
       acesso = LandingAcesso.montar(c.el, { modo: modoAcesso,
         aoLink: (t) => { const ok = api.aoLink(t); if (ok) setTimeout(() => { montarAcesso(); if (acesso) { acesso.escrever(); acesso.focar(); } }, 450); return ok; },
-        aoPin: (v) => { const ok = api.aoPin(v); if (ok) setTimeout(abrirPortalDados, 380); return ok; } });
+        aoPin: (v) => { const ok = api.aoPin(v); if (ok) requestAnimationFrame(abrirPortalDados); return ok; } });
       // Reunir a apresentação do acesso sem alterar formulário ou validação.
       const esq=c.el.querySelector('.mom-esq'),dir=c.el.querySelector('.mom-dir');
       if(esq&&dir){esq.className='mom-bloco';esq.insertAdjacentHTML('afterbegin','<div class="mom-rotulo">Acesso</div>');while(dir.firstChild)esq.append(dir.firstChild);dir.remove();}
@@ -485,13 +505,19 @@
 
     function montarB() {
       trecho = 'B'; document.body.classList.add('narr-b'); document.body.classList.remove('momentos-vistos');
-      const ks=chavesB(); construir(CENAS_B);
+      const ks=chavesB();
+      chavesOriginaisB=ks;curvaB=null;
+      const pesoA=CENAS_A.reduce((n,c)=>n+c[1],0),pesoB=CENAS_B.reduce((n,c)=>n+c[1],0);
+      fracaoA=pesoA*corteA/(pesoA*corteA+pesoB);
+      const prefixo=CENAS_A.map(c=>c.slice());prefixo[prefixo.length-1][1]-=pesoA*(1-corteA);
+      construir(prefixo.concat(CENAS_B));
       for (const c of cenas) {
         if (['ponte','retorno'].includes(c.id)) { c.el.innerHTML=''; c.partes={}; }
+        else if(c.id==='acesso'){c.el.innerHTML='';c.partes={};}
         else cenaTexto(c);
       }
       sincronizarProjetos();
-      if (cine) cine.trocar(ks);
+      if (cine) cine.trocar(chavesOriginaisA.filter(k=>k.p<=corteA).map(k=>Object.assign({},k,{p:k.p/corteA*fracaoA})).concat(ks.map(k=>Object.assign({},k,{p:fracaoA+k.p*(1-fracaoA)}))));
       definirNav();
       ligarTrilho();
       preencherTelas();
@@ -555,7 +581,13 @@
         setTimeout(() => { if (c.escrito && c.rodada === rodada) c.el.classList.add('pronto'); }, tempoAnterior * 1000);
       }
       const rotulo=c.el.querySelector('.mom-rotulo');if(rotulo)rotulo.textContent=ROTULO[c.id]||c.id;
-      if(c.partes.g&&T.g!==undefined)Escrita.grande(c.partes.g,T.g,{cor:T.cor});
+      if(c.partes.g&&T.g!==undefined){
+        const el=c.partes.g;el.style.fontSize='';
+        const css=getComputedStyle(el),ctx=document.createElement('canvas').getContext('2d');ctx.font=css.fontWeight+' '+css.fontSize+' '+css.fontFamily;
+        const maior=Math.max(...String(T.g).split(/\s+/).map(w=>ctx.measureText(w).width));
+        if(maior>el.clientWidth)el.style.fontSize=(parseFloat(css.fontSize)*el.clientWidth/maior*.98)+'px';
+        Escrita.grande(el,T.g,{cor:T.cor});
+      }
       await new Promise(r=>setTimeout(r,reduzido?0:250));
       if (!c.escrito || c.rodada !== rodada) return;
       if(c.partes.p)await Escrita.decodificar(c.partes.p,T.p);
@@ -574,7 +606,7 @@
       for (const c of cenas) {
         const ch=cine&&cine.chaves(),hold=ch&&ch.find(k=>k.id===c.id&&!k.passagem);
         const inicio=hold?hold.p:c.ini;
-        const v=!['ponte','retorno'].includes(c.id)&&p>=inicio&&p<=c.fim?1:0;
+        const v=!(trecho==='B'&&c.id==='acesso')&&!['ponte','retorno'].includes(c.id)&&p>=inicio&&p<=c.fim?1:0;
         if(v){ativas.push(c.id);if(!c.escrito){if(window.gsap)gsap.killTweensOf(c.el);c.el.style.opacity='1';c.el.setAttribute('aria-hidden','false');escrever(c);}}
         else if(c.escrito){
           c.escrito=false;c.rodada=(c.rodada||0)+1;c.el.setAttribute('aria-hidden','true');
@@ -599,7 +631,8 @@
       if (trecho === 'A') {
         const c = cena('acesso');
         if (modoAcesso === 'livre' && c) {
-          const pp = Math.max(0, Math.min(1, (p - (c.ini + (c.fim - c.ini) * .25)) / ((c.fim - c.ini) * .7)));
+          const hold=cine.chaves().find(k=>k.id==='acesso');
+          const pp=p-(hold?hold.p:c.ini);
           if (pp > 0) abrirPortalDados();
         }
       }
@@ -613,8 +646,9 @@
       if (nav && atualId) nav.ativa(cenas.indexOf(atualId));
       if (trecho === 'A') {
         const aguardando = p >= cena('acesso').ini;
-        if (mapa && mapa.energia) mapa.energia(aguardando ? .12 : 1);
-        if (fios) fios.crescer(aguardando && proto ? proto.modulos.map(() => 0) : null);
+        if (mapa && mapa.energia) mapa.energia(aguardando ? .35 : 1);
+        if (fios) fios.crescer(null);
+        if(fios&&fios.energizar)fios.energizar(aguardando && proto ? proto.modulos.map(()=>0):null);
         if (telas) telas.ligar(aguardando && proto ? proto.modulos.map(() => 0) : null);
         if (fios) { fios.mostrar(true); fios.acenderChao(Math.max(intro.v * .55, clamp(sub('ola', p) * 1.15))); fios.acenderEsticados(0); fios.pacotes(0); }
         if (proto) proto.aparecer(clamp(sub('prototipo', p) * 1.6));
@@ -628,6 +662,7 @@
       }
       // A máquina permanece montada no fecho; viajar não desmonta o cenário.
       if (proto) proto.aparecer(1);
+      if(!portalDados){if(mapa)mapa.energia(1);if(telas)telas.ligar(null);if(fios&&fios.energizar)fios.energizar(null);}
       if (fios) { fios.mostrar(true); fios.acenderChao(1); fios.acenderEsticados(1); fios.pacotes(1); }
       const inicioPonte=cena('ponte').ini,fimPlaneta=cena('retorno').fim;
       if(planeta)planeta.mostrar(1);
@@ -688,95 +723,88 @@
       alvo.p = atual.p = 0;
       if (window.ScrollTrigger && window.gsap) {
         gsap.registerPlugin(ScrollTrigger);
-        movimento = gsap.to(atual, {p:1, duration:1, ease:'none', paused:true, onUpdate:()=> {alvo.p=atual.p; aplicar(atual.p);}});
+        movimento = gsap.to(atual, {p:1, duration:1, ease:'none', paused:true, onUpdate:()=> {if(passeioAutomatico)return;alvo.p=atual.p; aplicar(atual.p);}});
         trigger = ScrollTrigger.create({ id: 'narrativa', animation:movimento, trigger: host.querySelector('.narr-trilho'), start: 'top top', end: 'bottom bottom', scrub: reduzido ? true : 1,
           snap:false });
       }
       aplicar(0);
     }
 
-    // ------------------------------------------------------------ portal 1: núcleo → ambiente dos dados
+    // ------------------------------------------------------------ F: a porta libera o mesmo trilho, sem zerar scroll/câmera.
     let portalDados = null;
-    // A transição consulta B0 a cada quadro; não reconstrói toda a curva de B.
-    function poseB0() { const k = K(0,7*E,.1,36,.05,null); return { dist: k.d, alt: k.a, orbita: k.o, fov: k.f, cx: 0, cy: 0, cz: 0 }; }
     function abrirPortalDados() {
-      if (emPortal || trecho !== 'A' || !ativa) return;
-      if (!mapa || !window.gsap) { trocarParaB(); return; }
-      emPortal = true; voando = true;
-      travarRolagem(true);
-      if (trigger) { trigger.kill(); trigger = null; }
-      const ca = cena('acesso');
-      const de = Object.assign({ cx: 0, cy: 0, cz: 0 }, camAtual);
-      // Monta dados e geometria no mesmo palco, mantendo a pose de acesso.
+      if (portalDados || trecho !== 'A' || !ativa) return;
+      const ca=cena('acesso'),antes=camAtual;
+      chavesOriginaisA=cine?cine.chaves():chavesA();
+      // Corta apenas o restante do platô de acesso, preservando todo o caminho A.
+      corteA=Math.max(ca.ini+.001,atual.p);
+      chegadaB={d:antes.dist,a:antes.alt,o:antes.orbita,f:antes.fov,cx:antes.cx||0,cy:antes.cy||0,cz:antes.cz||0,g:0,x:0};
+      curvaA=prepararCurva(chavesOriginaisA,'A');
       sincronizarProjetos();
-      const para = poseB0(), distanciaInicial = de.dist * camZ(), n = proto ? proto.modulos.length : 0;
-      // cubic-bezier(.2,0,0,1), sem carregar outro plugin.
-      const suave = x => {
-        let lo=0, hi=1, t=x;
-        for(let i=0;i<14;i++) { t=(lo+hi)/2; const bx=.6*t*(1-t)*(1-t)+t*t*t; if(bx<x)lo=t;else hi=t; }
-        return x<=0?0:x>=1?1:t*t*(3-2*t);
-      };
-      const barra = document.querySelector('#raiz .barra'), opBarra = barra ? barra.style.opacity : '';
-      let fade = null, tempo = 0, trocou = false;
-      if (reduzido) {
-        fade = document.createElement('div');
-        fade.style.cssText = 'position:fixed;inset:0;z-index:1000;pointer-events:none;background:#080706;opacity:0';
-        fade.setAttribute('aria-hidden', 'true'); document.body.appendChild(fade);
+      const pin=ca.el.querySelector('.mom-bloco');
+      let saida=null;
+      if(pin && !reduzido){
+        // Só apresentação: formulário e autenticação continuam no LandingAcesso.
+        saida=pin.cloneNode(true);saida.querySelectorAll('form,input,button').forEach(el=>el.remove());
+        saida.setAttribute('aria-hidden','true');saida.inert=true;
+        saida.style.pointerEvents='none';saida.style.position='fixed';saida.style.zIndex='30';document.body.append(saida);
+        const box=pin.getBoundingClientRect();saida.style.left=box.left+'px';saida.style.top=box.top+'px';saida.style.width=box.width+'px';
+        gsap.to(saida,{clipPath:'inset(100% 0 0 0)',y:12,opacity:0,duration:.4,ease:'power2.in',onComplete:()=>saida.remove()});
       }
-      const pd = portalDados = {
-        progresso(p) {
-          tempo = p * (reduzido ? .3 : 2.8);
-          if (reduzido) { fade.style.opacity = String(p < .5 ? p*2 : (1-p)*2); return; }
-          if (!trocou && tempo >= 1.6) { trocou = true; trocarParaB(true); }
-          if (barra && trocou) barra.style.opacity = String(clamp((tempo-1.6)/.4));
-          if (ca) { ca.el.style.opacity = String(1-clamp(tempo/.3)); ca.el.style.transform = `translateY(${-8*clamp(tempo/.3)}px)`; }
-          mapa.energia(.12 + .88 * suave(clamp((tempo-.3)/.6)));
-          if (proto) { proto.aparecer(1); proto.enfatizar([]); }
-          const crescem = Array.from({length:n}, (_,i) => clamp((tempo-.7-i*.1)/Math.max(.1,.9-Math.max(0,n-1)*.1)));
-          if (fios) { fios.mostrar(true); fios.acenderChao(1); fios.crescer(crescem); }
-          if (telas) telas.ligar(crescem.map((v,i) => clamp((tempo-(.7+i*.1+Math.max(.1,.9-Math.max(0,n-1)*.1)))/.2)));
-          Object.assign(para, poseB0());
-          de.dist = distanciaInicial / camZ();
-          const t = suave(clamp((tempo-1.6)/1.2)), pose = {};
-          for (const k of ['dist','alt','orbita','fov','cx','cy','cz']) pose[k] = de[k]+(para[k]-de[k])*t;
-          porCamera(pose);
-        },
-        destruir() {
-          if(fade) fade.remove();
-          if(barra) barra.style.opacity = opBarra;
-          mapa.energia(1);
-          if(fios) fios.crescer(null);
-          if(telas) telas.ligar(null);
-        },
-        tempo: () => tempo
-      };
+      const n=proto?proto.modulos.length:0;
+      const onda=!reduzido&&mapa&&window.CenarioGeometria?CenarioGeometria.ondaPiso(mapa.depurar().scene,E):null;
+      let tempo=0,animacao=null,rolagem=null;
+      const pd=portalDados={tempo:()=>tempo,progresso(p){
+        tempo=p*(reduzido?.3:2);
+        if(mapa)mapa.energia(reduzido?1:tempo<.45?.35+.85*Math.sin(tempo/.45*Math.PI/2):tempo<.9?1+.2*(1-(tempo-.45)/.45):1);
+        if(onda)onda.progresso(clamp(tempo/1.2));
+        const fluxo=Array.from({length:n},(_,i)=>reduzido?1:clamp((tempo-.25-i*.1)/.5));
+        if(fios&&fios.energizar)fios.energizar(fluxo);
+        if(telas)telas.ligar(fluxo.map((v,i)=>reduzido?1:clamp((tempo-(.75+i*.1))/.25)));
+      },destruir(){
+        if(animacao)animacao.kill();if(rolagem)rolagem.kill();
+        removeEventListener('wheel',interromperPasseio);removeEventListener('touchstart',interromperPasseio);
+        if(saida)saida.remove();if(onda)onda.destruir();
+        if(mapa)mapa.energia(1);if(fios&&fios.energizar)fios.energizar(null);if(telas)telas.ligar(null);
+      }};
+      trocarParaB();
+      const destino=cine.chaves().find(k=>k.id==='situacao'&&!k.passagem).p;
+      const inicio=trigger.start+fracaoA*(trigger.end-trigger.start),fim=trigger.start+destino*(trigger.end-trigger.start);
+      // Reconstruir DOM/ScrollTrigger mantém a mesma pose e coordenada de rolagem.
+      if(trigger)trigger.scrubDuration(0);
+      if(lenis)lenis.scrollTo(inicio,{immediate:true,force:true});else window.scrollTo({top:inicio,behavior:'instant'});
+      movimento.progress(fracaoA);alvo.p=atual.p=fracaoA;aplicar(fracaoA);
       pd.progresso(0);
-      const est = { p: 0 };
-      gsap.to(est, { p: 1, duration: reduzido ? .3 : 2.8, ease: 'none',
-        onUpdate: () => {
-          if (!ativa) return;
-          pd.progresso(est.p);
-          if (reduzido && !trocou && est.p >= .5) { trocou = true; trocarParaB(true); porCamera(para); }
-        },
-        onComplete: () => {
-          if (!ativa) return;
-          if (!trocou) trocarParaB(true);
-          pd.destruir(); portalDados = null;
-          emPortal = false; voando = false;
-          alvo.p = atual.p = 0;
-          aplicar(0); travarRolagem(false); api.aoEntrar();
-        } });
+      const interromperPasseio=()=>{if(rolagem)rolagem.kill();passeioAutomatico=false;if(trigger)trigger.scrubDuration(reduzido?0:1);};
+      addEventListener('wheel',interromperPasseio,{once:true,passive:true});
+      addEventListener('touchstart',interromperPasseio,{once:true,passive:true});
+      const concluir=()=>{
+        removeEventListener('wheel',interromperPasseio);removeEventListener('touchstart',interromperPasseio);
+        if(!ativa)return;pd.destruir();portalDados=null;
+        passeioAutomatico=false;
+        if(trigger)trigger.scrubDuration(reduzido?0:1);
+        api.aoEntrar();
+      };
+      if(reduzido){
+        // Fade da própria cena, sem movimento de câmera nem onda/partículas.
+        const el=mapa&&mapa.el;if(el)gsap.fromTo(el,{opacity:0},{opacity:1,duration:.3});
+        window.scrollTo({top:fim,behavior:'instant'});movimento.progress(destino);aplicar(destino);
+      }else if(lenis){
+        passeioAutomatico=true;
+        lenis.scrollTo(Math.ceil(fim),{duration:2,easing:t=>t,force:true});
+      }
+      else if(!reduzido){
+        passeioAutomatico=true;
+        const pos={y:inicio};rolagem=gsap.to(pos,{y:fim,duration:2,ease:'none',onUpdate:()=>{window.scrollTo({top:pos.y,behavior:'instant'});ScrollTrigger.update();alvo.p=atual.p=(pos.y-trigger.start)/(trigger.end-trigger.start);aplicar(atual.p);}});
+      }
+      const est={p:0};animacao=gsap.to(est,{p:1,duration:reduzido?.3:2,ease:'none',onUpdate:()=>pd.progresso(est.p),onComplete:concluir});
     }
-    function trocarParaB(coberto = false) {
-      if (trecho === 'B' || (emPortal && !coberto)) return;
-      emPortal = true;
-      if (!coberto) porCamera(poseB0());
+    function trocarParaB() {
+      if(trecho==='B')return;
+      emPortal=true;
       montarB();
-      // O CSS global usa smooth: a reposição do novo trilho precisa ser atômica.
-      window.scrollTo({ top: host.offsetTop, behavior: 'instant' });
-      if (window.ScrollTrigger) ScrollTrigger.refresh();
-      alvo.p = atual.p = 0;
-      if (!coberto) { emPortal = false; aplicar(0); travarRolagem(false); api.aoEntrar(); }
+      if(window.ScrollTrigger)ScrollTrigger.refresh();
+      emPortal=false;
     }
     let estiloRolagem = null;
     function travarRolagem(v) {
