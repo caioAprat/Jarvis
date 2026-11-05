@@ -69,7 +69,7 @@
 
 
   // Saudação do "estagiário" (pedido do Caio, 05/11): informal, com apelido e zoeira, mas sempre lembrando que ele é o dono e o chefe.
-  // Sem números de dados antes do PIN. A pergunta é esporádica (≈1 em 4 visitas, nunca 2× no mesmo dia) e ele responde só digitando.
+  // Sem números de dados antes do PIN. Toda abertura pergunta; uma resposta e a conversa fica visível, travada.
   let saudacaoFeita = null;
   const PERGUNTAS = [
     { q: 'Dormiu bem, chefe?', sim: ['Boa! Patrão descansado é empresa no lucro.', 'Show. Então hoje o senhor tá liberado pra cobrar resultado de mim.'], nao: ['Xii. Vou segurar as pontas hoje, chefe. Só me cobra o essencial.', 'Anotado. Café reforçado e eu não te encho a paciência hoje.'], meio: ['Dormiu meia-boca, então. Hoje eu faço o trabalho pesado, combinado?'] },
@@ -105,12 +105,12 @@
     if (dia === 5) frases.push('Sexta, patrão. Confere os projetos e depois descansa, que o senhor merece.');
     if (dia === 0 || dia === 6) frases.push('Trabalhando no fim de semana? Dono de empresa é assim mesmo, né.');
     if (periodo === 'madrugada') frases.push('Trabalhando até essa hora? Eu seguro as pontas, mas vai dormir, chefe.');
-    let pergunta = null;
+    let ultima = null;
     try {
-      const hoje = d.toISOString().slice(0, 10), ult = localStorage.getItem('jarvis.saudacao.pergunta');
-      const forcar = localStorage.getItem('jarvis.saudacao.forcar') === '1';   // teste: força a pergunta
-      if (forcar || (ult !== hoje && Math.random() < .25)) { pergunta = sorteio(PERGUNTAS); localStorage.setItem('jarvis.saudacao.pergunta', hoje); }
+      ultima = localStorage.getItem('jarvis.saudacao.ultimaPergunta');
     } catch (e) {}
+    const pergunta = sorteio(PERGUNTAS.filter(p => p.q !== ultima));
+    try { localStorage.setItem('jarvis.saudacao.ultimaPergunta', pergunta.q); } catch (e) {}
     const corpo = data.charAt(0).toUpperCase() + data.slice(1) + ' · ' + sorteio(frases);   // a pergunta vai para a conversa, em linha própria
     return saudacaoFeita = { g: sorteio(titulos[periodo]), p: corpo, pergunta };
   }
@@ -129,7 +129,7 @@
   }
   const GLIFOS_C = '01/\\|<>[]{}=+-_#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   function montarConversa(ola, ehAtiva) {
-    const sd = saudacao(); if (!sd.pergunta || !ola) return null;
+    const sd = saudacao(); if (!ola) return null;
     // A réplica aumenta o bloco ancorado embaixo no mobile; isso não é rolagem do usuário.
     ola.style.overflowAnchor = 'none';
     const caixa = document.createElement('div'); caixa.className = 'conversa';
@@ -137,9 +137,11 @@
     const alvo = ola.querySelector('.mom-bloco') || ola; alvo.appendChild(caixa);
     const linha = caixa.querySelector('.conv-caio'), resposta = caixa.querySelector('.conv-jarvis');
     let texto = '', respondido = false;
+    const timers = new Set();
+    const depois = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, ms); timers.add(id); };
     // Teclados virtuais/IME entregam input, não necessariamente keydown com uma letra.
     const entrada = document.createElement('input'); entrada.type = 'text';
-    entrada.setAttribute('aria-label', 'Resposta à pergunta'); entrada.autocomplete = 'off';
+    entrada.setAttribute('aria-label', 'Conversa com Jarvis'); entrada.autocomplete = 'off';
     entrada.setAttribute('autocapitalize', 'off'); entrada.spellcheck = false; entrada.maxLength = 90;
     entrada.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;caret-color:transparent;pointer-events:none;font-size:16px;border:0';
     caixa.appendChild(entrada);
@@ -150,14 +152,15 @@
       // A digitação não pode ficar esperando o ticker do 3D para resolver o glifo.
       if (dur === .08) setTimeout(() => { if (!sp.isConnected) return; if (window.gsap) gsap.killTweensOf(sp); sp.textContent = ch; }, 80);
     };
-    const falar = (frase, el) => { el = el || resposta; el.textContent = ''; [...frase].forEach((ch, i) => setTimeout(() => decodificar(el, ch, .12), i * 12)); };
-    falar(sd.pergunta.q, caixa.querySelector('.conv-pergunta'));   // o estagiário pergunta numa fala própria
+    const falar = (frase, el) => { el = el || resposta; el.textContent = ''; [...frase].forEach((ch, i) => depois(() => decodificar(el, ch, .12), i * 12)); };
+    if (sd.pergunta) falar(sd.pergunta.q, caixa.querySelector('.conv-pergunta'));   // o estagiário pergunta numa fala própria
     function campoVisivel(foco) {
       if (!foco || foco === entrada || !foco.matches('input,textarea,select,[contenteditable="true"]')) return false;
       const cenaFoco = foco.closest('.narr-cena,.narr-texto-camada');
       return !(cenaFoco && (+getComputedStyle(cenaFoco).opacity < .5 || cenaFoco.getAttribute('aria-hidden') === 'true'));
     }
     function atualizarTexto(valor) {
+      if (respondido) return;
       valor = valor.slice(0, 90);
       let iguais = 0; while (iguais < texto.length && iguais < valor.length && texto[iguais] === valor[iguais]) iguais++;
       while (linha.childNodes.length > iguais) { const sp = linha.lastChild; if (window.gsap) gsap.killTweensOf(sp); sp.remove(); }
@@ -165,9 +168,9 @@
       texto = valor; entrada.value = texto; caixa.classList.toggle('digitando', !!texto);
     }
     function enviarResposta() {
-      if (!texto.trim()) return;
-      respondido = true; entrada.blur(); caixa.classList.add('enviada');
-      setTimeout(() => falar(responderComo(sd.pergunta, texto)), 350);
+      if (respondido || !texto.trim()) return;
+      respondido = true; entrada.readOnly = true; entrada.blur(); caixa.classList.add('enviada');
+      depois(() => falar(responderComo(sd.pergunta, texto)), 350);
     }
     function receberEntrada() {
       if (respondido || !ehAtiva()) { entrada.value = texto; entrada.blur(); return; }
@@ -179,7 +182,7 @@
     }
     entrada.addEventListener('input', receberEntrada);
     entrada.addEventListener('keydown', ev => { if (ev.key === 'Enter' && !ev.isComposing) ev.preventDefault(); });
-    addEventListener('pointerup', tocar);
+    addEventListener('click', tocar);
     function tecla(ev) {
       if (respondido || !ehAtiva() || ev.ctrlKey || ev.metaKey || ev.altKey || ev.isComposing) return;
       const foco = document.activeElement;
@@ -191,7 +194,8 @@
       ev.preventDefault(); atualizarTexto(texto + ev.key);
     }
     addEventListener('keydown', tecla, true);
-    return { ativa: () => !respondido && ehAtiva(), destruir() { removeEventListener('keydown', tecla, true); removeEventListener('pointerup', tocar); caixa.remove(); } };
+    if (ehAtiva() && !matchMedia('(pointer: coarse)').matches && !campoVisivel(document.activeElement)) entrada.focus({preventScroll:true});
+    return { ativa: () => ehAtiva(), focar() { if (!respondido && ehAtiva() && !matchMedia('(pointer: coarse)').matches) entrada.focus({preventScroll:true}); }, destruir() { timers.forEach(clearTimeout); removeEventListener('keydown', tecla, true); removeEventListener('click', tocar); caixa.remove(); } };
   }
 
   const CSS_CONVERSA = `
@@ -203,7 +207,7 @@
   .conversa.enviada .conv-caio{color:var(--mu)}
   .conv-jarvis{margin:6px 0 0;color:var(--pri)}
   .conv-jarvis:empty{display:none}
-  .conversa span{white-space:pre}
+  .conversa span{white-space:pre-wrap}
   @media(max-width:700px){.conversa{max-width:none;font-size:13px}}
   `;
   const CSS = `
@@ -735,7 +739,7 @@
       if (c.escrito) return; c.escrito = true;
       const rodada = c.rodada = (c.rodada || 0) + 1;
       if (!c.escrito || c.rodada !== rodada || !c.el.isConnected) return;
-      if (c.id === 'acesso') { if (acesso) { await acesso.escrever(); if (!('ontouchstart' in window)) acesso.focar(); } return; }
+      if (c.id === 'acesso') { if (acesso) { await acesso.escrever(); if (c.escrito && c.rodada === rodada && trecho === 'A' && !matchMedia('(pointer: coarse)').matches) acesso.focar(); } return; }
       const T = textos(c.id); c.vers = JSON.stringify(T);
       Escrita.preparar(c.partes.g, T.g); Escrita.preparar(c.partes.p, T.p);
       if (c.tela) {
@@ -776,7 +780,8 @@
           const limpar=()=>{if(c.escrito)return;if(c.id==='acesso'){if(acesso)acesso.zerar();}else {if(c.partes.g)Escrita.zerar(c.partes.g);if(c.partes.p)Escrita.zerar(c.partes.p);}};
           if(window.gsap)gsap.to(c.el,{opacity:0,duration:reduzido?.2:.25,overwrite:true,onComplete:limpar});else {c.el.style.opacity='0';limpar();}
         }
-        if(v&&c.id==='ola'&&conversa===null){conversa=false;setTimeout(()=>{if(ativa&&c.el.isConnected)conversa=montarConversa(c._textoCamada||c.el,()=>trecho==='A'&&+getComputedStyle(c.el).opacity>.5)||false;},1800);}   // depois da escrita, para não atrapalhar a decodificação
+        if(v&&c.id==='ola'&&conversa===null){conversa=false;setTimeout(()=>{if(ativa&&c.el.isConnected)conversa=montarConversa(c._textoCamada||c.el,()=>trecho==='A'&&c.escrito&&+getComputedStyle(c.el).opacity>.5)||false;},1800);}   // depois da escrita, para não atrapalhar a decodificação
+        if(v&&c.id==='ola'&&conversa&&conversa.focar&&document.activeElement===document.body)conversa.focar();
         c.jan=v;
         if (c.tela) c.tela.ativar(v > .5 && c.escrito);
       }
@@ -1108,7 +1113,7 @@
     addEventListener('keydown', (ev) => {
       if (!ativa || ev.ctrlKey || ev.metaKey || ev.altKey) return;
       if (/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '')) return;
-      if ((conversa === false && saudacaoFeita && saudacaoFeita.pergunta && trecho === 'A') || (conversa && conversa.ativa())) return;   // respondendo a pergunta da saudação: a tecla D é letra, não atalho
+      if ((conversa === false && trecho === 'A' && cena('ola').escrito) || (conversa && conversa.ativa())) return;   // respondendo a pergunta da saudação: a tecla D é letra, não atalho
       if (ev.key === 'd' || ev.key === 'D') { ev.preventDefault(); irDireto(); }
     });
 
