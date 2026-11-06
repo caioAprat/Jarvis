@@ -37,6 +37,7 @@
 
   function criar(scene, op) {
     if (!window.THREE || !window.CenarioGeometria) return null;
+    const movimento = matchMedia('(prefers-reduced-motion: reduce)');
     const E = op.E || 1, chao = op.pisoY != null ? op.pisoY : -3.2 * E, sorteio = rng(op.semente || 20261105);
     const R = (a, b) => a + (b - a) * sorteio(), V = (x, y, z) => new THREE.Vector3(x, y, z);
     const grupo = new THREE.Group(); grupo.name = 'veias'; scene.add(grupo);
@@ -132,7 +133,7 @@
     });
     let destruido = false;
     let t0 = performance.now();
-    function quadro() { const t = (performance.now() - t0) / 1000; mats.forEach(m => { m.uniforms.uT.value = t; }); }
+    function quadro() { const t = movimento.matches ? 0 : (performance.now() - t0) / 1000; mats.forEach(m => { m.uniforms.uT.value = t; }); }
     return {
       grupo, quadro,
       acender(v) { mats.forEach(m => { m.uniforms.uLuz.value = Math.max(0, Math.min(1.08, v)); }); },
