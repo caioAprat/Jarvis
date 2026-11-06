@@ -12,9 +12,9 @@
     const cossenos = new Float32Array(LADOS), senos = new Float32Array(LADOS);
     for(let i=0;i<LADOS;i++){cossenos[i]=Math.cos(i/LADOS*Math.PI*2);senos[i]=Math.sin(i/LADOS*Math.PI*2);}
     function conector() {
-      const pecas = [], corpo = new THREE.Mesh(new THREE.CylinderGeometry(.065*E,.065*E,.18*E,12)); pecas.push(corpo);
-      for(let i=0;i<3;i++){const aro=new THREE.Mesh(new THREE.TorusGeometry(.067*E,.008*E,4,12));aro.rotation.x=Math.PI/2;aro.position.y=(i-1)*.055*E;pecas.push(aro);}
-      const boot=new THREE.Mesh(new THREE.CylinderGeometry(raio,.052*E,.16*E,12));boot.position.y=.15*E;pecas.push(boot);
+      const pecas = [], corpo = new THREE.Mesh(new THREE.CylinderGeometry(.065*E,.065*E,.18*E,12),metal); pecas.push(corpo);
+      for(let i=0;i<3;i++){const aro=new THREE.Mesh(new THREE.TorusGeometry(.067*E,.008*E,4,12),metal);aro.rotation.x=Math.PI/2;aro.position.y=(i-1)*.055*E;pecas.push(aro);}
+      const boot=new THREE.Mesh(new THREE.CylinderGeometry(raio,.052*E,.16*E,12),metal);boot.position.y=.15*E;pecas.push(boot);
       const mesh=new THREE.Mesh(CenarioGeometria.unir(pecas),metal);
       const luz=new THREE.Mesh(new THREE.TorusGeometry(.082*E,.016*E,6,16),new THREE.MeshBasicMaterial({color:0xff9a4d,transparent:true,opacity:.75,depthWrite:false}));
       luz.rotation.x=Math.PI/2;luz.name='conector-energia';mesh.add(luz);mesh.userData.luz=luz;grupo.add(mesh);return mesh;

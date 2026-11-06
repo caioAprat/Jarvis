@@ -77,9 +77,14 @@
       aneis.forEach(o => { let p = 0; for (let i = 0; i < 3; i++) { const c = (tempo * .18 + i / 3) % 1; p = Math.max(p, 1 - Math.min(1, Math.abs(o.t - c) / .06)); } o.m.opacity = vis * (.14 + p * .7); o.anel.scale.setScalar(1 + p * .18); });
       pontas.forEach((o, i) => { o.m1.opacity = vis * (.35 + .25 * Math.sin(tempo * 3 + i * 1.7)); o.g.rotateZ(dt * .6); });
     }
+    let destruido = false;
     function destruir() {
+      if (destruido) return; destruido = true;
       dep.scene.remove(grupo); dep.scene.remove(ambiente); if (salaNucleo) dep.scene.remove(salaNucleo);
-      [grupo, ambiente, salaNucleo].forEach(r => r && r.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }));
+      const recursos = new Set();
+      [grupo, ambiente, salaNucleo].forEach(r => r && r.traverse(o => { if (o.geometry) recursos.add(o.geometry); if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => recursos.add(m)); }));
+      recursos.forEach(r => r.dispose());
+      [grupo, ambiente, salaNucleo].forEach(r => r && r.clear());
     }
     return { quadro, destruir };
   }

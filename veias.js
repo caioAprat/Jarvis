@@ -112,6 +112,7 @@
       mats.push(mat);
       const m = new THREE.Mesh(geo, mat); m.name = 'veias-' + ['corrugadas', 'lisas', 'feixes', 'fios'][tipo]; m.frustumCulled = false; grupo.add(m);
     });
+    let destruido = false;
     let t0 = performance.now();
     function quadro() { const t = (performance.now() - t0) / 1000; mats.forEach(m => { m.uniforms.uT.value = t; }); }
     return {
@@ -120,7 +121,7 @@
       carga(v) { mats.forEach(m => { m.uniforms.uCarga.value = v; }); },
       pulso(v) { mats.forEach(m => { m.uniforms.uPulso.value = Math.max(0, Math.min(1, v)); }); },
       contagem: () => listas.reduce((a, l) => a + l.length, 0),
-      destruir() { scene.remove(grupo); grupo.children.forEach(m => { m.geometry.dispose(); m.material.dispose(); }); },
+      destruir() { if (destruido) return; destruido = true; scene.remove(grupo); grupo.children.forEach(m => { m.geometry.dispose(); m.material.dispose(); }); grupo.clear(); mats.length = 0; },
     };
   }
   window.Veias = { criar };
