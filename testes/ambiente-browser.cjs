@@ -61,7 +61,7 @@ async function abrirChrome(options = {}) {
     for(let i=0;!fs.existsSync(portFile)&&i<200&&!launchError&&child.exitCode===null;i++)await delay(50);
     if(launchError)throw launchError;
     if(!fs.existsSync(portFile))throw Error('Chrome nao abriu a porta CDP em 10 s.');
-    const port=fs.readFileSync(portFile,'utf8').split('\n')[0].trim();
+    const port=await lerPortaCDP(portFile);
     if(!/^\d+$/.test(port))throw Error('Porta CDP invalida.');
     browser=await carregarPlaywright().chromium.connectOverCDP('http://127.0.0.1:'+port,{noDefaults:true});
     const context=browser.contexts()[0];
@@ -89,6 +89,16 @@ async function vigiarFoco(page) {
     addEventListener('blur', registrar);
     document.addEventListener('visibilitychange', registrar);
   });
+}
+async function lerPortaCDP(portFile) {
+  for(let i=0;i<200;i++) {
+    try {
+      const port=fs.readFileSync(portFile,'utf8').split('\n')[0].trim();
+      if(/^\d+$/.test(port)&&Number(port)>0&&Number(port)<=65535)return port;
+    } catch(error) {if(!['EBUSY','ENOENT','EPERM'].includes(error.code))throw error;}
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  throw Error('Arquivo DevToolsActivePort nao ficou legivel/completo em 10 s.');
 }
 async function exigirFoco(page) {
   const state = await page.evaluate(() => {
@@ -135,4 +145,4 @@ async function medirQuadros(page) {
   })),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(Error('Amostragem nao concluiu em 12 s; verificar foco, visibilidade e travamento do navegador.')),12000);})]);}
   finally{clearTimeout(deadline);}
 }
-module.exports = {carregarPlaywright, abrirChrome, vigiarFoco, exigirFoco, esperarAcesso, medirQuadros};
+module.exports = {carregarPlaywright, abrirChrome, vigiarFoco, exigirFoco, esperarAcesso, medirQuadros, lerPortaCDP};

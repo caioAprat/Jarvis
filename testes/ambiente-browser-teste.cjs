@@ -14,8 +14,19 @@ assert.notEqual(absent.status,0);
 assert.match(absent.stderr,/Playwright ausente.*npm install/);
 assert.doesNotMatch(absent.stderr,/MODULE_NOT_FOUND/);
 console.log('OK dependencia ausente informa como instalar');
-const {abrirChrome,vigiarFoco,exigirFoco,medirQuadros}=require('./ambiente-browser.cjs');
+const {abrirChrome,vigiarFoco,exigirFoco,medirQuadros,lerPortaCDP}=require('./ambiente-browser.cjs');
 (async()=>{
+  const fs=require('node:fs');
+  fs.mkdirSync(path.resolve(__dirname,'../.playwright-mcp/p8s'),{recursive:true});
+  const portFolder=fs.mkdtempSync(path.resolve(__dirname,'../.playwright-mcp/p8s/porta-regressao-'));
+  const portFile=path.join(portFolder,'DevToolsActivePort');fs.writeFileSync(portFile,'9222\n/devtools/browser/fixture');
+  const read=fs.readFileSync;let attempts=0;
+  fs.readFileSync=function(file,...args){
+    if(file===portFile){attempts++;if(attempts<=2)throw Object.assign(Error('Chrome ainda escrevendo'),{code:'EBUSY'});if(attempts===3)return '';}
+    return read.call(this,file,...args);
+  };
+  try{assert.equal(await lerPortaCDP(portFile),'9222');assert.equal(attempts,4);}finally{fs.readFileSync=read;}
+  console.log('OK arquivo CDP bloqueado/parcial e relido antes de conectar');
   for (const state of [{focused:false,hidden:false,lost:false},{focused:true,hidden:true,lost:false},{focused:true,hidden:false,lost:true}]) {
     await assert.rejects(exigirFoco({evaluate:async()=>state}),/AMBIENTE INVALIDO.*primeiro plano/);
   }
