@@ -48,24 +48,38 @@
       const regra = y => { ctx.fillStyle = C.linha; ctx.fillRect(12, y, 232, .5); };
       const pct = v => v == null ? '—' : Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
       const hist = (det.disp || []).slice(-30);
-      const serieDisp = hist.map(d => d.t ? d.u / d.t * 100 : null);
+      const disponibilidade = d => d && Number.isFinite(d.t) && d.t > 0 && Number.isFinite(d.u) && d.u >= 0 && d.u <= d.t ? d.u / d.t * 100 : null;
+      const serieDisp = Array(30 - hist.length).fill(null).concat(hist.map(disponibilidade));
+      const medidos = serieDisp.filter(Number.isFinite).length;
       const historico = (y, h = 12) => {
-        txt('30 DIAS NO AR', 12, y - 5, 7);
+        txt('30 DIAS NO AR · ' + medidos + '/30 MEDIDOS', 12, y - 5, 7);
         if (!hist.length) { txt('SEM HISTÓRICO', 12, y + 9, 8, C.di); return; }
         const dias = Array(30 - hist.length).fill(null).concat(hist);
-        barras(ctx, 12, y, 232, h, dias, d => !d || !d.t ? { c: C.vazio, a: 1 } : { c: d.u / d.t >= .995 ? C.ok : d.u / d.t >= .97 ? C.av : C.er });
+        barras(ctx, 12, y, 232, h, dias, d => disponibilidade(d) == null ? { c: C.vazio, a: 1 } : { c: disponibilidade(d) >= 99.5 ? C.ok : disponibilidade(d) >= 97 ? C.av : C.er, h: disponibilidade(d) / 100 });
       };
-      const grafico = (x, y, w, h, valores, cor) => {
-        for (let j = 0; j <= 2; j++) { ctx.fillStyle = C.linha; ctx.fillRect(x, y + j * h / 2, w, .5); }
-        if (!valores.some(Number.isFinite)) { txt('SEM SÉRIE', x, y + h / 2 + 3, 8, C.di, w); return; }
-        const vs = valores.filter(Number.isFinite), min = Math.min(...vs), max = Math.max(...vs);
+      // Grafana (referência): unidade/eixo explícitos e lacunas preservadas.
+      // Disponibilidade tem escala fixa 0–100: uma série constante não vira
+      // oscilação fictícia. Saldo usa sua própria escala, inclusive negativo/zero.
+      const grafico = (x, y, w, h, valores, cor, percentual = true) => {
+        const vs = valores.filter(Number.isFinite), inicio = x + 25, largura = w - 27;
+        let min = percentual ? 0 : Math.min(...vs), max = percentual ? 100 : Math.max(...vs);
+        if (!percentual && vs.length && min === max) { const margem = Math.max(1, Math.abs(min) * .05); min -= margem; max += margem; }
+        const eixo = v => percentual ? v + '%' : v.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+        if (vs.length || percentual) { txt(eixo(max), x, y + 6, 6, C.di, 23); txt(eixo(min), x, y + h, 6, C.di, 23); }
+        for (let j = 0; j <= 2; j++) { ctx.fillStyle = C.linha; ctx.fillRect(inicio, y + 3 + j * (h - 6) / 2, largura, .5); }
+        ctx.fillStyle = C.linha; ctx.fillRect(inicio, y + 3, .5, h - 6);
+        if (!vs.length) { txt('SEM LEITURAS', inicio + 3, y + h / 2 + 3, 7, C.di, largura - 3); return; }
         ctx.strokeStyle = cor; ctx.lineWidth = 1.2; ctx.beginPath(); let aberto = false;
+        let ultimo = null;
         valores.forEach((v, i) => {
           if (!Number.isFinite(v)) { aberto = false; return; }
-          const xx = x + i * w / Math.max(1, valores.length - 1), yy = y + h - 2 - (v - min) / (max - min || 1) * (h - 4);
+          const xx = inicio + i * largura / Math.max(1, valores.length - 1), yy = y + h - 3 - (v - min) / (max - min || 1) * (h - 6);
           if (aberto) ctx.lineTo(xx, yy); else ctx.moveTo(xx, yy);
-          aberto = true; ctx.fillStyle = cor; ctx.fillRect(xx - .8, yy - .8, 1.6, 1.6);
+          aberto = true; ctx.fillStyle = cor; ctx.fillRect(xx - .8, yy - .8, 1.6, 1.6); ultimo = { x: xx, y: yy };
         }); ctx.stroke();
+        ctx.fillStyle = cor; ctx.fillRect(ultimo.x - 1.5, ultimo.y - 1.5, 3, 3);
+        const constante = vs.length > 1 && vs.every(v => v === vs[0]);
+        txt(percentual ? vs.length + '/30 DIAS' + (constante ? ' · ESTÁVEL' : '') : vs.length + ' PONTOS · R$', x, y + h + 9, 6.5, C.mu, w);
       };
       txt(MapaVivo.limpar(p.nome).toUpperCase(), 12, 17, 9, C.tx, 180);
       txt(new Date().toLocaleTimeString('pt-BR'), 195, 17, 7, C.di, 49);
@@ -90,16 +104,18 @@
         historico(113, 17);
       } else if (m.id === 'assistente' || m.id === 'painel') {
         fin = fin && fin.ok !== false ? fin : null;
-        const livre = fin && fin.livre != null ? fin.livre : p.extra && p.extra.livre;
+        const numerico = v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : null;
+        const livre = numerico(fin && fin.livre) ?? numerico(p.extra && p.extra.livre);
         const ate = fin && fin.diaMenor || p.extra && p.extra.ate;
         const moeda = livre == null ? '—' : Number(livre).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-        const saldo = !!(fin && Array.isArray(fin.serie) && fin.serie.length);
-        const valores = saldo ? fin.serie.slice(-30).map(s => s.caixa == null ? null : Number(s.caixa)) : serieDisp;
-        const y = m.id === 'assistente' ? 102 : 51, base = m.id === 'assistente' ? 62 : 112;
-        grafico(12, y, 232, 28, valores, saldo ? C.pri : ST[p.status] || C.di);
-        txt(moeda, 12, base, 29, C.tx);
-        txt('LIVRE ATÉ ' + (ate ? new Date(String(ate).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '—'), 12, base + 14);
-        txt(saldo ? 'SALDO PROJETADO' : 'DISPONIBILIDADE / 30 DIAS', 12, y - 5, 7);
+        const serieSaldo = fin && Array.isArray(fin.serie) ? fin.serie.slice(-30).map(s => numerico(s && s.caixa)) : [];
+        const saldo = serieSaldo.some(Number.isFinite), valores = saldo ? serieSaldo : serieDisp;
+        const data = ate && /^\d{4}-\d{2}-\d{2}/.test(String(ate)) ? new Date(String(ate).slice(0, 10) + 'T12:00:00') : null;
+        txt(livre == null ? 'SEM SALDO' : moeda, 12, 65, livre == null ? 22 : 29, livre == null ? C.mu : C.tx);
+        txt(livre == null ? 'LEITURA FINANCEIRA INDISPONÍVEL' : data && Number.isFinite(data.getTime()) ? 'LIVRE ATÉ ' + data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 'DATA NÃO INFORMADA', 12, 80, 7);
+        regra(87);
+        txt(saldo ? 'SALDO PROJETADO · R$' : 'DISPONIBILIDADE DO PROJETO / 30 DIAS', 12, 98, 7);
+        grafico(12, 103, 232, 24, valores, saldo ? C.pri : ST[p.status] || C.di, !saldo);
       } else {
         const coluna = proto.modulos.indexOf(m) % 2 === 0;
         txt(pct(p.disp7), coluna ? 12 : 107, 76, 31, C.tx, 137);
