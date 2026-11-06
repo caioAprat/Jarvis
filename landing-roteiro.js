@@ -313,6 +313,11 @@
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (document.getElementById('narr-css') == null) { const s = document.createElement('style'); s.id = 'narr-css'; s.textContent = CSS + CSS_CONVERSA; document.head.appendChild(s); }
     const host = op.host, mapa = op.mapa, api = op.api;
+    const ouvintes = [];
+    function ouvir(tipo, fn, opcoes) {
+      addEventListener(tipo, fn, opcoes);
+      ouvintes.push(() => removeEventListener(tipo, fn, opcoes));
+    }
     const cine = window.LandingCinema && mapa ? LandingCinema.criar(mapa, reduzido, CAM_A) : null;   // as chaves de verdade vêm de chavesA()/chavesB(), montadas sobre o protótipo
     const passe = cine ? cine.passe() : null;
     const leve = innerWidth < 700, dep = mapa ? mapa.depurar() : null, E = dep ? dep.escala : 2.6;
@@ -364,7 +369,7 @@
     };
     requestAnimationFrame(aquecerTela);
     // ao sair/recarregar: devolve a memória de vídeo na hora (GPU integrada não recupera a tempo e a próxima carga fica a 1 quadro/s)
-    addEventListener('pagehide', () => { try { if (dep && dep.renderer) { dep.renderer.dispose(); dep.renderer.forceContextLoss(); } } catch (e) {} });
+    ouvir('pagehide', () => { try { if (dep && dep.renderer) { dep.renderer.dispose(); dep.renderer.forceContextLoss(); } } catch (e) {} });
     const intro = { v: reduzido ? 1 : 0 };                       // os fios do chão acendem sozinhos na chegada
     if (!reduzido && window.gsap) gsap.to(intro, { v: 1, duration: 3.2, delay: .6, ease: 'power1.inOut', onUpdate: () => { if (trecho === 'A' && atual.p < .05) aplicar(atual.p); } });
     let quadroNarrativa = null;
@@ -390,7 +395,7 @@
       });
     }
     // clique/toque numa tela de módulo → portal → painel lateral do projeto
-    addEventListener('pointerdown', (ev) => {
+    ouvir('pointerdown', (ev) => {
       if (window.editarCamera && ev.composedPath().some(el => el.id === 'theatrejs-studio-root')) return;
       if (!ativa || trecho !== 'B' || projeto || !proto || (ev.target.closest && ev.target.closest('button,a,input,.dock,.barra,.pal,.painel-sel'))) return;
       const id = proto.telaEm((ev.clientX / innerWidth) * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
@@ -609,7 +614,7 @@
       const fov=pontos[i-1].fov+(pontos[i].fov-pontos[i-1].fov)*(lo+f)/128;
       return {d:d/camZ(),a:delta.y/d,o:Math.atan2(delta.x,delta.z),f:fov,cx:alvo.x,cy:alvo.y,cz:alvo.z,g:0,x:0};
     }
-    addEventListener('resize', () => {
+    ouvir('resize', () => {
       if(!cine||!ativa)return;
       if(trecho==='A')cine.trocar(chavesA());
       // Em B o trilho inclui o prefixo A; não substituí-lo pela tabela B isolada.
@@ -1118,10 +1123,15 @@
 
     // ------------------------------------------------------------ fim da narrativa / ir direto
     function terminar() {
+      if (!ativa) return; ativa = false;
+      ouvintes.splice(0).forEach(remover => remover());
+      removeEventListener('keydown', escProjeto); removeEventListener('wheel', sairProjeto); removeEventListener('touchmove', sairProjeto);
+      if (conversa && conversa.destruir) conversa.destruir();
+      if (acesso && acesso.destruir) acesso.destruir();
+      if (window.gsap) gsap.killTweensOf(intro);
       if (movimento) movimento.kill();
       if (lenis) { gsap.ticker.remove(quadroLenis); lenis.destroy(); }
       desinscreverCamera.forEach(f=>f());
-      if (!ativa) return; ativa = false;
       if (quadroNarrativa) gsap.ticker.remove(quadroNarrativa);
       if (projeto) { projeto = null; if (camadaProj) { Escrita.liberar(camadaProj); camadaProj.remove(); } }
       if (trigger) { trigger.kill(); trigger = null; }
@@ -1139,7 +1149,7 @@
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
       if (rotulos) rotulos.destruir();
-      if (proto) proto.aparecer(0); if (fios) fios.destruir(); if (planeta) planeta.mostrar(0);
+      if (fios) fios.destruir(); if (proto) proto.destruir(); if (planeta) planeta.destruir();
       if (mapa) { mapa.orbitas(true); mapa.deformar(0); mapa.ambienteEmCamadas(false); }
       document.body.classList.remove('narr-on', 'narr-b', 'narr-sem-rotulos'); document.body.classList.add('momentos-vistos');
       travarRolagem(false);
@@ -1161,7 +1171,7 @@
       if (api.acesso() !== 'livre') { irAoAcesso(); return; }
       terminar();
     }
-    addEventListener('keydown', (ev) => {
+    ouvir('keydown', (ev) => {
       if (!ativa || ev.ctrlKey || ev.metaKey || ev.altKey) return;
       if (/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '')) return;
       if ((conversa === false && trecho === 'A' && cena('ola').escrito) || (conversa && conversa.ativa())) return;   // respondendo a pergunta da saudação: a tecla D é letra, não atalho

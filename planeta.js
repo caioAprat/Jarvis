@@ -87,8 +87,23 @@
     }
     const v = new THREE.Vector3();
     function ancora() { return v.set(R * .72, R * .62, R * .3).add(grupo.position).clone(); }
+    let destruido = false;
+    function destruir() {
+      if (destruido) return; destruido = true;
+      grupo.visible = false; grupo.removeFromParent ? grupo.removeFromParent() : cena.remove(grupo);
+      const recursos = new Set();
+      grupo.traverse(o => {
+        if (o.geometry) recursos.add(o.geometry);
+        for (const m of [].concat(o.material || [])) {
+          recursos.add(m);
+          for (const valor of Object.values(m)) if (valor && valor.isTexture) recursos.add(valor);
+        }
+      });
+      recursos.forEach(r => r.dispose());
+      grupo.clear();
+    }
     mostrar(0);
-    return { grupo, posicao: grupo.position, raio: R, mostrar, quadro, ancora, visivel: () => vis.v };
+    return { destruir, grupo, posicao: grupo.position, raio: R, mostrar, quadro, ancora, visivel: () => vis.v };
   }
 
   window.Planeta = { montar };

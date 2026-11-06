@@ -192,8 +192,24 @@
       return hit ? hit.object.userData.projeto : null;
     }
 
+    let destruido = false;
+    function destruir() {
+      if (destruido) return; destruido = true;
+      if (window.gsap) modulos.forEach(m => gsap.killTweensOf(m.enf));
+      raiz.visible = false; raiz.removeFromParent ? raiz.removeFromParent() : cena.remove(raiz);
+      const recursos = new Set();
+      raiz.traverse(o => {
+        if (o.geometry) recursos.add(o.geometry);
+        for (const m of [].concat(o.material || [])) {
+          recursos.add(m);
+          for (const valor of Object.values(m)) if (valor && valor.isTexture) recursos.add(valor);
+        }
+      });
+      recursos.forEach(r => r.dispose());
+      raiz.clear();
+    }
     aparecer(0);
-    return { E, raiz, modulos, aparecer, enfatizar, atualizarStatus, quadro, ancora, ancoraFora, centroModulos, telaEm, visivel: () => vis.v };
+    return { destruir, E, raiz, modulos, aparecer, enfatizar, atualizarStatus, quadro, ancora, ancoraFora, centroModulos, telaEm, visivel: () => vis.v };
   }
 
   window.Prototipo = { montar };
