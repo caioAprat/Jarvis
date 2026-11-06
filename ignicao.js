@@ -62,9 +62,12 @@
     };
     const ativos = [];
     function disparar(tipo, p, vezes) {
-      const em = emissor(tipos[tipo]);
+      const config = tipos[tipo], rajadas = Math.max(1, Math.round(vezes || 1));
+      const em = emissor(Object.assign({}, config, { n: config.n.map(n => n * rajadas) }));
       em.position.x = p.x; em.position.y = p.y; em.position.z = p.z;
-      em.emit(vezes || 1, (tipos[tipo].vida[1] || 1) + .2);
+      // Nebula: emit(1) faz uma rajada; emit(3) emite continuamente por 3 segundos.
+      em.emit(1);
+      em.life = config.vida[1] + .2; // preserva a vida das particulas antes de descartar o emissor
       ativos.push(em);
       return em;
     }

@@ -954,6 +954,8 @@
       let tempo=0,animacao=null,rolagem=null;
       const pd=portalDados={tempo:()=>tempo,progresso(p){
         tempo=p*T;
+        // O HUD pode redimensionar o canvas: recalcula dist/camZ sem mover a pose no mundo.
+        if(!reduzido && tempo<T_CAM)solicitarCamera(cameraEm(fracaoA));
         if(mapa)mapa.energia(reduzido?1:energiaEm(tempo));
         if(mapa&&mapa.vida)mapa.vida(reduzido?1:vidaEm(tempo));
         if(campo)campo.progresso(reduzido?1:clamp((tempo-DISPARO)/1.4));
@@ -969,6 +971,7 @@
         if(telas)telas.ligar(telasV);
         if(ign&&proto)telasV.forEach((v,i)=>{if(v>0&&!ligado[i]){ligado[i]=true;const m=proto.modulos[i];if(m&&m.g)ign.conector(m.g.getWorldPosition(pos.set(0,0,0)).clone());}});
       },destruir(){
+        soltar(); // tambem libera wheel/touchmove quando a narrativa e interrompida
         if(animacao)animacao.kill();if(rolagem)rolagem.kill();
         if(saida)saida.remove();if(onda)onda.destruir();
         if(mapa)mapa.energia(1);if(mapa&&mapa.ignicaoTela)mapa.ignicaoTela({onda:0,raios:0});
@@ -985,7 +988,7 @@
       // A rolagem fica presa durante a ignição: ninguém pula o momento sem querer.
       const segurar=e=>{if(e.cancelable)e.preventDefault();};
       if(!reduzido){if(lenis)lenis.stop();addEventListener('wheel',segurar,{passive:false});addEventListener('touchmove',segurar,{passive:false});}
-      const soltar=()=>{removeEventListener('wheel',segurar);removeEventListener('touchmove',segurar);if(lenis)lenis.start();};
+      const soltar=()=>{removeEventListener('wheel',segurar);removeEventListener('touchmove',segurar);if(lenis&&ativa)lenis.start();};
       const concluir=()=>{
         soltar();
         if(!ativa)return;pd.destruir();portalDados=null;
