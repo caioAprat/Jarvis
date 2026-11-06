@@ -111,7 +111,7 @@
         const serieSaldo = fin && Array.isArray(fin.serie) ? fin.serie.slice(-30).map(s => numerico(s && s.caixa)) : [];
         const saldo = serieSaldo.some(Number.isFinite), valores = saldo ? serieSaldo : serieDisp;
         const data = ate && /^\d{4}-\d{2}-\d{2}/.test(String(ate)) ? new Date(String(ate).slice(0, 10) + 'T12:00:00') : null;
-        txt(livre == null ? 'SEM SALDO' : moeda, 12, 65, livre == null ? 22 : 29, livre == null ? C.mu : C.tx);
+        txt(livre == null ? 'SALDO INDISPONÍVEL' : moeda, 12, 65, livre == null ? 16 : 29, livre == null ? C.mu : C.tx);
         txt(livre == null ? 'LEITURA FINANCEIRA INDISPONÍVEL' : data && Number.isFinite(data.getTime()) ? 'LIVRE ATÉ ' + data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 'DATA NÃO INFORMADA', 12, 80, 7);
         regra(87);
         txt(saldo ? 'SALDO PROJETADO · R$' : 'DISPONIBILIDADE DO PROJETO / 30 DIAS', 12, 98, 7);
