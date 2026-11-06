@@ -335,7 +335,7 @@
     let campo = !reduzido && mapa && window.Ignicao && Ignicao.campo ? Ignicao.campo(mapa, { E }) : null;
     let ondaIgnicao = !reduzido && mapa && window.CenarioGeometria ? CenarioGeometria.ondaPiso(dep.scene, E) : null;
     const malhaVeias = mapa && window.Veias ? Veias.criar(mapa.depurar().scene, { E, pisoY: -3.2 * E }) : null;
-    if (malhaVeias && mapa.aoQuadro) mapa.aoQuadro(() => { malhaVeias.quadro(); if (trecho === 'B' && !portalDados) { malhaVeias.acender(1.08); malhaVeias.pulso(.35); malhaVeias.carga(-1); } });
+    const tirarVeias = malhaVeias && mapa.aoQuadro ? mapa.aoQuadro(() => { malhaVeias.quadro(); if (trecho === 'B' && !portalDados) { malhaVeias.acender(1.08); malhaVeias.pulso(.35); malhaVeias.carga(-1); } }) : null;
     // G2 (Caio, 05/11): depois da saudação o núcleo está TOTALMENTE desligado (quase sem luz, parado). Cada dígito do PIN
     // acende um pouco (luz e giro); só a ignição o deixa 100% vivo.
     let digitos = 0, acesoSuave = 0;
@@ -1127,6 +1127,9 @@
       if (projeto) { projeto = null; if (camadaProj) { Escrita.liberar(camadaProj); camadaProj.remove(); } }
       if (trigger) { trigger.kill(); trigger = null; }
       if (portalDados) { portalDados.destruir(); portalDados = null; }
+      if (tirarVeias) tirarVeias();
+      if (tirarMorto) tirarMorto();
+      if (malhaVeias) malhaVeias.destruir();
       cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
       if (particulas) particulas.destruir();
       if (hologramas) hologramas.destruir();
