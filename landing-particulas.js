@@ -7,8 +7,8 @@
   // Tres planos ativos tambem no mobile; populacao total > 5x a rodada 1.
   const CAMADAS = [
     { nome: 'frente', z: [.3,.6], n: 180, escala: [2,3], opacidade: .32, parallax: 1, scroll: 1, velocidade: 1 },
-    { nome: 'medio', z: [.7,1.12], n: 1800, escala: [1,1.5], opacidade: .55, parallax: .25, scroll: .25, velocidade: .45 },
-    { nome: 'fundo', z: [1.12,2.2], n: 4200, escala: [.5,1], opacidade: .48, parallax: .08, scroll: .08, velocidade: .16 },
+    { nome: 'medio', z: [.7,1.12], n: 1950, escala: [1,1.5], opacidade: .55, parallax: .25, scroll: .25, velocidade: .45 },
+    { nome: 'fundo', z: [1.12,2.2], n: 4500, escala: [.5,1], opacidade: .48, parallax: .08, scroll: .08, velocidade: .16 },
   ];
   function montar(cena, op) {
     op = op || {}; const camera = op.camera, leve = !!op.leve, E = op.escala || 2.6;
@@ -31,7 +31,17 @@
       const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(p,3));geo.setAttribute('aSize',new THREE.BufferAttribute(size,1));geo.setAttribute('aFase',new THREE.BufferAttribute(fase,1));geos.push(geo);
       const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:k===0?THREE.NormalBlending:THREE.AdditiveBlending,
         uniforms:{uTime:{value:0},uOpacity:{value:c.opacidade},uScale:{value:1},uFrente:{value:k===0?1:0},uAreas:{value:areas},uViewport:{value:new THREE.Vector2()},uPix:{value:1}},
-        vertexShader:`attribute float aSize,aFase;uniform float uTime,uScale,uPix;varying float vFase,vDist;void main(){vec3 p=position;p.x+=sin(uTime*.08+aFase)*.018;p.y+=cos(uTime*.065+aFase)*.015;vec4 mv=modelViewMatrix*vec4(p,1.);vDist=-mv.z;vFase=aFase;gl_Position=projectionMatrix*mv;gl_PointSize=clamp(aSize*uPix*uScale/max(.1,-mv.z),.55,72.);}`,
+        // Curl analítico de um potencial 3D em duas frequências não comensuráveis.
+        // Derivadas fechadas: sem seis amostras de noise por vértice e sem uploads por quadro.
+        // Campo ambiente, sem atração ao núcleo; deriva lateral para fora, nunca ascensão radial.
+        vertexShader:`attribute float aSize,aFase;uniform float uTime,uScale,uPix;varying float vFase,vDist;
+          vec3 curl(vec3 q){return vec3(-sin(q.y)-cos(q.z),-sin(q.z)-cos(q.x),-sin(q.x)-cos(q.y));}
+          void main(){vec3 p=position;
+            vec3 q=p*3.7+vec3(uTime*.047,-uTime*.031,uTime*.023);
+            vec3 corrente=curl(q)+.37*curl(q*1.618+vec3(2.3,4.1,1.7));
+            p+=corrente*.022;
+            p.x+=sign(position.x)*(1.-cos(uTime*.037))*.025;
+            vec4 mv=modelViewMatrix*vec4(p,1.);vDist=-mv.z;vFase=aFase;gl_Position=projectionMatrix*mv;gl_PointSize=clamp(aSize*uPix*uScale/max(.1,-mv.z),.55,72.);}`,
         fragmentShader:`uniform float uOpacity,uFrente,uPix;uniform vec2 uViewport;uniform vec4 uAreas[12];varying float vFase,vDist;void main(){vec2 d=gl_PointCoord-.5;float r=length(d);if(r>.5)discard;vec2 screen=vec2(gl_FragCoord.x/uPix,uViewport.y-gl_FragCoord.y/uPix);if(uFrente>.5){for(int i=0;i<12;i++){vec4 a=uAreas[i];if(screen.x>a.x&&screen.y>a.y&&screen.x<a.z&&screen.y<a.w)discard;}}float fall=exp(-dot(d,d)*22.)*(1.-smoothstep(.35,.5,r));vec3 cor=mix(vec3(.69,.61,.52),vec3(1.,.6,.3),step(3.,vFase));if(uFrente>.5)cor=vec3(.69,.42,.2);gl_FragColor=vec4(cor,fall*uOpacity*exp(-vDist*.0018));}`});materiais.push(mat);
       const points=new THREE.Points(geo,mat);points.name='poeira-'+c.nome;points.frustumCulled=false;grupo.add(points);
       grupo.userData.pontos=points;grupo.userData.quantidade=n;

@@ -267,6 +267,15 @@
     const tinta = new THREE.Color(1, .56, .2), tintaVetor = new THREE.Vector3(1, .56, .2);
     const glowMat = new THREE.SpriteMaterial(Object.assign({ map: T_GLOW, color: new THREE.Color(1, .55, .2), opacity: .4 }, aditivo));
     const glow = new THREE.Sprite(glowMat); glow.scale.setScalar(7.5); nucleo.add(glow);
+    // P4 · halo atmosférico (ref Active Theory), só na landing. Mesma textura/pipeline;
+    // sem luz real extra, cone opaco ou aumento do bloom. A energia do PIN o apaga junto.
+    let atmosfera = null;
+    if (o.fundo) {
+      atmosfera = new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({
+        map: T_GLOW, color: 0xff9a4d, opacity: .035
+      }, aditivo)));
+      atmosfera.visible = false; atmosfera.name = 'halo-atmosferico'; atmosfera.scale.set(12, 9, 1); nucleo.add(atmosfera);
+    }
     const plasmaMat = new THREE.ShaderMaterial(Object.assign({ vertexShader: VERT_PLASMA, fragmentShader: FRAG_PLASMA,
       uniforms: { uEnergia: { value: 1 }, uTime: { value: 0 }, uBulge: { value: 0 }, uDeform: { value: 0 }, uM: { value: mDir }, uTint: { value: tintaVetor } } }, aditivo));
     const plasma = new THREE.Mesh(new THREE.SphereGeometry(1.05, o.leve ? 32 : 72, o.leve ? 24 : 52), plasmaMat); plasma.renderOrder = 5; nucleo.add(plasma);
@@ -707,7 +716,7 @@
       gsap.to(scr, { v: p, duration: .7, ease: 'power2.out', overwrite: true, onUpdate: () => { if (reduzido) estatico(); } });
       el.style.pointerEvents = p > .5 || el.dataset.modo === 'fundo' ? 'none' : '';
     }
-    function destruir() { desligar(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
+    function destruir() { desligar(); if (atmosfera) atmosfera.material.dispose(); ro.disconnect(); io.disconnect(); limparNos(); renderer.dispose(); el.remove(); }
 
     // --- extras da landing (não usados por pc.html nem app.html) ---------------
     /** Conduz a câmera pela rolagem. `{ dist, alt, fov, orbita }` em multiplicadores; `null` volta ao normal. */
@@ -724,6 +733,7 @@
     function orbitasVisiveis(v) { v = v !== false; orbitas.visible = v; pulsosPts.visible = v; fluxoLigacao.visible = v; }
     /** Só a landing substitui a poeira externa pelas suas camadas. Núcleo/anatomia intactos. */
     function ambienteEmCamadas(v) {
+      if (atmosfera) atmosfera.visible = !!v;
       fluxoObjs.forEach(p => { p.visible = !v; });
       if (scene.userData.estrelas) scene.userData.estrelas.visible = !v;
     }
