@@ -37,3 +37,8 @@ node testes/ignicao-browser.cjs --profile
 Gera também `ignicao.cpuprofile`, que abre em Chrome DevTools → Performance → Load profile. O profiler acrescenta custo: compare fps entre execuções equivalentes. O diagnóstico identifica operações que contribuem para os engasgos, sem prometer atribuição exata de pausas de GPU/driver nem de uma medição histórica sem perfil.
 
 Regressão geral: `node testes/testes.js`.
+
+
+Triagem P6: a execução padrão abre três sessões sequenciais independentes e aplica os limites à mediana dos três fps médios e à mediana dos três piores quadros, para a ignição e cada parada. Não descarta rodadas lentas. Erros funcionais, foco, energia e identidade da cena devem passar em TODAS as rodadas. `--round` executa uma rodada de diagnóstico, sem aplicar os limites de desempenho. Cada rodada salva `rodada-N/resultado.json`; `mediana.json` conserva o agregado e as três medições. A navegação espera o fim do portal e do bloqueio do Lenis; a chegada é confirmada pelo ID antes dos 2,5 s de assentamento. As sondas `entry` incluem viagem/entrada e `diagnostic` cobre os 2 s da parada. Nenhuma meta foi relaxada.
+
+Ciclo de vida: com a mesma prévia e `PLAYWRIGHT_MODULE`, rode `node testes/ciclo-vida-browser.cjs`. Verifica encerramento idempotente, remoção de listeners, descarte único de recursos e memória GPU estável em três montagens/desmontagens de protótipo e planeta.

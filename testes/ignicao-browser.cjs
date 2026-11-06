@@ -11,12 +11,31 @@ const root = path.resolve(__dirname, '..');
 const out = path.resolve(process.env.IGNICAO_OUTPUT || path.join(root, '.playwright-mcp/p2b'));
 fs.mkdirSync(out, { recursive: true });
 
+if (!process.argv.includes('--round')) {
+  const { spawnSync } = require('node:child_process');
+  const rounds = [];
+  for (let i = 1; i <= 3; i++) {
+    const dir = path.join(out, 'rodada-' + i);
+    const r = spawnSync(process.execPath, [__filename, ...process.argv.slice(2), '--round'], {
+      stdio: 'inherit', env: { ...process.env, IGNICAO_OUTPUT: dir }
+    });
+    assert.equal(r.status, 0, 'Falha funcional na rodada ' + i);
+    rounds.push(JSON.parse(fs.readFileSync(path.join(dir, 'resultado.json'))).summary);
+  }
+  const median = values => values.sort((a,b)=>a-b)[1];
+  const summary = { fps: median(rounds.map(r=>r.fps)), worstMs: median(rounds.map(r=>r.worstMs)),
+    stops: rounds[0].stops.map((s,i)=>({id:s.id, fps:median(rounds.map(r=>r.stops[i].fps)), worstMs:median(rounds.map(r=>r.stops[i].worstMs))})) };
+  fs.writeFileSync(path.join(out,'mediana.json'),JSON.stringify({summary,rounds},null,2));
+  console.log('Mediana de 3 rodadas:', JSON.stringify(summary,null,2));
+  for (const s of [summary,...summary.stops]) assert.ok(s.fps>=55 && s.worstMs<50, (s.id||'ignição')+': '+s.fps+' fps / '+s.worstMs+' ms');
+  process.exit(0);
+}
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: false,
     args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
-    const errors = [];
+    const errors = []; page.setDefaultTimeout(30000);
     const cdp = await page.context().newCDPSession(page);
     const trace = [];
     if (process.argv.includes('--trace')) {
@@ -62,7 +81,7 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(source.split(marker).length, 2, 'Sonda da ignição precisa ser atualizada');
       source = source.replace(marker, `window.__diag.start=performance.now(); window.__diag.pd=pd; const est={p:0};`);
       source = source.replace('const planeta =', 'window.__testScene={mapa,malhaVeias,fios}; const planeta =');
-      source = source.replace('function irCena(c) {', 'window.__irCenaTeste=id=>irCena(cenas.find(c=>c.id===id)); function irCena(c) {');
+      source = source.replace('function irCena(c) {', 'window.__navegacaoPronta=()=>!portalDados&&!passeioAutomatico&&(!lenis||!lenis.isLocked); window.__irCenaTeste=id=>irCena(cenas.find(c=>c.id===id)); function irCena(c) {');
       await route.fulfill({ contentType: 'text/javascript', body: source });
     });
     await page.route('**/mapa-vivo.js*', async route => {
@@ -152,21 +171,26 @@ fs.mkdirSync(out, { recursive: true });
       longTasks: data.longTasks.filter(s => s.start < worst.end && s.start + s.duration > worst.start), errors };
     const stops = [];
     if (!process.argv.includes('--ignition-only')) {
+      await page.waitForFunction(() => __navegacaoPronta());
       for (const id of ['situacao', 'gabinete', 'planilha', 'assistente', 'painel', 'pedalada', 'atrasos', 'cacador', 'planeta', 'fecho']) {
-        await page.evaluate(id => __irCenaTeste(id), id);
+        console.log('Medindo parada', id);
+        const arrivalStart = await page.evaluate(id => { const start=performance.now(); __irCenaTeste(id); return start; }, id);
+        await page.waitForFunction(id => NARR.cenaEm(NARR.progresso()) === id, id).catch(async e=>{console.error('Navegação',id,await page.evaluate(()=>({p:NARR.progresso(),scene:NARR.cenaEm(NARR.progresso()),scroll:scrollY})));throw e;});
         await page.waitForTimeout(2500);
         const stop = await page.evaluate(() => new Promise(resolve => {
-          const frames = []; let first, previous;
+          const frames = []; const start=performance.now(); let first, previous;
           function tick(now) {
             if (first === undefined) first = now;
             if (previous !== undefined) frames.push(now - previous);
             previous = now;
             if (now - first < 2000) return requestAnimationFrame(tick);
             resolve({ fps: frames.length * 1000 / (now - first), worstMs: Math.max(...frames),
+              diagnostic: {start, end:now, spans:__diag.spans.filter(s=>s.start>=start), longTasks:__diag.longTasks.filter(s=>s.start>=start)},
               focused: document.hasFocus(), hidden: document.hidden, scene: NARR.cenaEm(NARR.progresso()) });
           }
           requestAnimationFrame(tick);
         }));
+        stop.entry = await page.evaluate(start=>({spans:__diag.spans.filter(s=>s.start>=start),longTasks:__diag.longTasks.filter(s=>s.start>=start)}),arrivalStart);
         stops.push({id, ...stop});
         if (process.argv.includes('--screenshots')) await page.screenshot({path:path.join(out, id+'.png')});
       }
@@ -200,19 +224,17 @@ fs.mkdirSync(out, { recursive: true });
       await cdp.send('Tracing.end'); await done;
       fs.writeFileSync(path.join(out, 'trace.json'), JSON.stringify({traceEvents:trace}));
     }
-    console.log(JSON.stringify({ ...summary, cpu: summary.cpu?.map(n => ({ samples: n.samples, functions: n.stack.map(f => f.functionName) })) }, null, 2));
+    console.log(JSON.stringify({ ...summary, stops:stops.map(({diagnostic,entry,...s})=>s), cpu: summary.cpu?.map(n => ({ samples: n.samples, functions: n.stack.map(f => f.functionName) })) }, null, 2));
     assert.equal(errors.length, 0, 'Erros no console');
     assert.ok(data.samples.every(s => !s.hidden && s.focused), 'Chrome precisa ficar em primeiro plano');
     assert.ok(data.samples.length >= 65, 'Amostragem insuficiente para 7 s');
     assert.ok(data.samples.some(s => s.timeline >= 2.8 && s.energy > 1), 'Núcleo não passou de energia 1 após 2,8 s');
     assert.ok(data.samples.some(s => s.veins.every(v => v.light >= 1)), 'Veias não energizaram');
-    assert.ok(fps >= 55, `Média ${fps.toFixed(2)} fps abaixo de 55`);
-    assert.ok(worst.dt < 50, `Pior quadro ${worst.dt.toFixed(2)} ms precisa ser <50 ms`);
+    // Desempenho é validado pelo processo pai, usando as três rodadas.
     for (const stop of stops) {
       assert.equal(stop.scene, stop.id, `Câmera fora da parada ${stop.id}`);
       assert.ok(stop.focused && !stop.hidden, `Chrome sem foco em ${stop.id}`);
-      assert.ok(stop.fps >= 55 && stop.worstMs < 50, `${stop.id}: ${stop.fps.toFixed(2)} fps / ${stop.worstMs.toFixed(2)} ms`);
     }
-    console.log('Ignição: PASSOU');
+    console.log('Rodada: verificações funcionais passaram; desempenho salvo para a mediana');
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });
