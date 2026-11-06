@@ -1,5 +1,17 @@
 # Regressão do Jarvão
 
+P9: `node testes/qualidade-p9.cjs` verifica com relógio controlado a política real de qualidade (aquecimento, recuperação e foco); incluído em `tudo.cjs`. `node testes/p9-browser.cjs` compara produção em aba e `--app`, com perfis descartáveis separados, sem acessar credenciais pessoais. Para validar a correção na prévia local, no PowerShell:
+
+```powershell
+$env:P9_URL = 'http://127.0.0.1:4173/pc.html?diag=1'
+$env:P9_ROUNDS = '3'
+$env:P9_LABEL = 'corrigido'
+$env:P9_ASSERT = '1'
+node testes/p9-browser.cjs
+```
+
+Os arquivos JSON e screenshots ficam em `.playwright-mcp/p9/`. A URL `?diag=1` escreve no console o diagnóstico inicial e mudanças de nível; `MV.diagnostico()` consulta o estado atual no console da central. Não imprime configuração, PIN ou dados. `--app` reproduz display-mode standalone, mas não inspeciona o cache/perfil do app pessoal já instalado. O teste cobre a abertura, antes do PIN; não substitui a jornada/desempenho P8s.
+
 Inicie `node scripts/visualizar-local.cjs`. Em outro terminal, configure Playwright conforme `README-ignicao.md` e rode `node testes/tudo.cjs`. Chrome instalado, internet e janela em primeiro plano são necessários. Nenhum serviço real é usado. A execução inclui 181 testes, três rodadas de desempenho, jornada/regressões e descarte. Limites de desempenho não são ignorados em caso de falha.
 
 Instalação da ferramenta de teste (não acrescenta biblioteca à aplicação), no PowerShell:

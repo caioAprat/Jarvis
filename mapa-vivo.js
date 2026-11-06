@@ -476,7 +476,17 @@
     }
 
     // ------------------------------------------------------------ quadro a quadro
-    let t = 0, ultimo = 0, acum = 0, ativo = true, w = 0, h = 0, rodando = false, lentos = 0, quadros = 0, nivel = 0, limite30 = false;
+    let t = 0, ultimo = 0, acum = 0, ativo = true, w = 0, h = 0, rodando = false, lentos = 0, nivel = 0, limite30 = false;
+    const compOriginal = comp, pixelRatioOriginal = renderer.getPixelRatio();
+    let aquecimentoQualidade = performance.now(), estaveis = 0;
+    const diagAtivo = new URLSearchParams(location.search).get('diag') === '1';
+    function diagnostico() {
+      return { nivel, pixelRatio: renderer.getPixelRatio(), dpr: devicePixelRatio || 1,
+        antialias: renderer.getContext().getContextAttributes().antialias, comp: !!comp,
+        bloom: !!(comp && bloom), baixo, leve: !!o.leve, grande, q, limite30,
+        standalone: matchMedia('(display-mode: standalone)').matches,
+        foco: document.hasFocus(), visivel: !document.hidden, largura: innerWidth, altura: innerHeight };
+    }
     const hov = n => n.hov.v;
     const qMundo = new THREE.Quaternion();
     function bezier(n, u, out) {
@@ -493,18 +503,28 @@
       if (!ativo || !el.isConnected || !w) return;
       // A trilha narrativa já tem um relógio suavizado: limitar só sua câmera a
       // 30Hz duplica poses alternadas. O modo normal conserva o limite existente.
-      acum += dt; if (!cine && (baixo || limite30) && !reduzido && acum + .0008 < 1 / 30) return; const d = acum; acum = 0;
       // se a máquina não dá conta, abre mão do que custa mais, em etapas: bloom, resolução, metade das partículas, 30 quadros/s
-      if (!reduzido && ++quadros > 20) {
-        if (dt > (baixo || limite30 ? .045 : .03)) lentos++; else lentos = Math.max(0, lentos - 1);
-        if (lentos > 36) {
-          lentos = 0; nivel++;
-          if (nivel === 1 && comp) comp = null;
-          else if (nivel <= 2) { renderer.setPixelRatio(1); pix.value = 1; renderer.setSize(w, h, false); }
-          else if (nivel === 3) fluxoObjs.forEach(f => f.geometry.setDrawRange(0, Math.floor(f.geometry.attributes.position.count * .4)));
-          else limite30 = true;
+      if (document.hidden || !document.hasFocus()) {
+        aquecimentoQualidade = agora; lentos = 0; estaveis = 0;
+      } else if (!reduzido && agora - aquecimentoQualidade >= 8000) {
+        if (dt > .03) { lentos++; estaveis = 0; }
+        else { lentos = Math.max(0, lentos - 1); estaveis += dt; }
+        let proximo = nivel;
+        if (lentos > 36 && nivel < 4) proximo++;
+        else if (estaveis >= 10 && nivel > 0) proximo--;
+        if (proximo !== nivel) {
+          nivel = proximo; lentos = 0; estaveis = 0;
+          comp = nivel === 0 ? compOriginal : null;
+          const ratio = nivel >= 2 ? 1 : pixelRatioOriginal;
+          renderer.setPixelRatio(ratio); pix.value = ratio; renderer.setSize(w, h, false);
+          if (comp) { comp.setPixelRatio(ratio); comp.setSize(w, h); }
+          fluxoObjs.forEach(f => f.geometry.setDrawRange(0, Math.floor(f.geometry.attributes.position.count * (nivel >= 3 ? .4 : 1))));
+          limite30 = nivel >= 4;
+          if (diagAtivo) console.info('[Jarvão P9] qualidade', diagnostico());
         }
       }
+      // Medir antes do limite evita confundir os próprios 30 Hz com GPU lenta.
+      acum += dt; if (!cine && (baixo || limite30) && !reduzido && acum + .0008 < 1 / 30) return; const d = acum; acum = 0;
       const vel = (reduzido ? 0 : 1) * (1 - congela.v) * vidaV; t += d * vel;
       const s = giro.v, vis = Math.max(0, 1 - scr.v * 1.7);          // vis: os projetos e as ligações somem conforme a página desce
       fluxos.forEach(m => { m.uniforms.uTime.value = t; });
@@ -647,7 +667,11 @@
     }
     const ro = new ResizeObserver(redimensionar); ro.observe(el);
     let visivel = true, parado = false, pausado = false;
-    const revisar = () => { ativo = visivel && !parado && !pausado && !document.hidden && el.isConnected; ativo ? ligar() : desligar(); };
+    const revisar = () => {
+      ativo = visivel && !parado && !pausado && !document.hidden && el.isConnected;
+      if (!ativo) { aquecimentoQualidade = performance.now(); lentos = 0; estaveis = 0; }
+      ativo ? ligar() : desligar();
+    };
     const io = new IntersectionObserver(es => { visivel = es[0].isIntersecting; revisar(); }); io.observe(el);
     document.addEventListener('visibilitychange', revisar);
 
@@ -815,6 +839,7 @@
       p.renderToScreen = true; comp.addPass(p); return p;
     }
     redimensionar();
+    if (diagAtivo) console.info('[Jarvao P9] diagnostico inicial', diagnostico());
     const centroTmp = new THREE.Vector3();
     function ignicaoTela(o) {
       if (!passeIgn) return false;
@@ -822,7 +847,7 @@
       (o.centro ? centroTmp.copy(o.centro) : nucleo.getWorldPosition(centroTmp)).project(camera); u.uCentro.value.set(centroTmp.x * .5 + .5, centroTmp.y * .5 + .5); u.uAspecto.value = w && h ? w / h : 1;
       passeIgn.enabled = u.uOnda.value > .001 || u.uRaios.value > .001; return true;
     }
-    return { el, vida: v => { vidaV = Math.max(0, Math.min(1, v)); }, energia: v => { energiaAtual = Math.max(0, Math.min(1.3, v)); }, ignicaoTela, aoQuadro: fn => { aoQuadroFns.push(fn); return () => { const i = aoQuadroFns.indexOf(fn); if (i >= 0) aoQuadroFns.splice(i, 1); }; }, nucleoMundo: alvo => nucleo.getWorldPosition(alvo || new THREE.Vector3()), ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
+    return { el, vida: v => { vidaV = Math.max(0, Math.min(1, v)); }, energia: v => { energiaAtual = Math.max(0, Math.min(1.3, v)); }, ignicaoTela, aoQuadro: fn => { aoQuadroFns.push(fn); return () => { const i = aoQuadroFns.indexOf(fn); if (i >= 0) aoQuadroFns.splice(i, 1); }; }, nucleoMundo: alvo => nucleo.getWorldPosition(alvo || new THREE.Vector3()), ambienteEmCamadas, depurar: () => ({ nos, camera, scene, renderer, escala: ESC, camZ: cam.z, w, h, comp: !!comp, rodando, ativo, parado }), atualizar, varredura, selecionar, destruir, modo, rolagem, cinema, congelar, passe, explodir, fluxoIntensidade, partesExplodidas, portal, poseProjeto, diagnostico, deformar, orbitas: orbitasVisiveis, qualidade, pausar: p => { pausado = !!p; revisar(); } };
   }
   window.MapaVivo = { montar, logo, marca, icone, limpar };
 })();

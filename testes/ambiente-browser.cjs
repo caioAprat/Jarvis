@@ -37,7 +37,7 @@ async function abrirChrome(options = {}) {
     '--enable-features=CDPScreenshotNewSurface,SkipListAccountsWithoutGaiaCookies'];
   const child = spawn(executable,[...automationArgs,'--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--no-first-run','--no-default-browser-check',
-    '--disable-background-timer-throttling','--disable-renderer-backgrounding','about:blank'],{stdio:'ignore'});
+    '--disable-background-timer-throttling','--disable-renderer-backgrounding',options.appUrl ? '--app='+options.appUrl : 'about:blank'],{stdio:'ignore'});
   let launchError, browser;
   child.on('error',error=>{launchError=error;});
   const delay = ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -66,6 +66,7 @@ async function abrirChrome(options = {}) {
     browser=await carregarPlaywright().chromium.connectOverCDP('http://127.0.0.1:'+port,{noDefaults:true});
     const context=browser.contexts()[0];
     return {
+      initialPage:()=>context.pages()[0],
       async newPage(pageOptions={}) {
         const page=await context.newPage();
         await page.setViewportSize(pageOptions.viewport||options.viewport||{width:1366,height:768});
