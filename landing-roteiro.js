@@ -259,7 +259,11 @@
   body.narr-b #raiz .barra{position:fixed;top:0;left:0;right:0;margin:0;background:rgba(8,7,6,.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 1px 0 var(--linha);padding:10px 32px}
   body.narr-b #raiz .barra .marca{transform:scale(.7)}
   body.narr-b:not(.momentos-vistos) .hud-c{opacity:0;pointer-events:none}
-  body.narr-ignicao :is(.barra,.term){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  /* Os cartões ficam depois de todo o trilho. Não rasterizar essa página
+     inteira quando o PIN libera apenas a barra e o dock. */
+  body.narr-on #raiz main>.veu{content-visibility:auto;contain-intrinsic-size:auto 1600px}
+  body.narr-ignicao :is(.barra,.term,.dock){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  body.narr-ignicao .marca .mk{filter:none}
   @media (max-width:700px){
     :is(.narr-cena,.narr-texto-camada){grid-template-columns:1fr;grid-template-rows:auto 1fr auto;align-items:start;padding:84px 18px 116px}
     :is(.narr-cena,.narr-texto-camada) .mom-esq,:is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:1;grid-row:1;justify-self:start;text-align:left}
@@ -329,6 +333,7 @@
     if (window.JarvisPreviewLocal) window.__ign = ign;
     // Geometria/material preparados antes do PIN; progresso zero mantém o campo oculto.
     let campo = !reduzido && mapa && window.Ignicao && Ignicao.campo ? Ignicao.campo(mapa, { E }) : null;
+    let ondaIgnicao = !reduzido && mapa && window.CenarioGeometria ? CenarioGeometria.ondaPiso(dep.scene, E) : null;
     const malhaVeias = mapa && window.Veias ? Veias.criar(mapa.depurar().scene, { E, pisoY: -3.2 * E }) : null;
     if (malhaVeias && mapa.aoQuadro) mapa.aoQuadro(() => { malhaVeias.quadro(); if (trecho === 'B' && !portalDados) { malhaVeias.acender(1.08); malhaVeias.pulso(.35); malhaVeias.carga(-1); } });
     // G2 (Caio, 05/11): depois da saudação o núcleo está TOTALMENTE desligado (quase sem luz, parado). Cada dígito do PIN
@@ -946,7 +951,7 @@
         gsap.to(saida,{clipPath:'inset(100% 0 0 0)',y:12,opacity:0,duration:.4,ease:'power2.in',onComplete:()=>saida.remove()});
       }
       const n=proto?proto.modulos.length:0;
-      const onda=!reduzido&&mapa&&window.CenarioGeometria?CenarioGeometria.ondaPiso(mapa.depurar().scene,E):null;
+      const onda=ondaIgnicao;
       // Ignição (Caio, 05/11): núcleo quase morto → tropeça 3–4 vezes com faíscas → acende de vez (clarão, onda de choque,
       // raios, explosão de faíscas) → o fluxo corre pelos fios e cada painel liga soltando faísca → só então a câmera segue.
       // Ignição v4 (Claude, 05/11 — refs: circuito em veias de Horacio Velozo, cabos ArtStation, loader Active Theory):
@@ -991,7 +996,7 @@
         soltar(); // tambem libera wheel/touchmove quando a narrativa e interrompida
         if(animacao)animacao.kill();if(rolagem)rolagem.kill();
         document.body.classList.remove('narr-ignicao');
-        if(saida)saida.remove();if(onda)onda.destruir();
+        if(saida)saida.remove();if(onda){onda.destruir();ondaIgnicao=null;}
         if(mapa)mapa.energia(1);if(mapa&&mapa.ignicaoTela)mapa.ignicaoTela({onda:0,raios:0});
         if(fios&&fios.energizar)fios.energizar(null);if(telas)telas.ligar(null);
       }};
@@ -1125,6 +1130,9 @@
       cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
       if (particulas) particulas.destruir();
       if (hologramas) hologramas.destruir();
+      if (ondaIgnicao) { ondaIgnicao.destruir(); ondaIgnicao = null; }
+      if (campo) { campo.destruir(); campo = null; }
+      if (ign) ign.destruir();
       if (veias) veias.destruir();
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();

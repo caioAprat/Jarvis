@@ -834,6 +834,21 @@ function carregarFin() {
   if (S.finPedido || !CFG || acessoAtual() !== 'livre') return; S.finPedido = true;
   api('assistente-dados').then(r => { S.fin = r; }).catch(() => { S.fin = { ok: false }; }).then(() => { if (NARR) NARR.atualizar(); });
 }
+// Aquece a rasterização da interface durante a saudação, só com
+// marca/ícones públicos. Nenhum dado nem controle autenticado entra antes do PIN.
+function aquecerInterface() {
+  const el = document.createElement('div'); el.inert = true; el.setAttribute('aria-hidden', 'true');
+  el.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:.001;z-index:1';
+  el.innerHTML = '<div class="barra"><div class="marca">' + MapaVivo.logo() + '<span class="marca-txt">' + MapaVivo.marca() + '</span></div><button class="btn">' + ico('refresh') + ' Conferir tudo</button></div><nav class="dock">' + ABAS.map(([id,nome]) => '<button>' + ico(id) + '<span class="rot">' + esc(nome) + '</span></button>').join('') + '</nav>';
+  // A landing usa Mono; o primeiro texto Saira do PC também precisa ser
+  // rasterizado antes da liberação, inclusive os pesos e as sombras dos cartões.
+  const amostra = document.createElement('main');
+  amostra.innerHTML = '<div class="veu"><div class="grade g2">' + ABAS.map(([,nome]) => '<div class="card"><div class="titulo">' + esc(nome) + '</div><div class="numero">0123456789 — %</div><b>ABCDEFGHIJKLMNOPQRSTUVWXYZ</b><p class="det">abcdefghijklmnopqrstuvwxyz áéíóúãõç</p><span class="pill ok">no ar</span></div>').join('') + '</div></div>';
+  el.append(amostra);
+  document.body.append(el);
+  return () => el.remove();
+}
+const soltarAquecimento = window.Narrativa && (S.aba === 'geral' || acessoAtual() !== 'livre') ? aquecerInterface() : () => {};
 var NARR = null;
 if (window.Narrativa && (S.aba === 'geral' || acessoAtual() !== 'livre')) {
   try {
@@ -842,16 +857,18 @@ if (window.Narrativa && (S.aba === 'geral' || acessoAtual() !== 'livre')) {
     NARR = Narrativa.montar({ host: $('narrativa'), mapa: MV, api: {
       acesso: acessoAtual,
       aoLink: t => colarLink(t),
-      aoPin: v => { if (!Cadeado.tentar(v)) return false; render(); carregar(); carregarFin(); return true; },
+      // carregar() já trouxe o PC durante a saudação. Refazer a mesma consulta
+      // aqui reconstruía a barra/dock três vezes no começo da ignição.
+      aoPin: v => { if (!Cadeado.tentar(v)) return false; soltarAquecimento(); render(); if (!S.P) carregar(); carregarFin(); return true; },
       dados: () => ({ P: S.P, fin: S.fin }),
       ha: iso => ha(iso),
       erro: () => S.erro && S.erro !== 'auth' ? S.erro : '',
       abrirPainel: id => { S.sel = id || ''; render(); },
       irClientes: () => irPara('clientes', true),
-      aoEntrar: () => { render(); carregarFin(); },
-      aoTerminar: () => { NARR = null; render(); },
+      aoEntrar: () => { soltarAquecimento(); carregarFin(); },
+      aoTerminar: () => { soltarAquecimento(); NARR = null; render(); },
     } });
-  } catch (e) { NARR = null; console.warn('narrativa', e); }
+  } catch (e) { soltarAquecimento(); NARR = null; console.warn('narrativa', e); }
 }
 if (acessoAtual() === 'livre') carregarFin();
 render();

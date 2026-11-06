@@ -27,17 +27,26 @@
     try { renderer = new N.GPURenderer(scene, THREE, { camera, maxParticles: 2400, baseColor: 0xffffff, blending: 'AdditiveBlending', depthTest: true, depthWrite: false, transparent: true }); }
     catch (e) { return null; }
     sistema.addRenderer(renderer);
-    const tex = texturaFaisca();
+    const tex = texturaFaisca(), materiais = [];
+    mapa.depurar().renderer.initTexture(tex);
+    // GPURenderer só cria o atlas ao receber a primeira partícula. Fazer isso
+    // agora evita reconstruir/subir o atlas no disparo de 2,8 s.
+    renderer.getTextureID(tex);
+    renderer.textureAtlas.update();
+    mapa.depurar().renderer.initTexture(renderer.textureAtlas.atlasTexture);
+    if (renderer.textureAtlas.atlasIndex) mapa.depurar().renderer.initTexture(renderer.textureAtlas.atlasIndex);
     // Caixa que segura as faíscas: o fundo é o piso (quicam), as laterais e o teto ficam longe.
     const caixa = new N.BoxZone(0, pisoY + 40 * E, 0, 160 * E, 80 * E, 160 * E);
 
-    function emissor(o) {
+    function emissor(o, registrar = true) {
       const em = new N.Emitter();
+      const material = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+      materiais.push(material);
       em.setRate(new N.Rate(new N.Span(o.n[0], o.n[1]), new N.Span(o.intervalo || .05, (o.intervalo || .05) * 1.6)))
         .setInitializers([
           new N.Mass(1),
           new N.Life(o.vida[0], o.vida[1]),
-          new N.Body(new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }))),
+          new N.Body(new THREE.Sprite(material)),
           new N.Radius(o.raio[0] * E, o.raio[1] * E),
           new N.Position(new N.SphereZone(0, 0, 0, (o.zona || .2) * E)),
           new N.RadialVelocity(new N.Span(o.vel[0] * E, o.vel[1] * E), new N.Vector3D(0, o.cima ? 1 : 0, 0), o.abertura || 180),
@@ -50,7 +59,7 @@
           new N.CrossZone(caixa, 'bound'),
         ]);
       em.damping = o.atrito != null ? o.atrito : .012;
-      sistema.addEmitter(em);
+      if (registrar) sistema.addEmitter(em);
       return em;
     }
     const tipos = {
@@ -61,17 +70,35 @@
       viva: { n: [2, 5], vida: [.4, .9], raio: [.08, .16], vel: [5, 13], gravidade: 6, abertura: 180 },
     };
     const ativos = [];
+    // As rajadas conhecidas ganham materiais e inicializadores durante a
+    // saudação. O disparo só posiciona e ativa; não constrói SpriteMaterial.
+    const prontos = {};
+    for (const [tipo, quantidade, rajadas] of [['arranque', 2, 1], ['explosao', 2, 3], ['poeira', 2, 2], ['conector', 7, 1]]) {
+      const config = tipos[tipo];
+      prontos[tipo] = Array.from({ length: quantidade }, () => emissor(Object.assign({}, config, { n: config.n.map(n => n * rajadas) }), false));
+    }
+    // Exercita o caminho real de criação/mapeamento e devolve partículas e
+    // alvos aos pools ANTES do primeiro render. Não há faísca visível aqui.
+    const ensaio = new N.Emitter().setInitializers([new N.Life(.001), new N.Body(new THREE.Sprite(materiais[0]))]);
+    sistema.addEmitter(ensaio);
+    for (let i = 0; i < 2400; i++) ensaio.createParticle();
+    const alvos = ensaio.particles.map(p => p.target);
+    ensaio.removeAllParticles(); sistema.update(.02); sistema.removeEmitter(ensaio);
+    alvos.forEach(alvo => { if (alvo) renderer.targetPool.expire(alvo); });
     function disparar(tipo, p, vezes) {
       const config = tipos[tipo], rajadas = Math.max(1, Math.round(vezes || 1));
-      const em = emissor(Object.assign({}, config, { n: config.n.map(n => n * rajadas) }));
-      em.position.x = p.x; em.position.y = p.y; em.position.z = p.z;
+      const esperado = tipo === 'explosao' ? 3 : tipo === 'poeira' ? 2 : 1;
+      const em = rajadas === esperado && prontos[tipo] && prontos[tipo].shift();
+      const pronto = em || emissor(Object.assign({}, config, { n: config.n.map(n => n * rajadas) }), false);
+      sistema.addEmitter(pronto);
+      pronto.position.x = p.x; pronto.position.y = p.y; pronto.position.z = p.z;
       // Nebula: emit(1) faz uma rajada; emit(3) emite continuamente por 3 segundos.
-      em.emit(1);
-      em.life = config.vida[1] + .2; // preserva a vida das particulas antes de descartar o emissor
-      ativos.push(em);
-      return em;
+      pronto.emit(1);
+      pronto.life = config.vida[1] + .2; // preserva a vida das particulas antes de descartar o emissor
+      ativos.push(pronto);
+      return pronto;
     }
-    let viva = null, desliga = null;
+    let viva = null, desliga = null, destruido = false;
     desliga = mapa.aoQuadro(d => {
       sistema.update(Math.min(d, 1 / 20));
       for (let i = ativos.length - 1; i >= 0; i--) { const em = ativos[i]; if (em.dead || (!em.isEmitting && !em.particles.length)) { sistema.removeEmitter(em); ativos.splice(i, 1); } }
@@ -89,7 +116,16 @@
         viva.emit();
       },
       _sistema: sistema,
-      destruir() { if (desliga) desliga(); try { sistema.destroy(); } catch (e) {} tex.dispose(); },
+      destruir() {
+        if (destruido) return; destruido = true;
+        if (desliga) desliga();
+        try { sistema.destroy(); } catch (e) {}
+        // System.destroy do Nebula pode já estar sem emissores; nesse caso
+        // não percorre o renderer. Garanta também os buffers preparados.
+        try { renderer.destroy(); } catch (e) {}
+        renderer.geometry.dispose(); renderer.material.dispose(); renderer.targetPool.destroy();
+        materiais.forEach(m => m.dispose()); tex.dispose();
+      },
     };
   }
   // Linhas de campo em volta do núcleo (ref: loader do activetheory.net). r(θ) = L·sen²θ num plano vertical girado em φ.

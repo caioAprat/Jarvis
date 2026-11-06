@@ -119,6 +119,11 @@
     }
     function desenhar(m, t) {
       const ctx = m.ctx, W = m.cv.width, H = m.cv.height, k = W / 256, D = api.dados() || {}, P = D.P, livre = api.liberado();
+      // PIN/começo da ignição: o vidro já está preto e aquecido. Uma mudança
+      // de relógio/autorização não exige redesenhar e reenviar sete telas iguais.
+      const apagada = !livre || !P || (ligadas && !ligadas.get(m.id));
+      if (apagada && m.telaApagada) return false;
+      m.telaApagada = !!apagada;
       const chave = JSON.stringify([livre, ligadas && !!ligadas.get(m.id), P && P.estado.projetos.find(p => p.id === m.id), P && P.detalhes && P.detalhes[m.id], D.fin, Math.floor(Date.now() / 1000)]);
       if (m.chaveQuadro === chave && (reduzido || !(t - m.scanTela >= 0 && t - m.scanTela < .8))) return false;
       m.chaveQuadro = chave;
