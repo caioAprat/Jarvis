@@ -85,6 +85,24 @@
       curva(tipo, polar(.9 * E, ang, 4.6 * E), polar(1.4 * E, ang, 7 * E), polar(3 * E, ang + .3, 11 * E), polar(5 * E, ang + .5, 22 * E));
     }
 
+    // P4b: corredores livres nas dez poses Desktop de camera-estado.json.
+    // Desvios angulares medidos por tipo/índice da curva (graus), sem mudar
+    // altura, raio de ancoragem, modelo ou quantidade. Feixes giram juntos.
+    // Ref: cabos sci-fi/ArtStation; cálculo e inspeção com Three r128/Playwright.
+    // Reauditar estes corredores se as poses ou a semente forem alteradas.
+    const desvios = [
+      { 1:-3, 2:-9, 4:-6, 5:30, 8:30, 9:-27, 10:-51, 12:-30, 14:-21, 17:3, 18:-9 },
+      { 5:-9, 6:39, 7:27, 10:18, 12:-21, 16:27, 17:24, 18:15, 19:15, 21:-9, 24:18, 29:-30, 30:24 },
+      { 3:6, 4:6, 5:6, 15:-30, 16:-30, 17:-30, 18:48, 19:48, 20:48, 31:-3, 32:48, 33:3 },
+      { 5:-33, 6:30, 9:-33, 11:-24, 12:-6, 13:21, 16:-30, 17:36, 18:3, 23:3, 25:12 },
+    ];
+    listas.forEach((lst, tipo) => lst.forEach((pts, i) => {
+      const a = (desvios[tipo][i] || 0) * Math.PI / 180;
+      if (!a) return;
+      const c = Math.cos(a), s = Math.sin(a);
+      pts.forEach(p => { const x = p.x, z = p.z; p.x = c * x - s * z; p.z = s * x + c * z; });
+    }));
+
     // Malha única por tipo: tubos estáticos (CenarioGeometria.tubo) costurados num BufferGeometry.
     const mats = [], N = 40, LADOS = [10, 8, 6, 4];
     listas.forEach((lst, tipo) => {
