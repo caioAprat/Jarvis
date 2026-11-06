@@ -1,13 +1,14 @@
 ﻿'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const {abrirChrome,vigiarFoco,exigirFoco}=require('./ambiente-browser.cjs');
 (async()=>{
- const browser=await chromium.launch({channel:'chrome',headless:false});
+ const browser=await abrirChrome();
  try {
   const page=await browser.newPage({viewport:{width:1366,height:768}}),errors=[];
   page.on('pageerror',e=>{errors.push(e.message);console.error(e.message);});
+  await vigiarFoco(page);
   await page.route('**/landing-roteiro.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(__dirname,'../landing-roteiro.js'),'utf8').replace('const planeta =','window.__lifecycle={mapa,proto,ouvintes}; const planeta =').replace('const veias =','window.__lifecycle.planeta=planeta; const veias =')}));
-  await page.goto(process.env.IGNICAO_URL||'http://127.0.0.1:4173/'); await page.bringToFront();
+  await page.goto(process.env.IGNICAO_URL||'http://127.0.0.1:4173/'); await page.bringToFront();await exigirFoco(page);
   await page.waitForFunction(()=>window.NARR&&window.__lifecycle);
   const result=await page.evaluate(async()=>{
    const {mapa,proto,planeta,ouvintes}=__lifecycle,dep=mapa.depurar();
@@ -29,6 +30,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    check(cycles.every(c=>c.geometries===cycles[0].geometries&&c.textures===cycles[0].textures),'Memória GPU cresceu');
    return {cycles,listeners:ouvintes.length};
   });
-  assert.equal(errors.length,0,errors.join('\n')); console.log(JSON.stringify(result,null,2));
+  await exigirFoco(page);assert.equal(errors.length,0,errors.join('\n')); console.log(JSON.stringify(result,null,2));
  } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

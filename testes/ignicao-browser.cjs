@@ -3,11 +3,14 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const { createRequire } = require('node:module');
-const { chromium } = (process.env.PLAYWRIGHT_MODULE
-  ? createRequire(path.resolve(process.env.PLAYWRIGHT_MODULE, 'package.json'))('playwright')
-  : require('playwright'));
+const {abrirChrome,vigiarFoco,exigirFoco,esperarAcesso,medirQuadros}=require('./ambiente-browser.cjs');
 const root = path.resolve(__dirname, '..');
+// Comparação sem checkout: os commits do P8s diferem no produto só em pc.html/roteiro.
+const revision = process.argv.find(a => a.startsWith('--revision='))?.slice(11);
+if (revision) assert.ok(['b685238','1e2d9aa','ec51f86'].includes(revision), 'Revisão de diagnóstico inválida');
+const sourceAt = file => revision
+  ? require('node:child_process').execFileSync('git', ['show', revision + ':' + file], {cwd:root,encoding:'utf8'})
+  : fs.readFileSync(path.join(root,file),'utf8');
 const out = path.resolve(process.env.IGNICAO_OUTPUT || path.join(root, '.playwright-mcp/p2b'));
 fs.mkdirSync(out, { recursive: true });
 
@@ -31,10 +34,10 @@ if (!process.argv.includes('--round')) {
   process.exit(0);
 }
 (async () => {
-  const browser = await chromium.launch({ channel: 'chrome', headless: false,
-    args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
+  const browser = await abrirChrome();
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
+    await vigiarFoco(page);
     const errors = []; page.setDefaultTimeout(30000);
     const cdp = await page.context().newCDPSession(page);
     const trace = [];
@@ -49,6 +52,12 @@ if (!process.argv.includes('--round')) {
     }
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    if (revision) await page.route(/\/((pc\.html)?)(\?.*)?$/, async route => {
+      const response = await route.fetch();
+      const preview = (await response.text()).match(/<script>window\.JarvisPreviewLocal=true;[\s\S]*?<\/script>/);
+      assert.ok(preview, 'Bootstrap local ausente na comparação');
+      await route.fulfill({response,body:sourceAt('pc.html').replace('<head>','<head>'+preview[0])});
+    });
     await page.addInitScript(() => {
       window.__diag = { spans: [], frames: [], samples: [], longTasks: [], energy: 0 };
       const d = window.__diag;
@@ -76,10 +85,10 @@ if (!process.argv.includes('--round')) {
       }
     });
     await page.route('**/landing-roteiro.js*', async route => {
-      let source = fs.readFileSync(path.join(root, 'landing-roteiro.js'), 'utf8');
+      let source = sourceAt('landing-roteiro.js');
       const marker = 'const est={p:0};';
       assert.equal(source.split(marker).length, 2, 'Sonda da ignição precisa ser atualizada');
-      source = source.replace(marker, `window.__diag.start=performance.now(); window.__diag.pd=pd; const est={p:0};`);
+      source = source.replace(marker, `console.timeStamp('p8s-ignicao'); window.__diag.start=performance.now(); window.__diag.pd=pd; const est={p:0};`);
       source = source.replace('const planeta =', 'window.__testScene={mapa,malhaVeias,fios}; const planeta =');
       source = source.replace('function irCena(c) {', 'window.__navegacaoPronta=()=>!portalDados&&!passeioAutomatico&&(!lenis||!lenis.isLocked); window.__irCenaTeste=id=>irCena(cenas.find(c=>c.id===id)); function irCena(c) {');
       await route.fulfill({ contentType: 'text/javascript', body: source });
@@ -91,9 +100,11 @@ if (!process.argv.includes('--round')) {
     });
     await page.goto(process.env.IGNICAO_URL || 'http://127.0.0.1:4173/');
     await page.bringToFront();
+    await exigirFoco(page);
     await page.waitForFunction(() => window.NARR && window.__testScene);
     await page.evaluate(() => NARR.irAoAcesso());
     await page.locator('input[type=password]').waitFor({ state: 'visible' });
+    await esperarAcesso(page);
     await page.waitForTimeout(2500);
     await page.evaluate(() => {
       const d = __diag, { mapa, malhaVeias } = __testScene;
@@ -173,24 +184,14 @@ if (!process.argv.includes('--round')) {
     if (!process.argv.includes('--ignition-only')) {
       await page.waitForFunction(() => __navegacaoPronta());
       for (const id of ['situacao', 'gabinete', 'planilha', 'assistente', 'painel', 'pedalada', 'atrasos', 'cacador', 'planeta', 'fecho']) {
+        await exigirFoco(page);
         console.log('Medindo parada', id);
         const arrivalStart = await page.evaluate(id => { const start=performance.now(); __irCenaTeste(id); return start; }, id);
         await page.waitForFunction(id => NARR.cenaEm(NARR.progresso()) === id, id).catch(async e=>{console.error('Navegação',id,await page.evaluate(()=>({p:NARR.progresso(),scene:NARR.cenaEm(NARR.progresso()),scroll:scrollY})));throw e;});
         await page.waitForTimeout(2500);
-        const stop = await page.evaluate(() => new Promise(resolve => {
-          const frames = []; const start=performance.now(); let first, previous;
-          function tick(now) {
-            if (first === undefined) first = now;
-            if (previous !== undefined) frames.push(now - previous);
-            previous = now;
-            if (now - first < 2000) return requestAnimationFrame(tick);
-            resolve({ fps: frames.length * 1000 / (now - first), worstMs: Math.max(...frames),
-              diagnostic: {start, end:now, spans:__diag.spans.filter(s=>s.start>=start), longTasks:__diag.longTasks.filter(s=>s.start>=start)},
-              focused: document.hasFocus(), hidden: document.hidden, scene: NARR.cenaEm(NARR.progresso()) });
-          }
-          requestAnimationFrame(tick);
-        }));
+        const stop = await medirQuadros(page);
         stop.entry = await page.evaluate(start=>({spans:__diag.spans.filter(s=>s.start>=start),longTasks:__diag.longTasks.filter(s=>s.start>=start)}),arrivalStart);
+        await exigirFoco(page);
         stops.push({id, ...stop});
         if (process.argv.includes('--screenshots')) await page.screenshot({path:path.join(out, id+'.png')});
       }
@@ -225,6 +226,7 @@ if (!process.argv.includes('--round')) {
       fs.writeFileSync(path.join(out, 'trace.json'), JSON.stringify({traceEvents:trace}));
     }
     console.log(JSON.stringify({ ...summary, stops:stops.map(({diagnostic,entry,...s})=>s), cpu: summary.cpu?.map(n => ({ samples: n.samples, functions: n.stack.map(f => f.functionName) })) }, null, 2));
+    await exigirFoco(page);
     assert.equal(errors.length, 0, 'Erros no console');
     assert.ok(data.samples.every(s => !s.hidden && s.focused), 'Chrome precisa ficar em primeiro plano');
     assert.ok(data.samples.length >= 65, 'Amostragem insuficiente para 7 s');

@@ -1,12 +1,13 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const {abrirChrome,vigiarFoco,exigirFoco,esperarAcesso}=require('./ambiente-browser.cjs');
 const root=path.resolve(__dirname,'..');
 const mutant=process.argv.find(a=>a.startsWith('--mutacao='))?.split('=')[1];
 (async()=>{
- const browser=await chromium.launch({channel:'chrome',headless:false});
+ const browser=await abrirChrome();
  try {
   const page=await browser.newPage({viewport:{width:1366,height:768},reducedMotion:'no-preference'}),errors=[];
+  await vigiarFoco(page);
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   await page.route('**/landing-roteiro.js*',async r=>{
@@ -19,8 +20,8 @@ const mutant=process.argv.find(a=>a.startsWith('--mutacao='))?.split('=')[1];
    await r.fulfill({contentType:'text/javascript',body:s});
   });
   const url=process.env.IGNICAO_URL||'http://127.0.0.1:4173/';
-  const check=async(name,fn)=>{await fn();assert.deepEqual(errors,[],name+': console');assert.ok(await page.evaluate(()=>!document.hidden&&document.hasFocus()),name+': Chrome fora de primeiro plano');console.log('OK',name);};
-  await page.goto(url);await page.bringToFront();
+  const check=async(name,fn)=>{await exigirFoco(page);try{await fn();}finally{await exigirFoco(page);}assert.deepEqual(errors,[],name+': console');assert.ok(await page.evaluate(()=>!document.hidden&&document.hasFocus()),name+': Chrome fora de primeiro plano');console.log('OK',name);};
+  await page.goto(url);await page.bringToFront();await exigirFoco(page);
   await check('pagina abre sem erro (declaracao duplicada de veias)',async()=>{
    assert.deepEqual(errors,[],'Erro ao abrir a pagina');
    await page.waitForFunction(()=>window.NARR&&window.__reg,null,{timeout:30000}).catch(e=>{throw Error(errors.join('\n')||e.message);});
@@ -52,10 +53,14 @@ const mutant=process.argv.find(a=>a.startsWith('--mutacao='))?.split('=')[1];
    await page.waitForFunction(()=>Number.isFinite(__reg.energia)&&__reg.energia<=.25);
   });
   await check('PIN recebe foco sem clique',async()=>{
-   await page.evaluate(()=>NARR.irAoAcesso());await page.waitForFunction(()=>document.activeElement?.type==='password');
+   await page.evaluate(()=>NARR.irAoAcesso());await esperarAcesso(page);await page.waitForFunction(()=>document.activeElement?.type==='password');
   });
   await page.keyboard.type('12345678',{delay:35});
-  await page.waitForFunction(()=>NARR.emB());await page.waitForFunction(()=>__reg.pronta());
+  await page.waitForFunction(()=>NARR.emB()).catch(async error=>{
+   await exigirFoco(page);
+   console.error('Estado apos PIN',await page.evaluate(()=>({scene:NARR.cenaEm(NARR.progresso()),p:NARR.progresso(),pending:NARR.acessoPendente(),portal:__reg.ignicao(),focus:document.activeElement?.id,pinLength:document.querySelector('#cenaPin')?.value.length})));
+   throw error;
+  });await page.waitForFunction(()=>__reg.pronta());
   await check('um texto por parada e zero nas passagens',async()=>{
    for(const id of ['situacao','gabinete','planilha','assistente','painel','pedalada','atrasos','cacador','planeta','fecho','ponte','retorno']){
     await page.evaluate(id=>__reg.nav(id),id);await page.waitForFunction(id=>NARR.cenaEm(NARR.progresso())===id,id);await page.waitForTimeout(800);
@@ -70,7 +75,7 @@ const mutant=process.argv.find(a=>a.startsWith('--mutacao='))?.split('=')[1];
   await check('terminar nao deixa veias nem listeners',async()=>{
    assert.ok(await page.evaluate(()=>{const {malhaVeias,mapa,ouvintes}=__reg;NARR.terminar();return ouvintes.length===0&&!mapa.depurar().scene.children.includes(malhaVeias.grupo)&&malhaVeias.grupo.children.length===0;}));
   });
-  await page.reload();await page.waitForFunction(()=>window.NARR&&window.__reg);await page.evaluate(()=>NARR.irAoAcesso());await page.waitForFunction(()=>document.activeElement?.type==='password');await page.keyboard.type('12345678',{delay:35});
+  await page.reload();await page.waitForFunction(()=>window.NARR&&window.__reg);await page.evaluate(()=>NARR.irAoAcesso());await esperarAcesso(page);await page.waitForFunction(()=>document.activeElement?.type==='password');await page.keyboard.type('12345678',{delay:35});
   await page.waitForFunction(()=>__reg.ignicao());await page.waitForTimeout(600);
   await check('interromper ignicao nao prende rolagem',async()=>{
    assert.ok(await page.evaluate(()=>{NARR.terminar();const e=new WheelEvent('wheel',{deltaY:100,cancelable:true});dispatchEvent(e);return !e.defaultPrevented;}));
