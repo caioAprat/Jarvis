@@ -135,7 +135,13 @@
     }
     function atualizarStatus(projetos) {
       const ids = projetos.map(p => p.id).join('|');
-      if (ids !== modulos.map(m => m.id).join('|')) { criarModulos(projetos); aplicarOpacidade(); }
+      if (ids !== modulos.map(m => m.id).join('|')) {
+        // O PIN só substitui identidades provisórias: conserva GPU, canvas e cabos.
+        if (projetos.length === modulos.length && modulos.every(m => /^m\d+$/.test(m.id))) {
+          modulos.forEach((m, i) => { m.id = projetos[i].id; m.tela.userData.projeto = m.id; m.chaveQuadro = null; });
+        } else criarModulos(projetos);
+        aplicarOpacidade();
+      }
       projetos.forEach(p => { const m = modulos.find(x => x.id === p.id); if (m) m.ledMat.color.setHex(COR[p.status] || COR.aguardando); });
     }
     const dummy = new THREE.Object3D();

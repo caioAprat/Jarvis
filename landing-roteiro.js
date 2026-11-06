@@ -218,7 +218,7 @@
   #narrativa{position:relative;z-index:2;pointer-events:none}
   .narr-trilho{position:relative;pointer-events:none}
   .narr-fix{position:sticky;top:0;height:100vh;min-height:520px;overflow:hidden;pointer-events:none}
-  :is(.narr-cena,.narr-texto-camada){position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(140px,24vw) 1fr;align-items:center;padding:0 clamp(64px,7vw,104px) 0 clamp(18px,4.5vw,64px);opacity:0;will-change:opacity,filter,transform}
+  :is(.narr-cena,.narr-texto-camada){position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(140px,24vw) 1fr;align-items:center;padding:0 clamp(64px,7vw,104px) 0 clamp(18px,4.5vw,64px);opacity:0}
   :is(.narr-cena,.narr-texto-camada) .mom-esq{grid-column:1;grid-row:1;justify-self:start;min-width:0}
   :is(.narr-cena,.narr-texto-camada) .mom-dir{grid-column:3;grid-row:1;justify-self:end;max-width:360px;min-width:0}
   :is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:3;justify-self:end;text-align:right}
@@ -259,6 +259,7 @@
   body.narr-b #raiz .barra{position:fixed;top:0;left:0;right:0;margin:0;background:rgba(8,7,6,.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 1px 0 var(--linha);padding:10px 32px}
   body.narr-b #raiz .barra .marca{transform:scale(.7)}
   body.narr-b:not(.momentos-vistos) .hud-c{opacity:0;pointer-events:none}
+  body.narr-ignicao :is(.barra,.term){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   @media (max-width:700px){
     :is(.narr-cena,.narr-texto-camada){grid-template-columns:1fr;grid-template-rows:auto 1fr auto;align-items:start;padding:84px 18px 116px}
     :is(.narr-cena,.narr-texto-camada) .mom-esq,:is(.narr-cena,.narr-texto-camada).inv .mom-esq{grid-column:1;grid-row:1;justify-self:start;text-align:left}
@@ -349,6 +350,14 @@
     // Three r128 compila também os materiais dos monitores ainda ocultos.
     // Evita bloquear a primeira renderização da ignição esperando o shader na GPU.
     if (dep) dep.renderer.compile(dep.scene, dep.camera);
+    // A saudação absorve a primeira alocação das telas ocultas, uma por quadro.
+    const prepararTelas = proto ? proto.modulos.slice() : [];
+    const aquecerTela = () => {
+      if (!ativa || !dep || !prepararTelas.length) return;
+      dep.renderer.initTexture(prepararTelas.shift().tex);
+      if (prepararTelas.length) requestAnimationFrame(aquecerTela);
+    };
+    requestAnimationFrame(aquecerTela);
     // ao sair/recarregar: devolve a memória de vídeo na hora (GPU integrada não recupera a tempo e a próxima carga fica a 1 quadro/s)
     addEventListener('pagehide', () => { try { if (dep && dep.renderer) { dep.renderer.dispose(); dep.renderer.forceContextLoss(); } } catch (e) {} });
     const intro = { v: reduzido ? 1 : 0 };                       // os fios do chão acendem sozinhos na chegada
@@ -914,6 +923,7 @@
     let portalDados = null;
     function abrirPortalDados() {
       if (portalDados || trecho !== 'A' || !ativa) return;
+      document.body.classList.add('narr-ignicao');
       const ca=cena('acesso'),antes=camAtual;
       chavesOriginaisA=cine?cine.chaves():chavesA();
       // Corta apenas o restante do platô de acesso, preservando todo o caminho A.
@@ -977,6 +987,7 @@
       },destruir(){
         soltar(); // tambem libera wheel/touchmove quando a narrativa e interrompida
         if(animacao)animacao.kill();if(rolagem)rolagem.kill();
+        document.body.classList.remove('narr-ignicao');
         if(saida)saida.remove();if(onda)onda.destruir();
         if(mapa)mapa.energia(1);if(mapa&&mapa.ignicaoTela)mapa.ignicaoTela({onda:0,raios:0});
         if(fios&&fios.energizar)fios.energizar(null);if(telas)telas.ligar(null);

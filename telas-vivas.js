@@ -136,10 +136,16 @@
 
     // Ritmo: 6 quadros/s nas telas em destaque (as da cena atual), 1 por segundo nas outras que estão no quadro,
     // nenhum fora do quadro. Subir textura para a GPU é o que pesa — medido: 12/s em todas travava a placa integrada.
-    const ultimo = new Map();
+    const ultimo = new Map(), fila = new Set();
     function quadro(t, d) {
       tempoQuadro=t;
       proto.modulos.forEach(m => m.tela.material.color.setScalar((ligadas ? ligadas.get(m.id) || 0 : 1) * (.6 + .4 * m.enf.v)));
+      // Um único canvas desenhado/enviado por quadro, inclusive na cascata da ignição.
+      // Set preserva a ordem e agrupa pedidos repetidos sem acumular trabalho antigo.
+      if (fila.size) {
+        const m = fila.values().next().value; fila.delete(m);
+        if (proto.modulos.includes(m) && desenhar(m, t) !== false) m.tex.needsUpdate = true;
+      }
       if (!proto.visivel || proto.visivel() < .02) return;
       acum += d; if (acum < 1 / 6 && quadros > 0) return; acum = 0;
 
@@ -150,7 +156,7 @@
         const destaque = m.enf.v > .9 && m.enf.alvo === 1 && proto.modulos.some(x => x.enf.alvo !== 1);
         const intervalo = !reduzido && !leve && (destaque || t - m.scanTela < .65) ? 1 / 6 : 1;
         if (quadros > 0 && t - (ultimo.get(m.id) || -9) < intervalo - .01) return;
-        ultimo.set(m.id, t); if (desenhar(m, t) !== false) m.tex.needsUpdate = true;
+        ultimo.set(m.id, t); fila.add(m);
       });
       quadros++;
     }
@@ -163,10 +169,10 @@
         m.tela.material.color.setScalar(v * (.6 + .4 * m.enf.v));
         if(v>0 && anterior && !anterior.get(m.id))m.ignicaoTela=tempoQuadro;
         if (!anterior || !ligadas || !!anterior.get(m.id) !== !!v) {
-          if (desenhar(m, tempoQuadro) !== false) m.tex.needsUpdate = true;
+          fila.add(m);
         }
       });
-    }, desenharTodas: (t) => proto.modulos.forEach(m => { if (desenhar(m, t || 0) !== false) m.tex.needsUpdate = true; }) };
+    }, desenharTodas: () => proto.modulos.forEach(m => fila.add(m)) };
   }
 
   window.TelasVivas = { criar };

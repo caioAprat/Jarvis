@@ -18,6 +18,11 @@ fs.mkdirSync(out, { recursive: true });
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
     const errors = [];
     const cdp = await page.context().newCDPSession(page);
+    const trace = [];
+    if (process.argv.includes('--trace')) {
+      cdp.on('Tracing.dataCollected', e => trace.push(...e.value));
+      await cdp.send('Tracing.start', {categories:'devtools.timeline,v8,blink,cc,gpu',transferMode:'ReportEvents'});
+    }
     if (process.argv.includes('--profile')) {
       await cdp.send('Profiler.enable');
       await cdp.send('Profiler.setSamplingInterval', { interval: 500 });
@@ -57,7 +62,13 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(source.split(marker).length, 2, 'Sonda da ignição precisa ser atualizada');
       source = source.replace(marker, `window.__diag.start=performance.now(); window.__diag.pd=pd; const est={p:0};`);
       source = source.replace('const planeta =', 'window.__testScene={mapa,malhaVeias,fios}; const planeta =');
+      source = source.replace('function irCena(c) {', 'window.__irCenaTeste=id=>irCena(cenas.find(c=>c.id===id)); function irCena(c) {');
       await route.fulfill({ contentType: 'text/javascript', body: source });
+    });
+    await page.route('**/mapa-vivo.js*', async route => {
+      let source = fs.readFileSync(path.join(root, 'mapa-vivo.js'), 'utf8');
+      source = source.replace('w = r.width; h = r.height;', 'window.__diag.spans.push({name:"resize",start:performance.now(),duration:0,from:[w,h],to:[r.width,r.height]}); w = r.width; h = r.height;');
+      await route.fulfill({contentType:'text/javascript',body:source});
     });
     await page.goto(process.env.IGNICAO_URL || 'http://127.0.0.1:4173/');
     await page.bringToFront();
@@ -139,6 +150,28 @@ fs.mkdirSync(out, { recursive: true });
       geometryCreated: ignitionSpans.filter(s => /Geometry$/.test(s.name)).length,
       shaderWaitMs: ignitionSpans.filter(s => /^gl\.get(Program|Shader)InfoLog$/.test(s.name)).reduce((n, s) => n + s.duration, 0),
       longTasks: data.longTasks.filter(s => s.start < worst.end && s.start + s.duration > worst.start), errors };
+    const stops = [];
+    if (!process.argv.includes('--ignition-only')) {
+      for (const id of ['situacao', 'gabinete', 'planilha', 'assistente', 'painel', 'pedalada', 'atrasos', 'cacador', 'planeta', 'fecho']) {
+        await page.evaluate(id => __irCenaTeste(id), id);
+        await page.waitForTimeout(2500);
+        const stop = await page.evaluate(() => new Promise(resolve => {
+          const frames = []; let first, previous;
+          function tick(now) {
+            if (first === undefined) first = now;
+            if (previous !== undefined) frames.push(now - previous);
+            previous = now;
+            if (now - first < 2000) return requestAnimationFrame(tick);
+            resolve({ fps: frames.length * 1000 / (now - first), worstMs: Math.max(...frames),
+              focused: document.hasFocus(), hidden: document.hidden, scene: NARR.cenaEm(NARR.progresso()) });
+          }
+          requestAnimationFrame(tick);
+        }));
+        stops.push({id, ...stop});
+        if (process.argv.includes('--screenshots')) await page.screenshot({path:path.join(out, id+'.png')});
+      }
+    }
+    summary.stops = stops;
     if (process.argv.includes('--profile')) {
       const { profile } = await cdp.send('Profiler.stop');
       await cdp.send('Performance.enable');
@@ -162,13 +195,24 @@ fs.mkdirSync(out, { recursive: true });
       fs.writeFileSync(path.join(out, 'ignicao.cpuprofile'), JSON.stringify(profile));
     }
     fs.writeFileSync(path.join(out, 'resultado.json'), JSON.stringify({ summary, ...data }, null, 2));
+    if (process.argv.includes('--trace')) {
+      const done = new Promise(resolve => cdp.once('Tracing.tracingComplete', resolve));
+      await cdp.send('Tracing.end'); await done;
+      fs.writeFileSync(path.join(out, 'trace.json'), JSON.stringify({traceEvents:trace}));
+    }
     console.log(JSON.stringify({ ...summary, cpu: summary.cpu?.map(n => ({ samples: n.samples, functions: n.stack.map(f => f.functionName) })) }, null, 2));
     assert.equal(errors.length, 0, 'Erros no console');
     assert.ok(data.samples.every(s => !s.hidden && s.focused), 'Chrome precisa ficar em primeiro plano');
     assert.ok(data.samples.length >= 65, 'Amostragem insuficiente para 7 s');
     assert.ok(data.samples.some(s => s.timeline >= 2.8 && s.energy > 1), 'Núcleo não passou de energia 1 após 2,8 s');
     assert.ok(data.samples.some(s => s.veins.every(v => v.light >= 1)), 'Veias não energizaram');
-    assert.ok(fps >= 50, `Média ${fps.toFixed(2)} fps abaixo de 50`);
+    assert.ok(fps >= 55, `Média ${fps.toFixed(2)} fps abaixo de 55`);
+    assert.ok(worst.dt < 50, `Pior quadro ${worst.dt.toFixed(2)} ms precisa ser <50 ms`);
+    for (const stop of stops) {
+      assert.equal(stop.scene, stop.id, `Câmera fora da parada ${stop.id}`);
+      assert.ok(stop.focused && !stop.hidden, `Chrome sem foco em ${stop.id}`);
+      assert.ok(stop.fps >= 55 && stop.worstMs < 50, `${stop.id}: ${stop.fps.toFixed(2)} fps / ${stop.worstMs.toFixed(2)} ms`);
+    }
     console.log('Ignição: PASSOU');
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

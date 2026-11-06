@@ -73,7 +73,7 @@
   .pi{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.15em}
   .mv{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
   .mv canvas{display:block;width:100%;height:100%}
-  .mv-fundo{position:fixed;inset:0;z-index:0;width:auto;height:auto;touch-action:auto;transition:opacity .5s;opacity:calc(1 - .78 * var(--mv-p,0))}
+  .mv-fundo{position:fixed;inset:0;z-index:0;width:100vw;height:auto;touch-action:auto;transition:opacity .5s;opacity:calc(1 - .78 * var(--mv-p,0))}
   .mv-fundo[data-modo=fundo]{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s,visibility 0s .35s}
   .mv-fundo[data-modo=fundo] .mv-pos,.mv-fundo[data-modo=fundo] .mv-nucleo{opacity:0!important;pointer-events:none}
   .mv-hud{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}

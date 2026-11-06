@@ -22,7 +22,9 @@ Mantenha a janela do Chrome do teste em primeiro plano, sem interagir até termi
 
 Grava energia do núcleo, opacidade e uniform de energização das quatro malhas de veias e fps em intervalos nominais de 100 ms por 7 s. O instante real também é registrado: uma pausa do navegador pode atrasar a amostra. As veias têm opacidade 1 por desenho; sua luminosidade varia por `uLuz`/`uCarga`. FPS médio usa todos os intervalos de requestAnimationFrame; o mínimo é o inverso do maior intervalo, sem suavização. As sondas são inseridas na resposta HTTP e não modificam os arquivos da aplicação.
 
-Falha (exit code 1) se média <50 fps, energia não passar de 1 após 2,8 s da timeline, veias não energizarem, erro de console/página, amostragem insuficiente ou perda de foco/visibilidade. Não exige mínimo instantâneo de 50 fps.
+P2c: falha (exit code 1) se média <55 fps ou pior quadro ≥50 ms, energia não passar de 1 após 2,8 s da timeline, veias não energizarem, erro de console/página, amostragem insuficiente ou perda de foco/visibilidade. Mede também cada uma das dez paradas B por 2 s, após 2,5 s de assentamento da câmera, exigindo os mesmos limites e conferindo o ID da cena. Os intervalos de viagem não entram nessa medida das paradas.
+
+`--ignition-only` limita o diagnóstico à ignição; não substitui a execução completa. `--screenshots` salva um PNG de 1366×768 por parada no diretório de saída. `--trace` salva `trace.json` do Chrome (acrescenta custo, usar só para diagnóstico). Execute uma janela de teste por vez: duas cenas WebGL simultâneas invalidam a comparação de desempenho.
 
 Resultado detalhado: `.playwright-mcp/p2b/resultado.json` (ignorado pelo Git). Inclui quadros, amostras, tarefas longas, chamadas WebGL e construção de geometria, com causas sustentadas pelas sondas para os cinco maiores engasgos. Distingue espera de shader, upload e geometria; não atribui o tempo restante sem evidência.
 
