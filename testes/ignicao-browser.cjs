@@ -11,6 +11,9 @@ if (revision) assert.ok(['b685238','1e2d9aa','ec51f86'].includes(revision), 'Rev
 const sourceAt = file => revision
   ? require('node:child_process').execFileSync('git', ['show', revision + ':' + file], {cwd:root,encoding:'utf8'})
   : fs.readFileSync(path.join(root,file),'utf8');
+const semSaida = process.argv.includes('--diagnostico-sem-saida');
+assert.ok(!semSaida || (process.argv.includes('--round') && process.argv.includes('--ignition-only')),
+  'Sem saida e exclusivamente diagnostico --round --ignition-only; nao vale como aceite');
 const out = path.resolve(process.env.IGNICAO_OUTPUT || path.join(root, '.playwright-mcp/p2b'));
 fs.mkdirSync(out, { recursive: true });
 
@@ -86,6 +89,7 @@ if (!process.argv.includes('--round')) {
     });
     await page.route('**/landing-roteiro.js*', async route => {
       let source = sourceAt('landing-roteiro.js');
+      if(semSaida){assert.equal(source.split('if(pin && !reduzido){').length,2);source=source.replace('if(pin && !reduzido){','if(false){');}
       const marker = 'const est={p:0};';
       assert.equal(source.split(marker).length, 2, 'Sonda da ignição precisa ser atualizada');
       source = source.replace(marker, `console.timeStamp('p8s-ignicao'); window.__diag.start=performance.now(); window.__diag.pd=pd; const est={p:0};`);
@@ -174,7 +178,7 @@ if (!process.argv.includes('--round')) {
               'Sem bloqueio simples atribuído pelas sondas; consultar perfil CPU/GPU', spans };
     };
     const ignitionSpans = data.spans.filter(s => s.start >= data.start && s.start <= data.start + 7000);
-    const summary = { fps, minFps: 1000 / worst.dt, worstMs: worst.dt,
+    const summary = { diagnosticVariant:semSaida?'sem-saida-pin':null, fps, minFps: 1000 / worst.dt, worstMs: worst.dt,
       worstAtSeconds: (worst.end - data.start) / 1000, related,
       stalls: frames.filter(f => f.dt >= 50).sort((a, b) => b.dt - a.dt).slice(0, 5).map(explain),
       geometryCreated: ignitionSpans.filter(s => /Geometry$/.test(s.name)).length,
