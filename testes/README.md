@@ -4,6 +4,8 @@ Inicie `node scripts/visualizar-local.cjs`. Em outro terminal, configure Playwri
 
 Bug novo: reproduza; acrescente primeiro um teste com o nome do bug; confirme que falha; só então corrija e rode tudo. Não transforme gosto em teste. As sondas HTTP falham se o marcador mudar; não alteram o disco nem a lógica da aplicação.
 
+P7b: `node testes/atalhos-browser.cjs` compara os destinos com a função de abertura lida de `origin/main:pc.html`, sem trocar de branch. Usa cliques reais nas telas por projeção 3D, Ctrl K e dock; intercepta `window.open` para não acessar projetos reais. Testa também a proteção do PIN e URL insegura. Já faz parte de `tudo.cjs`.
+
 Provas negativas, sem modificar os arquivos: `node testes/regressao-browser.cjs --mutacao=declaracao` injeta declaração duplicada; `--mutacao=saudacao` oculta a saudação. Ambos devem terminar com código 1. A saudação é cronometrada após montagem da narrativa; downloads CDN não entram nos 1,2 s. Visibilidade é amostrada a cada 500 ms por 10 s.
 
 Hook opcional local: crie `.git/hooks/pre-commit` com:

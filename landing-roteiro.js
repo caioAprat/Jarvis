@@ -399,7 +399,7 @@
       if (window.editarCamera && ev.composedPath().some(el => el.id === 'theatrejs-studio-root')) return;
       if (!ativa || trecho !== 'B' || projeto || !proto || (ev.target.closest && ev.target.closest('button,a,input,.dock,.barra,.pal,.painel-sel'))) return;
       const id = proto.telaEm((ev.clientX / innerWidth) * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
-      if (id && !/^m[0-9]+$/.test(id)) entrarProjeto(id);
+      if (id && !/^m[0-9]+$/.test(id)) api.abrirProjeto(id);
     });
     const ir = document.createElement('button'); ir.type = 'button'; ir.className = 'ir-direto'; ir.innerHTML = 'Ir direto <kbd>D</kbd>'; ir.setAttribute('aria-label', 'Ir direto aos dados (tecla D)');
     ir.addEventListener('click', () => irDireto()); document.body.appendChild(ir);

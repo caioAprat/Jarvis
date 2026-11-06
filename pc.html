@@ -597,17 +597,21 @@ const ico = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[n] || ''}
 let PAL = null;
 function comandos() {
   const L = ABAS.map(([id, nome]) => ({ g: 'Ir para', t: nome, ic: id, f: () => irPara(id, true) }));
-  if (S.P) S.P.estado.projetos.forEach(p => L.push({ g: 'Projeto', t: p.nome, ic: 'geral', d: NOMES[p.status] || p.status, f: () => { S.sel = p.id; irPara('geral', true); } }));
+  if (S.P) {
+    S.P.estado.projetos.forEach(p => L.push({ g: 'Projeto', t: p.nome, ic: 'geral', d: NOMES[p.status] || p.status, f: () => abrirProjeto(p.id) }));
+    S.P.mapa.filter(m => !S.P.estado.projetos.some(p => p.id === m.id)).forEach(m => L.push({ g: 'Projeto', t: m.nome, ic: 'mapa', d: 'Mapa do projeto', f: () => abrirProjeto(m.id) }));
+  }
   L.push({ g: 'Ação', t: 'Conferir tudo agora', ic: 'refresh', f: () => carregar(true) });
   return L;
 }
 function fecharPaleta() { if (!PAL) return; const volta = PAL.volta; PAL.el.remove(); PAL = null; if (volta && volta.focus) volta.focus({ preventScroll: true }); }
-function abrirPaleta() {
+function abrirPaleta(soProjetos = false) {
+  if (NARR && NARR.acessoPendente()) { NARR.irAoAcesso(); return; }
   if (PAL) return;
   const el = document.createElement('div'); el.className = 'pal';
   el.innerHTML = `<div class="pal-caixa" role="dialog" aria-modal="true" aria-label="Buscar e navegar"><div class="pal-campo">${ico('buscar')}<input id="palQ" type="text" autocomplete="off" spellcheck="false" placeholder="Para onde? (seção, projeto ou ação)" aria-label="Buscar"><kbd>Esc</kbd></div><ul id="palL" role="listbox"></ul></div>`;
   document.body.appendChild(el);
-  PAL = { el, volta: document.activeElement, todos: comandos(), lista: [], i: 0 };
+  PAL = { el, volta: document.activeElement, todos: comandos().filter(c => !soProjetos || c.g === 'Projeto'), lista: [], i: 0 };
   const q = $('palQ'), ul = $('palL');
   const desenhar = () => {
     const t = q.value.trim().toLowerCase();
@@ -664,7 +668,7 @@ function render() {
     ${S.aba === 'geral' ? `<h1 class="sr" tabindex="-1">${esc(titulo)}</h1>` : `<header class="topo"><div><h1 tabindex="-1">${esc(titulo)}</h1><div class="sub">${sub}</div></div></header>`}
     ${conteudo}
     <div class="rodape">Servidor v${num(P.versao)} · conferido ${ha(P.estado.verificadoEm)}</div></main>
-    <nav class="dock" aria-label="Seções">${ABAS.map(([id, nome]) => { const [n, rot] = contagem[id] || [0, '']; return `<button type="button" id="nav-${id}" ${S.aba === id ? 'aria-current="page"' : ''} data-aba="${id}" aria-label="${esc(nome)}">${ico(id)}<span class="rot" aria-hidden="true">${esc(nome)}</span>${n ? `<span class="cont ${id === 'clientes' ? 'alerta' : ''}">${n}<span class="sr"> ${rot}</span></span>` : ''}</button>`; }).join('')}</nav>`;
+    <nav class="dock" aria-label="Seções"><button type="button" data-acao="projetos" aria-label="Abrir projetos">${ico('mapa')}<span class="rot" aria-hidden="true">Projetos</span></button>${ABAS.map(([id, nome]) => { const [n, rot] = contagem[id] || [0, '']; return `<button type="button" id="nav-${id}" ${S.aba === id ? 'aria-current="page"' : ''} data-aba="${id}" aria-label="${esc(nome)}">${ico(id)}<span class="rot" aria-hidden="true">${esc(nome)}</span>${n ? `<span class="cont ${id === 'clientes' ? 'alerta' : ''}">${n}<span class="sr"> ${rot}</span></span>` : ''}</button>`; }).join('')}</nav>`;
   raiz.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => { if (el.type !== 'password' && el.id in S.rasc) el.value = S.rasc[el.id]; });
   ligarMapa(); revelar(); if (NARR) NARR.atualizar();
   if (focoId && $(focoId)) { const n = $(focoId); n.focus({ preventScroll: true }); try { if (selA !== null) n.setSelectionRange(selA, selB); } catch (e) { /* tipo sem cursor */ } }
@@ -687,9 +691,13 @@ function rolagemAposNarrativa() { const off = NARR ? NARR.altura() : 0; return M
 window.addEventListener('scroll', () => { if (MV && S.aba === 'geral' && acessoAtual() === 'livre') MV.rolagem(rolagemAposNarrativa()); }, { passive: true });
 /** Clicar num projeto do núcleo abre o sistema dele; sem endereço (ou sem https), abre o painel de detalhes. */
 function abrirProjeto(id) {
-  if (NARR && NARR.entrarProjeto(id)) return;          // na narrativa: portal no planeta → painel lateral
+  if (acessoAtual() !== 'livre') { if (NARR) NARR.irAoAcesso(); return; }
   const p = S.P && S.P.estado.projetos.find(x => x.id === id), link = p && /^https:\/\//.test(String(p.link || '')) ? p.link : '';
   if (link) { window.open(link, '_blank', 'noopener'); return; }
+  if (!p) { if (S.P && S.P.mapa.some(m => m.id === id)) irPara('mapa', true); return; }
+  if (NARR && NARR.entrarProjeto(id)) return;          // sem URL: preserva o painel de parâmetros
+  if (NARR && NARR.ativa()) NARR.terminar();
+  S.aba = 'geral';
   S.sel = S.sel === id ? '' : id; render();
 }
 
@@ -801,6 +809,7 @@ document.addEventListener('click', async ev => {
     case 'conferir': carregar(true); break;
     case 'fechar-sel': S.sel = ''; render(); break;
     case 'paleta': abrirPaleta(); break;
+    case 'projetos': abrirPaleta(true); break;
     case 'tentar': carregar(); break;
     case 'recarregar-versoes': carregarVersoes(true); break;
     case 'vistos': { const ate = S.P.estado.avisos[0] ? S.P.estado.avisos[0].id : 0; const r = await ocupado('vistos', () => enviar({ tipo: 'vistos', ate }, 'Avisos marcados como vistos')); if (r && r.ok) carregar(); break; }
@@ -864,6 +873,7 @@ if (window.Narrativa && (S.aba === 'geral' || acessoAtual() !== 'livre')) {
       ha: iso => ha(iso),
       erro: () => S.erro && S.erro !== 'auth' ? S.erro : '',
       abrirPainel: id => { S.sel = id || ''; render(); },
+      abrirProjeto,
       irClientes: () => irPara('clientes', true),
       aoEntrar: () => { soltarAquecimento(); carregarFin(); },
       aoTerminar: () => { soltarAquecimento(); NARR = null; render(); },
