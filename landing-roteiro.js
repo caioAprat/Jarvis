@@ -328,7 +328,6 @@
     const fios = proto && window.Fios ? Fios.montar(mapa, proto, { leve }) : null;
     const telas = proto && window.TelasVivas ? TelasVivas.criar(proto, { dados: api.dados, liberado: () => (trecho === 'B' || !!portalDados) && api.acesso() === 'livre', camera: () => dep.camera, qualidade: () => mapa.qualidade() }) : null;
     // Antes do PIN o núcleo fica quase morto: brilho baixo e um tremor irregular, como lâmpada fraca. Só a ignição o acende.
-    const MORTO = .16;
     const ign = !reduzido && mapa && window.Ignicao ? Ignicao.criar(mapa, { E, pisoY: -3.2 * E, centro: () => new THREE.Vector3(0, 0, 0) }) : null;
     if (window.JarvisPreviewLocal) window.__ign = ign;
     // Geometria/material preparados antes do PIN; progresso zero mantém o campo oculto.
