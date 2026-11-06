@@ -243,6 +243,8 @@
       });
       passeIgn.enabled = false;
       comp.insertPass(passeIgn, 1);
+      // FullScreenQuad do Three r128 fica fora da cena: aquece seu shader sem desenhar.
+      renderer.compile(passeIgn.fsQuad._mesh, camera);
     }
     const aoQuadroFns = [];
     let vidaV = 1;   // landing: 0 = núcleo parado (desligado), 1 = vivo

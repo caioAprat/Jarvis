@@ -326,7 +326,8 @@
     const MORTO = .16;
     const ign = !reduzido && mapa && window.Ignicao ? Ignicao.criar(mapa, { E, pisoY: -3.2 * E, centro: () => new THREE.Vector3(0, 0, 0) }) : null;
     if (window.JarvisPreviewLocal) window.__ign = ign;
-    let campo = null;   // linhas de campo de energia (nascem na ignição e ficam)
+    // Geometria/material preparados antes do PIN; progresso zero mantém o campo oculto.
+    let campo = !reduzido && mapa && window.Ignicao && Ignicao.campo ? Ignicao.campo(mapa, { E }) : null;
     const malhaVeias = mapa && window.Veias ? Veias.criar(mapa.depurar().scene, { E, pisoY: -3.2 * E }) : null;
     if (malhaVeias && mapa.aoQuadro) mapa.aoQuadro(() => { malhaVeias.quadro(); if (trecho === 'B' && !portalDados) { malhaVeias.acender(1.08); malhaVeias.pulso(.35); malhaVeias.carga(-1); } });
     // G2 (Caio, 05/11): depois da saudação o núcleo está TOTALMENTE desligado (quase sem luz, parado). Cada dígito do PIN
@@ -345,6 +346,9 @@
     const chamadas = mapa && window.Chamadas ? Chamadas.montar({ camera: () => dep.camera, nucleoRaio: () => 2.1 * E, layout: rotulos }) : null;
     const nav = window.NavCenas ? NavCenas.montar() : null;
     if (mapa) { mapa.orbitas(false); mapa.ambienteEmCamadas(true); }
+    // Three r128 compila também os materiais dos monitores ainda ocultos.
+    // Evita bloquear a primeira renderização da ignição esperando o shader na GPU.
+    if (dep) dep.renderer.compile(dep.scene, dep.camera);
     // ao sair/recarregar: devolve a memória de vídeo na hora (GPU integrada não recupera a tempo e a próxima carga fica a 1 quadro/s)
     addEventListener('pagehide', () => { try { if (dep && dep.renderer) { dep.renderer.dispose(); dep.renderer.forceContextLoss(); } } catch (e) {} });
     const intro = { v: reduzido ? 1 : 0 };                       // os fios do chão acendem sozinhos na chegada

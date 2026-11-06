@@ -106,8 +106,16 @@
       c.inicio.position.copy(c.a.ancora);dir.set(centros[3]-centros[0],centros[4]-centros[1],centros[5]-centros[2]).normalize();c.inicio.quaternion.setFromUnitVectors(eixo,dir);
       const f=(SEG-1)*3;c.fim.position.copy(c.b.ancora);dir.set(centros[f-3]-centros[f],centros[f-2]-centros[f+1],centros[f-1]-centros[f+2]).normalize();c.fim.quaternion.setFromUnitVectors(eixo,dir);
     }
-    function limpar(){cabos.forEach(c=>{grupo.remove(c.mesh,c.inicio,c.fim);c.geo.dispose();c.mat.dispose();[c.inicio,c.fim].forEach(g=>{g.userData.luz.material.dispose();g.traverse(o=>{if(o.geometry)o.geometry.dispose();});});});cabos.length=0;}
-    function refazer(){limparDebug();limpar();ambiente.sincronizar();ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));atualizarDebug();}
+    function limpar(adiarMateriais){cabos.forEach(c=>{grupo.remove(c.mesh,c.inicio,c.fim);c.geo.dispose();if(!adiarMateriais)c.mat.dispose();[c.inicio,c.fim].forEach(g=>{g.userData.luz.material.dispose();g.traverse(o=>{if(o.geometry)o.geometry.dispose();});});});cabos.length=0;}
+    function refazer(){
+      const anteriores=cabos.map(c=>c.mat);
+      limparDebug();limpar(true);ambiente.sincronizar();
+      ambiente.apoios.forEach((a,i)=>criar(ambiente.portas[i],a,i));atualizarDebug();
+      // Mantém o programa aquecido vivo enquanto os novos cabos o adquirem.
+      // Descartar todos os materiais antes disto obrigava o driver a recompilar no PIN.
+      try { if(anteriores.length)dep.renderer.compile(dep.scene,dep.camera); }
+      finally { anteriores.forEach(m=>m.dispose()); }
+    }
     let debugGrupo=null,debugGeo=null,debugVerde=null,debugVermelho=null;
     const debugAtivo=()=>location.hash.split(/[&#]/).includes('debug');
     function limparDebug(){if(debugGrupo){grupo.remove(debugGrupo);debugGeo.dispose();debugVerde.dispose();debugVermelho.dispose();debugGrupo=null;}}
