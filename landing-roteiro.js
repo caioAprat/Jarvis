@@ -343,6 +343,7 @@
     const planeta = mapa && window.Planeta ? Planeta.montar(mapa, { posicao: new THREE.Vector3(-17 * E, 2.2 * E, -15 * E), raio: 2.6 * E, leve }) : null;
     const veias = mapa && window.VeiasCenario ? VeiasCenario.montar(mapa, planeta, { leve }) : null;
     const fundo = window.Fundo ? Fundo.montar(mapa, { particulas, chao: -3.2 * E }) : null;
+    const hologramas = dep && window.Hologramas ? Hologramas.criar(dep.scene, { E }) : null;
     const rotulos = proto && window.RotulosLayout ? RotulosLayout.montar({ camera: () => dep.camera, proto, planeta, E }) : null;
     const chamadas = mapa && window.Chamadas ? Chamadas.montar({ camera: () => dep.camera, nucleoRaio: () => 2.1 * E, layout: rotulos }) : null;
     const nav = window.NavCenas ? NavCenas.montar() : null;
@@ -378,6 +379,7 @@
         if (fios) fios.quadro(t, reduzido ? 0 : d);
         if (telas) telas.quadro(t, d);
         if (planeta) planeta.quadro(t, reduzido ? 0 : d);
+        if (hologramas) hologramas.quadro(t, dep.camera);
         if (veias) veias.quadro(t, d);
         if (rotulos) rotulos.quadro(host);
         if (chamadas) chamadas.quadro();
@@ -497,7 +499,7 @@
         pose(leve?27:22,.2,-.75,{x:pl.x*.5,y:pl.y*.5-(leve?2*E:0),z:pl.z*.5},40),
         pose(leve?20:18,.12,.4,alvoPl),
         pose(leve?27:22,.22,-.75,{x:pl.x*.5,y:pl.y*.5-(leve?2*E:0),z:pl.z*.5},40),
-        pose(leve?21:18,.3,-.45,{x:leve?0:-2*E,y:(leve?-.6:0)*E,z:leve?0:-2*E},36)];
+        leve ? pose(21,.3,-.45,{x:0,y:-.6*E,z:0},36) : pose(12,.225,0,{x:-10*E,y:1.55*E,z:0},36)];
     }
     function trilha(lista, poses, inicial) {
       const controles=[{v:inicial,scene:-1}];
@@ -832,6 +834,7 @@
     /** Protótipo, fios, planeta, fundo, ênfase, chamadas e navegação — tudo amarrado ao progresso (scrub). */
     function cenasV5(p, ativas) {
       const atualId = cenas.find(c=>p>=c.ini && p<c.fim) || cenas[cenas.length-1];
+      if (hologramas) hologramas.progresso(trecho === 'B' && !portalDados ? 'fecho' : '', emCena('fecho', p));
       if (nav && atualId) nav.ativa(cenas.indexOf(atualId));
       if (trecho === 'A') {
         const aguardando = p >= cena('acesso').ini;
@@ -1121,6 +1124,7 @@
       if (portalDados) { portalDados.destruir(); portalDados = null; }
       cenas.forEach(c => { zerar(c); Escrita.liberar(c.el); });
       if (particulas) particulas.destruir();
+      if (hologramas) hologramas.destruir();
       if (veias) veias.destruir();
       host.innerHTML = ''; host.style.display = 'none'; ir.remove();
       if (chamadas) { chamadas.limpar(); chamadas.esconder(true); } if (nav) nav.remover(); if (fundo) fundo.remover();
