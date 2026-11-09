@@ -1,10 +1,16 @@
 <!-- BEGIN:equipe-do-caio -->
 # Regras para qualquer IA neste repositório
 
-Projeto **Jarvis (Jarvão)** do Caio, trabalhado por uma equipe de IAs: **Claude** planeja e cria a base; **Codex** executa o plano; **Antigravity** revisa e dá o polimento; outras IAs (DeepSeek, Kimi, Claude de navegador) trazem referências e apoio.
+Projeto **Jarvis (Jarvão)** do Caio, trabalhado por uma equipe de IAs: **Claude** orquestra e revisa; **Codex** implementa, depura e valida; **Gemini (web)** apoia análises, pesquisas e revisões quando tiver acesso. Gemini Code não é presumido; Antigravity é opcional e não bloqueia o fluxo.
 
 ## 1. Se você roda no PC do Caio e consegue ler `C:\Cerebro`
 Leia `C:\Cerebro\AGENTS.md` e siga tudo: ele vale acima deste arquivo. A nota deste projeto é `C:\Cerebro\Projetos\Jarvis.md`.
+
+## Padrão de execução e validação em qualquer ambiente
+- Antes de devolver um teste manual ao Caio, confira as integrações, plugins, conectores, skills, extensões, ferramentas e ambientes de teste já disponíveis. Quando houver uma ferramenta **relevante e concreta** que permita a IA executar melhor a tarefa, sugira-a proativamente e explique o ganho; peça consentimento para instalar, conectar, dar acesso ou gerar custos.
+- **IA executa → testa → corrige → testa novamente → Caio revisa/aprova.** Reproduza bugs, use testes automatizados/de regressão quando viável, valide os resultados e informe evidências objetivas. Não diga que testou quando não testou.
+- Trabalhe em branch/cópia/ambiente de desenvolvimento; nunca publique, mescle na `main` ou altere produção sem o OK do Caio. Respeite o escopo original e as responsabilidades de Claude, Codex e Gemini. Se a ferramenta necessária não estiver acessível, explique a limitação e solicite somente a intervenção mínima.
+- Fonte de verdade do padrão transversal: `caioAprat/cerebro/AGENTS.md` e `Memoria/preferencia-execucao-autonoma-validada.md`. Esta regra vale também para IAs que não conseguem ler `C:\Cerebro`.
 
 ## 2. Se você roda na nuvem ou no navegador (sem acesso a `C:\Cerebro`)
 - Responda em português do Brasil, direto e curto. O Caio não é programador: passo a passo clique a clique quando ele precisar fazer algo.
