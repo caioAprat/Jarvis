@@ -15,7 +15,10 @@ function carregarPlaywright() {
   }
   throw Error('Playwright ausente. Execute npm install --prefix "' + path.join(os.tmpdir(), 'jarvao-playwright') + '" playwright. Veja testes/README.md; PLAYWRIGHT_MODULE permite outra pasta.');
 }
+const paginasHeadless = new WeakSet();
+function headlessPadrao(options = {}) { return options.headless !== false; }
 async function abrirChrome(options = {}) {
+  const headless = headlessPadrao(options);
   const folder = path.resolve(__dirname,'../.playwright-mcp/p8s');
   fs.mkdirSync(folder,{recursive:true});
   const profile = options.profile || fs.mkdtempSync(path.join(folder,'chrome-'));
@@ -35,7 +38,7 @@ async function abrirChrome(options = {}) {
     '--no-service-autorun','--disable-search-engine-choice-screen','--enable-automation',
     '--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,AvoidCorsURLLoaderRestartOnRedirect,TcpPortRandomizationWin,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,PreconnectToSearch',
     '--enable-features=CDPScreenshotNewSurface,SkipListAccountsWithoutGaiaCookies'];
-  const child = spawn(executable,[...automationArgs,'--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
+  const child = spawn(executable,[...automationArgs,...(headless?['--headless=new']:[]),'--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--no-first-run','--no-default-browser-check',
     '--disable-background-timer-throttling','--disable-renderer-backgrounding',options.appUrl ? '--app='+options.appUrl : 'about:blank'],{stdio:'ignore'});
   let launchError, browser;
@@ -69,6 +72,7 @@ async function abrirChrome(options = {}) {
       initialPage:()=>context.pages()[0],
       async newPage(pageOptions={}) {
         const page=await context.newPage();
+        if(headless)paginasHeadless.add(page);
         await page.setViewportSize(pageOptions.viewport||options.viewport||{width:1366,height:768});
         await page.emulateMedia({reducedMotion:pageOptions.reducedMotion||options.reducedMotion||'no-preference'});
         return page;
@@ -81,7 +85,7 @@ async function vigiarFoco(page) {
   // Playwright ativa foco emulado por padrão: hasFocus() pode ser true em outra aba.
   // A sessão dura até o fechamento do contexto; o teste precisa do foco real.
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setFocusEmulationEnabled', {enabled:false});
+  await cdp.send('Emulation.setFocusEmulationEnabled', {enabled:paginasHeadless.has(page)});
   await page.addInitScript(() => {
     window.__testeFoco = {armado:false, perdeu:false};
     const registrar = () => {
@@ -146,4 +150,4 @@ async function medirQuadros(page) {
   })),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(Error('Amostragem nao concluiu em 12 s; verificar foco, visibilidade e travamento do navegador.')),12000);})]);}
   finally{clearTimeout(deadline);}
 }
-module.exports = {carregarPlaywright, abrirChrome, vigiarFoco, exigirFoco, esperarAcesso, medirQuadros, lerPortaCDP};
+module.exports = {headlessPadrao, carregarPlaywright, abrirChrome, vigiarFoco, exigirFoco, esperarAcesso, medirQuadros, lerPortaCDP};

@@ -5,7 +5,7 @@ const url=process.env.P9_URL||'https://jarvao-landing-v3.vercel.app/v3/pc.html?d
 const rounds=Number(process.env.P9_ROUNDS||1),results=[];
 (async()=>{
  for(const mode of ['aba','app'])for(let i=0;i<rounds;i++){
-  const chrome=await abrirChrome(mode==='app'?{appUrl:url}:{});
+  const chrome=await abrirChrome(mode==='app'?{appUrl:url,headless:false}:{headless:false});
   try{
    const page=mode==='app'?chrome.initialPage():await chrome.newPage();
    await page.setViewportSize({width:1366,height:768});

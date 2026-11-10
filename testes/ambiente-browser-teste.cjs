@@ -31,7 +31,7 @@ const {abrirChrome,vigiarFoco,exigirFoco,medirQuadros,lerPortaCDP}=require('./am
     await assert.rejects(exigirFoco({evaluate:async()=>state}),/AMBIENTE INVALIDO.*primeiro plano/);
   }
   console.log('OK foco ausente, aba oculta e perda transitoria reprovam');
-  const browser=await abrirChrome();
+  const browser=await abrirChrome({headless:false});
   try {
     const page=await browser.newPage();await vigiarFoco(page);
     await page.goto('data:text/html,<title>Teste de foco P8s</title>');await page.bringToFront();await exigirFoco(page);

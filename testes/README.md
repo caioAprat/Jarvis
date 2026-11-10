@@ -1,3 +1,11 @@
+## Grupos P8s (10/11)
+
+- `node testes/tudo.cjs --logica`: LOGICA, Chrome headless sem janela; pode rodar em segundo plano. Inclui gerais, política P9, jornada, descarte, atalhos e PWA. O foco é emulado apenas aqui, para testar teclado/autofocus sem ocupar a área de trabalho; não produz aceite de fps.
+- `node testes/tudo.cjs --desempenho`: DESEMPENHO, Chrome com janela e foco real, PC quieto e sem outra carga 3D. Inclui a prova de perda de foco e as três rodadas de ignição/paradas. `AMBIENTE INVALIDO` significa medição reprovada; deixe a janela em foco durante toda a etapa.
+- `node testes/tudo.cjs`: ambos, sequencialmente; sucesso só quando todos passam. Duas execuções completas seguidas são necessárias para P8s.
+
+Execuções diretas dos testes funcionais também são headless. `ignicao-browser.cjs`, `ambiente-browser-teste.cjs` e o diagnóstico `p9-browser.cjs` abrem janela explicitamente. O teste PWA gera pacote em pasta exclusiva `p7c/teste-site-*`, sem reutilizar a pasta de publicação (que pode conter configuração local do deploy). Não remove arquivos alheios nem relaxa a proteção do empacotador.
+
 # Regressão do Jarvão
 
 P9: `node testes/qualidade-p9.cjs` verifica com relógio controlado a política real de qualidade (aquecimento, recuperação e foco); incluído em `tudo.cjs`. `node testes/p9-browser.cjs` compara produção em aba e `--app`, com perfis descartáveis separados, sem acessar credenciais pessoais. Para validar a correção na prévia local, no PowerShell:
@@ -21,7 +29,7 @@ npm install --prefix "$env:TEMP\jarvao-playwright" playwright
 node testes/tudo.cjs
 ```
 
-Todos os testes procuram o pacote local `playwright` e depois a instalação temporária acima. Para outra pasta, defina `$env:PLAYWRIGHT_MODULE = 'C:\caminho\node_modules\playwright'`. Se essa variável estiver definida mas incorreta, o teste falha com instrução de instalação; não usa outra versão silenciosamente. Não é necessário baixar Chromium: usamos o Google Chrome instalado no Windows (`CHROME_PATH` permite outro executável).
+O teste PWA também usa o resolvedor compartilhado; não exige instalação global. Todos os testes procuram o pacote local `playwright` e depois a instalação temporária acima. Para outra pasta, defina `$env:PLAYWRIGHT_MODULE = 'C:\caminho\node_modules\playwright'`. Se essa variável estiver definida mas incorreta, o teste falha com instrução de instalação; não usa outra versão silenciosamente. Não é necessário baixar Chromium: usamos o Google Chrome instalado no Windows (`CHROME_PATH` permite outro executável).
 
 O runner usa `spawnSync`: cada teste termina e fecha seu Chrome em `finally` antes de iniciar o próximo; as três rodadas também são sequenciais. Execute apenas um runner/diagnóstico por vez e feche outras prévias 3D. Não interaja durante a execução. O monitor registra perda de foco/visibilidade mesmo que a janela volte ao primeiro plano depois; a mensagem `AMBIENTE INVALIDO` reprova a execução. Foco inválido não é tratado como regressão de desempenho nem conta como rodada aprovada.
 

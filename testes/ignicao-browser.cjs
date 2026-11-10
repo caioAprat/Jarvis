@@ -37,7 +37,7 @@ if (!process.argv.includes('--round')) {
   process.exit(0);
 }
 (async () => {
-  const browser = await abrirChrome();
+  const browser = await abrirChrome({headless:false});
   try {
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
     await vigiarFoco(page);
