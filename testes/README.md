@@ -57,3 +57,24 @@ node testes/tudo.cjs
 ```
 
 Configure `PLAYWRIGHT_MODULE` no ambiente e deixe a prévia ligada antes de commitar. Hooks não são distribuídos pelo Git. Não instalado automaticamente para não bloquear outros fluxos sem prévia.
+
+## P6c completo (10/11)
+
+Os dez bugs ficam em `regressao-browser.cjs`, grupo LOGICA headless 1366×768:
+
+| Bug | Verificação que reprova a regressão |
+|---|---|
+| (a) declaração duplicada/erro de abertura | pageerror e console.error vazios durante toda a jornada |
+| (b) saudação piscando | aparece em até 1,2 s após montagem; visível em cada RAF durante 10 s |
+| (c) teclado/Enter/trava | teclado real do Playwright escreve, recebe réplica e não altera após Enter |
+| (d) recarga fora do topo | exige scrollY > 0 antes de recarregar; depois exige zero |
+| (e) PIN sem foco | activeElement password sem clique/focus no teste |
+| (f) ignição interrompida prende scroll | interrompe durante portal ativo; wheel não cancelado e rolagem real em área rolável garantida |
+| (g) monitores/núcleo antes do PIN | pixels pretos e todas as energias observadas desde a montagem ≤ 0,25 |
+| (h) textos duplicados/incorretos | conta cada mom-bloco e exige identidade da parada; passagens vazias |
+| (i) veias/listeners retidos | grupo removido e vazio; callbacks registrados ausentes do rastreador de add/remove reais |
+| (j) emissão contínua | arranque e explosão separados, motor real com relógio controlado: emite, não cria novas partículas após a rajada e chega a zero em 10 s simulados |
+
+(j) verifica lógica, sem produzir medida de fps; o callback recebe passos de 1/60 s, sem depender da renderização da parada. DESEMPENHO continua com janela/foco real e limites intactos.
+
+Provas adicionais: `node testes/regressao-browser.cjs --mutacao=energia` injeta energia 0,8; `--mutacao=listeners` esvazia o registro interno sem remover callbacks reais. Ambas devem retornar 1. Mutações só na resposta HTTP daquela execução; a próxima execução sem opção usa o produto original. Logs em `.playwright-mcp/p6c-completar-*.log` (ignorados pelo Git).
