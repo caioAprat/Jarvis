@@ -1,8 +1,8 @@
 'use strict';
 // Gera apenas um pacote local estático. Não executa Git, deploy ou publicação.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const root=path.resolve(__dirname,'..'),out=path.join(root,'.playwright-mcp/p7c/site');
-function preparar(){
+const root=path.resolve(__dirname,'..'),defaultOut=path.join(root,'.playwright-mcp/p7c/site');
+function preparar(out=defaultOut){
  let html=fs.readFileSync(path.join(root,'pc.html'),'utf8');
  const replace=(a,b)=>{assert.equal(html.split(a).length,2,'Marcador mudou: '+a);html=html.replace(a,b);};
  replace('<title>Jarvão · Central</title>','<title>Jarvão Landing · v3</title>');
